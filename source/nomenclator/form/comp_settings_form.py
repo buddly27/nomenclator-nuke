@@ -10,19 +10,19 @@ from nomenclator.widget import PathWidget
 class CompSettingsForm(QtWidgets.QWidget):
     """Form to manage composition settings."""
 
-    def __init__(self, descriptions, parent=None):
+    def __init__(self, options, parent=None):
         """Initiate the widget."""
         super(CompSettingsForm, self).__init__(parent)
-        self._setup_ui(descriptions)
+        self._setup_ui(options)
         self._connect_signals()
 
-    def _setup_ui(self, descriptions):
+    def _setup_ui(self, options):
         """Initialize user interface."""
         main_layout = QtWidgets.QGridLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(8)
 
-        self._description_selector = DescriptionSelector(descriptions, self)
+        self._description_selector = DescriptionSelector(options.descriptions, self)
         main_layout.addWidget(self._description_selector, 0, 0)
 
         self._append_username = QtWidgets.QCheckBox("Append username to script", self)

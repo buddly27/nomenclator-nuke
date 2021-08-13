@@ -11,13 +11,13 @@ from .output_settings_form import OutputSettingsForm
 class OutputsSettingsForm(QtWidgets.QWidget):
     """Form to manage render outputs settings."""
 
-    def __init__(self, nodes, blacklisted_names, parent=None):
+    def __init__(self, options, parent=None):
         """Initiate the widget."""
         super(OutputsSettingsForm, self).__init__(parent)
-        self._setup_ui(nodes, blacklisted_names)
+        self._setup_ui(options)
         self._connect_signals()
 
-    def _setup_ui(self, nodes, blacklisted_names):
+    def _setup_ui(self, options):
         """Initialize user interface."""
         self.setObjectName("output-form")
 
@@ -35,7 +35,7 @@ class OutputsSettingsForm(QtWidgets.QWidget):
         sub_folder_group.setTitle("Sub-Folder")
         main_layout.addWidget(sub_folder_group, 0, 0)
 
-        self._file_name_form = FileNameForm(self)
+        self._file_name_form = FileNameForm(options, self)
         self._file_name_form.setMinimumHeight(100)
 
         file_name_group = GroupFormWidget(
@@ -51,8 +51,8 @@ class OutputsSettingsForm(QtWidgets.QWidget):
         main_layout.addWidget(self._output_list, 1, 0, 1, 2)
         main_layout.rowStretch(1)
 
-        for node in sorted(nodes, key=lambda n: n.name()):
-            output_form = OutputSettingsForm(node, blacklisted_names, self)
+        for node in sorted(options.nodes, key=lambda n: n.name()):
+            output_form = OutputSettingsForm(node, options, self)
             output_widget = ListFormItemWidget(
                 output_form, not node["disable"].value(), self
             )
@@ -112,12 +112,12 @@ class SubFolderForm(QtWidgets.QWidget):
 class FileNameForm(QtWidgets.QWidget):
     """Form to manage output file name settings."""
 
-    def __init__(self, parent=None):
+    def __init__(self, options, parent=None):
         """Initiate the widget."""
         super(FileNameForm, self).__init__(parent)
-        self._setup_ui()
+        self._setup_ui(options)
 
-    def _setup_ui(self):
+    def _setup_ui(self, options):
         """Initialize user interface."""
         main_layout = QtWidgets.QGridLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -128,6 +128,7 @@ class FileNameForm(QtWidgets.QWidget):
         main_layout.addWidget(label, 0, 0)
 
         self._padding = QtWidgets.QComboBox(self)
+        self._padding.addItems(options.paddings)
         main_layout.addWidget(self._padding, 0, 1)
 
         self._append_passname = QtWidgets.QCheckBox(
