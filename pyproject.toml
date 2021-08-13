@@ -1,0 +1,9 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.vendoring]
+destination = "source/nomenclator/vendor/"
+requirements = "source/nomenclator/vendor/vendor.txt"
+namespace = "nomenclator.vendor"
+protected-files = ["vendor.txt", "__init__.py"]
