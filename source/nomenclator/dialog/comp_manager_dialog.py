@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from nomenclator.vendor.Qt import QtWidgets, QtCore
-from nomenclator.widget import ErrorWidget, WarningWidget
 from nomenclator.widget import LocationWidget
 from nomenclator.widget import GroupFormWidget
 
