@@ -9,13 +9,13 @@ from nomenclator.widget import PathWidget
 class OutputSettingsForm(QtWidgets.QWidget):
     """Form to manage render outputs settings."""
 
-    def __init__(self, node, options, parent=None):
+    def __init__(self, node, config, parent=None):
         """Initiate the widget."""
         super(OutputSettingsForm, self).__init__(parent)
         self._setup_ui()
 
         self._node = node
-        self._options = options
+        self._config = config
 
         self._initiate()
 

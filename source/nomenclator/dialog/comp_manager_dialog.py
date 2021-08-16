@@ -12,12 +12,12 @@ from .theme import classic_style
 
 class CompoManagerDialog(QtWidgets.QDialog):
 
-    def __init__(self, options, parent=None):
+    def __init__(self, config, parent=None):
         super(CompoManagerDialog, self).__init__(parent)
-        self._setup_ui(options)
+        self._setup_ui(config)
         self._connect_signals()
 
-    def _setup_ui(self, options):
+    def _setup_ui(self, config):
         """Initialize user interface."""
         self.setWindowTitle("Nomenclator - Composition Manager")
         self.setMinimumWidth(1100)
@@ -35,7 +35,7 @@ class CompoManagerDialog(QtWidgets.QDialog):
         body_layout.setContentsMargins(10, 10, 10, 10)
         body_layout.setSpacing(8)
 
-        self._comp_settings_form = CompSettingsForm(options, self)
+        self._comp_settings_form = CompSettingsForm(config, self)
 
         comp_settings_group = GroupFormWidget(
             self._comp_settings_form,
@@ -49,14 +49,14 @@ class CompoManagerDialog(QtWidgets.QDialog):
         )
         body_layout.addWidget(comp_settings_group)
 
-        self._outputs_settings_form = OutputsSettingsForm(options, self)
+        self._outputs_settings_form = OutputsSettingsForm(config, self)
 
         outputs_settings_group = GroupFormWidget(
             self._outputs_settings_form,
             vertical_stretch=True, parent=self
         )
         outputs_settings_group.setTitle("Render Outputs")
-        outputs_settings_group.setEnabled(len(options.nodes) > 0)
+        outputs_settings_group.setEnabled(len(config.nodes) > 0)
         body_layout.addWidget(outputs_settings_group)
 
         self._button_box = QtWidgets.QDialogButtonBox(self)

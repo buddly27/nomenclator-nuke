@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import nuke
-
-import nomenclator.utilities
+import nomenclator.config
 from nomenclator.dialog import CompoManagerDialog
 
 from ._version import __version__
@@ -11,8 +9,8 @@ from ._version import __version__
 def open_comp_manager_dialog():
     """Open the dialog to manage composition script and render output paths.
     """
-    options = nomenclator.utilities.OptionMapping()
-    panel = CompoManagerDialog(options)
+    config = nomenclator.config.fetch()
+    panel = CompoManagerDialog(config)
     panel.exec_()
 
 
@@ -24,5 +22,11 @@ def open_project_manager_dialog():
 
 def open_output_manager_dialog():
     """Open the dialog to manage render output paths.
+    """
+    pass
+
+
+def open_settings_dialog():
+    """Open the dialog to manage settings.
     """
     pass

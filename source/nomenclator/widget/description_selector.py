@@ -14,7 +14,7 @@ class DescriptionSelector(QtWidgets.QWidget):
     def __init__(self, descriptions, parent=None):
         """Initiate the widget."""
         super(DescriptionSelector, self).__init__(parent)
-        self._items = descriptions + ["-- custom --"]
+        self._items = list(descriptions) + ["-- custom --"]
 
         self._setup_ui()
         self._connect_signals()
