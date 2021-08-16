@@ -37,14 +37,17 @@ def extract(data):
     """Extract configuration object from *data*."""
     nodes, node_names = nomenclator.utilities.fetch_outputs_and_names()
 
+    recent_locations = nomenclator.utilities.fetch_recent_locations(
+        max_values=data.get("maximum-recent-locations", 5)
+    )
     paddings = nomenclator.utilities.fetch_paddings(
         max_value=data.get("maximum-padding", 5)
     )
 
     return Config(
-        recent_locations=data.get("recent-locations", []),
+        recent_locations=tuple(recent_locations),
         descriptions=tuple(data.get("descriptions", DEFAULT_DESCRIPTIONS)),
-        paddings=paddings,
-        nodes=nodes,
-        node_names=node_names
+        paddings=tuple(paddings),
+        nodes=tuple(nodes),
+        node_names=tuple(node_names)
     )

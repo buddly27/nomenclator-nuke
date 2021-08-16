@@ -6,13 +6,13 @@ from nomenclator.vendor.Qt import QtWidgets, QtCore
 class LocationWidget(QtWidgets.QFrame):
     """Widget used to manage location path."""
 
-    def __init__(self, parent=None):
+    def __init__(self, recent_locations, parent=None):
         """Initiate the widget."""
         super(LocationWidget, self).__init__(parent)
-        self._setup_ui()
+        self._setup_ui(recent_locations)
         self._connect_signals()
 
-    def _setup_ui(self):
+    def _setup_ui(self, recent_locations):
         """Initialize user interface."""
         self.setObjectName("location-box")
 
@@ -45,6 +45,9 @@ class LocationWidget(QtWidgets.QFrame):
         main_layout.addWidget(label)
         main_layout.addWidget(self._location)
         main_layout.addWidget(self._browse_btn)
+
+        self._location.addItems(recent_locations)
+        self._location.setEditText("")
 
     def _connect_signals(self):
         """Initialize signals connection."""

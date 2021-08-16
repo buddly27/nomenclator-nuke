@@ -28,7 +28,7 @@ class CompoManagerDialog(QtWidgets.QDialog):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        self._location = LocationWidget(self)
+        self._location = LocationWidget(config.recent_locations, self)
         main_layout.addWidget(self._location)
 
         body_layout = QtWidgets.QVBoxLayout()

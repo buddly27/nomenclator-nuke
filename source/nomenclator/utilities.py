@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import nuke
 
 from nomenclator.symbol import OUTPUT_CLASSES
@@ -17,6 +18,21 @@ def fetch_outputs_and_names():
         all_names.append(node.name())
 
     return output_nodes, all_names
+
+
+def fetch_recent_locations(max_values=10):
+    """Return list of location recently used to save a composition."""
+    paths = []
+
+    try:
+        for index in range(1, max_values + 1):
+            path = os.path.dirname(nuke.recentFile(index))
+            if path not in paths:
+                paths.append(path)
+    except (ValueError, RuntimeError):
+        pass
+
+    return paths
 
 
 def fetch_paddings(max_value):
