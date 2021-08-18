@@ -2,18 +2,16 @@
 
 from nomenclator.vendor.Qt import QtWidgets
 
-from nomenclator.widget import GroupFormWidget
-from nomenclator.widget import ListFormItemWidget
-
-from .output_settings_form import OutputSettingsForm
+from .group_widget import GroupWidget
+from .output_list import OutputList
 
 
-class OutputsSettingsForm(QtWidgets.QWidget):
+class OutputSettingsForm(QtWidgets.QWidget):
     """Form to manage render outputs settings."""
 
     def __init__(self, config, parent=None):
         """Initiate the widget."""
-        super(OutputsSettingsForm, self).__init__(parent)
+        super(OutputSettingsForm, self).__init__(parent)
         self._setup_ui(config)
         self._connect_signals()
 
@@ -28,39 +26,25 @@ class OutputsSettingsForm(QtWidgets.QWidget):
         self._sub_folder_form = SubFolderForm(self)
         self._sub_folder_form.setMinimumHeight(100)
 
-        sub_folder_group = GroupFormWidget(
-            self._sub_folder_form,
-            vertical_stretch=False, parent=self
-        )
+        sub_folder_group = GroupWidget(self._sub_folder_form, self)
+        sub_folder_group.expand_vertically(False)
         sub_folder_group.setTitle("Sub-Folder")
         main_layout.addWidget(sub_folder_group, 0, 0)
 
         self._file_name_form = FileNameForm(config, self)
         self._file_name_form.setMinimumHeight(100)
 
-        file_name_group = GroupFormWidget(
-            self._file_name_form,
-            vertical_stretch=False, parent=self
-        )
+        file_name_group = GroupWidget(self._file_name_form, self)
+        sub_folder_group.expand_vertically(False)
         file_name_group.setTitle("File Name")
         main_layout.addWidget(file_name_group, 0, 1)
 
-        self._output_list = QtWidgets.QListWidget(self)
-        self._output_list.setObjectName("output-list")
-        self._output_list.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
+        self._output_list = OutputList(self)
         main_layout.addWidget(self._output_list, 1, 0, 1, 2)
         main_layout.rowStretch(1)
 
         for node in sorted(config.nodes, key=lambda n: n.name()):
-            output_form = OutputSettingsForm(node, config, self)
-            output_widget = ListFormItemWidget(
-                output_form, not node["disable"].value(), self
-            )
-
-            item = QtWidgets.QListWidgetItem()
-            item.setSizeHint(output_widget.sizeHint())
-            self._output_list.addItem(item)
-            self._output_list.setItemWidget(item, output_widget)
+            self._output_list.add(node, config)
 
     def _connect_signals(self):
         """Initialize signals connection."""

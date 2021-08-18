@@ -2,6 +2,7 @@
 
 import nomenclator.config
 from nomenclator.dialog import CompoManagerDialog
+from nomenclator.dialog import SettingsDialog
 
 from ._version import __version__
 
@@ -29,4 +30,6 @@ def open_output_manager_dialog():
 def open_settings_dialog():
     """Open the dialog to manage settings.
     """
-    pass
+    config = nomenclator.config.fetch()
+    panel = SettingsDialog(config)
+    panel.exec_()
