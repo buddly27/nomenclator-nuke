@@ -25,7 +25,7 @@ class OutputList(QtWidgets.QListWidget):
 
     def add(self, node, config):
         """Add output item to list."""
-        output_form = OutputSettingsForm(node, config, self)
+        output_form = SettingsForm(node, config, self)
         output_widget = SelectableItemWidget(
             output_form, not node["disable"].value(), self
         )
@@ -87,12 +87,12 @@ class SelectableItemWidget(QtWidgets.QWidget):
         self._main_frame.setEnabled(self._selection.isChecked())
 
 
-class OutputSettingsForm(QtWidgets.QWidget):
+class SettingsForm(QtWidgets.QWidget):
     """Form to manage render outputs settings."""
 
     def __init__(self, node, config, parent=None):
         """Initiate the widget."""
-        super(OutputSettingsForm, self).__init__(parent)
+        super(SettingsForm, self).__init__(parent)
         self._setup_ui()
 
         self._node = node
