@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import os
-import json
 import collections
 
+import nomenclator.vendor.toml
 import nomenclator.utilities
 from nomenclator.symbol import CONFIG_FILE_NAME, DEFAULT_DESCRIPTIONS
-
 
 #: Configuration type.
 Config = collections.namedtuple(
@@ -28,7 +27,7 @@ def fetch():
 
     if os.path.exists(path):
         with open(path, "r") as stream:
-            data = json.load(stream.read())
+            data = nomenclator.vendor.toml.load(stream.read())
 
     return extract(data)
 
