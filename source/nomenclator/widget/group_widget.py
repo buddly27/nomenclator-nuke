@@ -19,8 +19,11 @@ class GroupWidget(QtWidgets.QGroupBox):
 
         widget.setParent(self)
 
-    def expand_vertically(self, value):
-        """Indicate whether the widget should expand vertically."""
+        # Default to no vertical stretch
+        self.set_vertical_stretch(False)
+
+    def set_vertical_stretch(self, value):
+        """Indicate whether the widget should stretch vertically."""
         self.setSizePolicy(
             QtWidgets.QSizePolicy(
                 QtWidgets.QSizePolicy.Preferred,

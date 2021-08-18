@@ -39,19 +39,13 @@ class CompoManagerDialog(QtWidgets.QDialog):
         self._comp_settings_form = CompSettingsForm(config, self)
 
         comp_settings_group = GroupWidget(self._comp_settings_form, self)
-        comp_settings_group.expand_vertically(False)
         comp_settings_group.setTitle("Composition")
-        comp_settings_group.setSizePolicy(
-            QtWidgets.QSizePolicy(
-                QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum
-            )
-        )
         body_layout.addWidget(comp_settings_group)
 
         self._output_settings_form = OutputSettingsForm(config, self)
 
         outputs_settings_group = GroupWidget(self._output_settings_form, self)
-        outputs_settings_group.expand_vertically(True)
+        outputs_settings_group.set_vertical_stretch(True)
         outputs_settings_group.setTitle("Render Outputs")
         outputs_settings_group.setEnabled(len(config.nodes) > 0)
         body_layout.addWidget(outputs_settings_group)

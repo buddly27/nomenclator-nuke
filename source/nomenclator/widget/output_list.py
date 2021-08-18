@@ -144,14 +144,12 @@ class SettingsForm(QtWidgets.QWidget):
         self._sub_folder_form.setMinimumWidth(150)
 
         sub_folder_group = GroupWidget(self._sub_folder_form, self)
-        sub_folder_group.expand_vertically(False)
         sub_folder_group.setTitle("Append to Sub-Folder")
         main_layout.addWidget(sub_folder_group, 0, 4, 2, 1)
 
         self._file_name_form = FileNameForm(self)
 
         file_name_group = GroupWidget(self._file_name_form, self)
-        sub_folder_group.expand_vertically(False)
         file_name_group.setTitle("Append to File Name")
         main_layout.addWidget(file_name_group, 0, 5, 2, 1)
 

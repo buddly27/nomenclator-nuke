@@ -27,7 +27,6 @@ class OutputSettingsForm(QtWidgets.QWidget):
         self._sub_folder_form.setMinimumHeight(100)
 
         sub_folder_group = GroupWidget(self._sub_folder_form, self)
-        sub_folder_group.expand_vertically(False)
         sub_folder_group.setTitle("Sub-Folder")
         main_layout.addWidget(sub_folder_group, 0, 0)
 
@@ -35,7 +34,6 @@ class OutputSettingsForm(QtWidgets.QWidget):
         self._file_name_form.setMinimumHeight(100)
 
         file_name_group = GroupWidget(self._file_name_form, self)
-        sub_folder_group.expand_vertically(False)
         file_name_group.setTitle("File Name")
         main_layout.addWidget(file_name_group, 0, 1)
 
