@@ -7,7 +7,9 @@ def classic_style():
     """initiate CSS theme."""
     return textwrap.dedent(
         """
-        QDialog {background: #282828}
+        QDialog {
+            background: #282828;
+        }
         QGroupBox {
             background: #333;
             border: 1px solid #151515;
