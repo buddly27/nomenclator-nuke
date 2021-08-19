@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .description_selector import DescriptionSelector
+from .editable_list import EditableList
 from .group_widget import GroupWidget
 from .location_widget import LocationWidget
 from .message_widget import ErrorWidget, WarningWidget
