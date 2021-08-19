@@ -118,6 +118,9 @@ def classic_style():
             border: 0px;
             background: none;
         }
+        QListView::item {
+            height: 30px;
+        }
         """
     )
 
