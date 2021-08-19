@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from nomenclator.vendor.Qt import QtWidgets, QtCore
+from nomenclator.widget import GroupWidget
 
 from .theme import classic_style
 
@@ -23,10 +24,17 @@ class SettingsDialog(QtWidgets.QDialog):
         main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(5)
 
-        self._tab_widget = QtWidgets.QTabWidget(self)
-        self._tab_widget.addTab(StructureTab(config, self), "Folder Structure")
-        self._tab_widget.addTab(QtWidgets.QWidget(), "Naming Convention")
-        main_layout.addWidget(self._tab_widget)
+        global_settings_form = GlobalSettingsForm(config, self)
+
+        global_settings_group = GroupWidget(global_settings_form, self)
+        global_settings_group.setTitle("Global")
+        main_layout.addWidget(global_settings_group)
+
+        convention_settings_form = ConventionSettingsForm(config, self)
+
+        convention_settings_group = GroupWidget(convention_settings_form, self)
+        convention_settings_group.setTitle("Naming Convention")
+        main_layout.addWidget(convention_settings_group)
 
         self._button_box = QtWidgets.QDialogButtonBox(self)
         self._button_box.setOrientation(QtCore.Qt.Horizontal)
@@ -40,33 +48,74 @@ class SettingsDialog(QtWidgets.QDialog):
         self._button_box.rejected.connect(self.reject)
 
 
-class StructureTab(QtWidgets.QWidget):
+class GlobalSettingsForm(QtWidgets.QWidget):
+    """Form to manage global settings."""
 
     def __init__(self, config, parent=None):
-        super(StructureTab, self).__init__(parent)
+        """Initiate the widget."""
+        super(GlobalSettingsForm, self).__init__(parent)
+        self._setup_ui(config)
+        self._connect_signals()
+
+    def _setup_ui(self, config):
+        """Initialize user interface."""
+        main_layout = QtWidgets.QGridLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(8)
+
+        self._create_subfolders = QtWidgets.QCheckBox("Create sub-folders for outputs", self)
+        main_layout.addWidget(self._create_subfolders, 1, 0)
+
+    def _connect_signals(self):
+        """Initialize signals connection."""
+
+
+class ConventionSettingsForm(QtWidgets.QWidget):
+    """Form to manage naming convention settings."""
+
+    def __init__(self, config, parent=None):
+        """Initiate the widget."""
+        super(ConventionSettingsForm, self).__init__(parent)
         self._setup_ui(config)
         self._connect_signals()
 
     def _setup_ui(self, config):
         """Initialize user interface."""
         main_layout = QtWidgets.QVBoxLayout(self)
-        main_layout.setContentsMargins(10, 10, 10, 10)
-        main_layout.setSpacing(5)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(8)
 
-        root_layout = QtWidgets.QHBoxLayout()
-        root_layout.setContentsMargins(0, 0, 0, 0)
-        root_layout.setSpacing(5)
+        self._tab_widget = QtWidgets.QTabWidget(self)
 
-        root_label = QtWidgets.QLabel("Root Path", self)
-        root_layout.addWidget(root_label)
+        comp_widget = TemplateSettingsForm(config)
+        self._tab_widget.addTab(comp_widget, "Comp")
 
-        self._root = QtWidgets.QLineEdit(self)
-        root_layout.addWidget(self._root)
+        project_widget = TemplateSettingsForm(config)
+        self._tab_widget.addTab(project_widget, "Project")
 
-        main_layout.addItem(root_layout)
+        output_widget = TemplateSettingsForm(config)
+        self._tab_widget.addTab(output_widget, "Outputs")
 
-        # self._tree_view = StructureTreeView(self)
-        # main_layout.addWidget(self._tree_view)
+        main_layout.addWidget(self._tab_widget)
+
+    def _connect_signals(self):
+        """Initialize signals connection."""
+
+
+class TemplateSettingsForm(QtWidgets.QWidget):
+    """Form to manage template settings."""
+
+    def __init__(self, config, parent=None):
+        """Initiate the widget."""
+        super(TemplateSettingsForm, self).__init__(parent)
+        self._setup_ui(config)
+        self._connect_signals()
+
+    def _setup_ui(self, config):
+        """Initialize user interface."""
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(8)
 
     def _connect_signals(self):
         """Initialize signals connection."""
