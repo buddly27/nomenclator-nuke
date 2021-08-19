@@ -2,6 +2,7 @@
 
 from nomenclator.vendor.Qt import QtWidgets, QtCore
 from nomenclator.widget import GroupWidget
+from nomenclator.widget import EditableList
 
 from .theme import classic_style
 
@@ -64,7 +65,7 @@ class GlobalSettingsForm(QtWidgets.QWidget):
         main_layout.setSpacing(8)
 
         self._create_subfolders = QtWidgets.QCheckBox("Create sub-folders for outputs", self)
-        main_layout.addWidget(self._create_subfolders, 1, 0)
+        main_layout.addWidget(self._create_subfolders, 0, 0)
 
     def _connect_signals(self):
         """Initialize signals connection."""
@@ -88,13 +89,13 @@ class ConventionSettingsForm(QtWidgets.QWidget):
         self._tab_widget = QtWidgets.QTabWidget(self)
 
         comp_widget = TemplateSettingsForm(config)
-        self._tab_widget.addTab(comp_widget, "Comp")
+        self._tab_widget.addTab(comp_widget, "Comp (.nk)")
 
         project_widget = TemplateSettingsForm(config)
-        self._tab_widget.addTab(project_widget, "Project")
+        self._tab_widget.addTab(project_widget, "Project (.hrox)")
 
         output_widget = TemplateSettingsForm(config)
-        self._tab_widget.addTab(output_widget, "Outputs")
+        self._tab_widget.addTab(output_widget, "Render Outputs")
 
         main_layout.addWidget(self._tab_widget)
 
@@ -113,9 +114,27 @@ class TemplateSettingsForm(QtWidgets.QWidget):
 
     def _setup_ui(self, config):
         """Initialize user interface."""
-        main_layout = QtWidgets.QVBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout = QtWidgets.QGridLayout(self)
+        main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(8)
+
+        location_lbl = QtWidgets.QLabel("Location Template", self)
+        main_layout.addWidget(location_lbl, 0, 0, 1, 1)
+
+        self._location = QtWidgets.QLineEdit(self)
+        main_layout.addWidget(self._location, 0, 1, 1, 1)
+
+        spacer = QtWidgets.QSpacerItem(
+            10, 10, QtWidgets.QSizePolicy.Fixed,
+            QtWidgets.QSizePolicy.Fixed
+        )
+        main_layout.addItem(spacer, 1, 0, 1, 2)
+
+        name_templates_lbl = QtWidgets.QLabel("Name Templates", self)
+        main_layout.addWidget(name_templates_lbl, 2, 0, 1, 2)
+
+        self._name_templates = EditableList(self)
+        main_layout.addWidget(self._name_templates, 3, 0, 1, 2)
 
     def _connect_signals(self):
         """Initialize signals connection."""
