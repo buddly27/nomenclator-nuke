@@ -68,10 +68,17 @@ class GlobalSettingsForm(QtWidgets.QWidget):
         main_layout.addWidget(descriptions_lbl)
 
         self._descriptions = EditableList(self)
+        self._descriptions.setMaximumHeight(200)
         main_layout.addWidget(self._descriptions)
 
         self._create_subfolders = QtWidgets.QCheckBox("Create sub-folders for outputs", self)
         main_layout.addWidget(self._create_subfolders)
+
+        spacer_v = QtWidgets.QSpacerItem(
+            0, 0, QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Expanding
+        )
+        main_layout.addItem(spacer_v)
 
     def _connect_signals(self):
         """Initialize signals connection."""
