@@ -39,6 +39,7 @@ class EditableList(QtWidgets.QWidget):
         self._add_btn.clicked.connect(lambda: self.add(""))
         self._delete_btn.clicked.connect(self.remove_selection)
         self._list.itemSelectionChanged.connect(self._toggle_delete_button)
+        self._list.new_item_requested.connect(lambda: self.add(""))
 
     def _toggle_delete_button(self):
         """Indicate whether delete button should be enabled."""
@@ -63,6 +64,22 @@ class EditableList(QtWidgets.QWidget):
 
 class ListWidget(QtWidgets.QListWidget):
     """Custom list widget."""
+
+    #: :term:`Qt Signal` emitted when a new item must be created.
+    new_item_requested = QtCore.Signal()
+
+    # noinspection PyPep8Naming
+    def mouseDoubleClickEvent(self, event):
+        """Handle *event* when double-clicking on widget.
+
+        The :meth:`QWidget.mouseDoubleClickEvent` method is reimplemented
+        to emit a signal to create a new item if user double-click outside
+        of any items.
+
+        """
+        index = self.indexAt(event.pos())
+        if not index.isValid():
+            self.new_item_requested.emit()
 
     # noinspection PyPep8Naming
     def mouseReleaseEvent(self, event):
