@@ -4,24 +4,37 @@ import os
 import collections
 
 import nomenclator.vendor.toml
-import nomenclator.utilities
 from nomenclator.symbol import CONFIG_FILE_NAME, DEFAULT_DESCRIPTIONS
 
-#: Configuration type.
+#: Configuration Structure type.
 Config = collections.namedtuple(
     "Config", [
-        "recent_locations",
+        "max_recent_locations",
+        "max_padding",
         "descriptions",
-        "paddings",
-        "nodes",
-        "node_names"
+        "template_root",
+        "comp_name_templates",
+        "project_name_templates",
+        "output_path_templates",
+        "output_name_templates",
     ]
 )
 
 
+def config_path():
+    """Return path to configuration file.
+
+    The configuration file is returned from the :envvar:`NOMENCLATURE_CONFIG_PATH`
+    environment variable, or from the :file:`~/.nuke` folder.
+
+    """
+    personal_path = os.path.join(os.path.expanduser("~"), ".nuke")
+    return os.path.join(os.getenv("NOMENCLATURE_CONFIG_PATH", personal_path), CONFIG_FILE_NAME)
+
+
 def fetch():
     """Return configuration object from personal Nuke folder."""
-    path = os.path.join(os.path.expanduser("~"), ".nuke", CONFIG_FILE_NAME)
+    path = config_path()
 
     data = {}
 
@@ -33,20 +46,16 @@ def fetch():
 
 
 def extract(data):
-    """Extract configuration object from *data*."""
-    nodes, node_names = nomenclator.utilities.fetch_outputs_and_names()
-
-    recent_locations = nomenclator.utilities.fetch_recent_locations(
-        max_values=data.get("maximum-recent-locations", 5)
-    )
-    paddings = nomenclator.utilities.fetch_paddings(
-        max_value=data.get("maximum-padding", 5)
-    )
+    """Extract configuration object from Nuke scene and from *data* mapping."""
+    template_data = data.get("template", {})
 
     return Config(
-        recent_locations=tuple(recent_locations),
+        max_recent_locations=data.get("maximum-recent-locations", 5),
+        max_padding=data.get("maximum-padding", 5),
         descriptions=tuple(data.get("descriptions", DEFAULT_DESCRIPTIONS)),
-        paddings=tuple(paddings),
-        nodes=tuple(nodes),
-        node_names=tuple(node_names)
+        template_root=template_data.get("root"),
+        comp_name_templates=tuple(template_data.get("comp-names", [])),
+        project_name_templates=tuple(template_data.get("project-names", [])),
+        output_path_templates=tuple(template_data.get("output-paths", [])),
+        output_name_templates=tuple(template_data.get("output-names", [])),
     )
