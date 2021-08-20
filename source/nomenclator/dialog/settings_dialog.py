@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from nomenclator.vendor.Qt import QtWidgets, QtCore
-from nomenclator.widget import GroupWidget
 from nomenclator.widget import EditableList
 
 from .theme import classic_style
@@ -17,7 +16,7 @@ class SettingsDialog(QtWidgets.QDialog):
     def _setup_ui(self, config):
         """Initialize user interface."""
         self.setWindowTitle("Nomenclator - Settings")
-        self.setMinimumWidth(900)
+        self.setMinimumWidth(800)
 
         self.setStyleSheet(classic_style())
 
@@ -25,17 +24,18 @@ class SettingsDialog(QtWidgets.QDialog):
         main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(5)
 
+        self._tab_widget = QtWidgets.QTabWidget(self)
+
         global_settings_form = GlobalSettingsForm(config, self)
+        self._tab_widget.addTab(global_settings_form, "Global")
 
-        global_settings_group = GroupWidget(global_settings_form, self)
-        global_settings_group.setTitle("Global")
-        main_layout.addWidget(global_settings_group)
+        template_settings_form = TemplateSettingsForm(config, self)
+        self._tab_widget.addTab(template_settings_form, "Template")
 
-        convention_settings_form = ConventionSettingsForm(config, self)
+        advanced_settings_form = AdvancedSettingsForm(config, self)
+        self._tab_widget.addTab(advanced_settings_form, "Advanced")
 
-        convention_settings_group = GroupWidget(convention_settings_form, self)
-        convention_settings_group.setTitle("Naming Convention")
-        main_layout.addWidget(convention_settings_group)
+        main_layout.addWidget(self._tab_widget)
 
         self._button_box = QtWidgets.QDialogButtonBox(self)
         self._button_box.setOrientation(QtCore.Qt.Horizontal)
@@ -60,44 +60,18 @@ class GlobalSettingsForm(QtWidgets.QWidget):
 
     def _setup_ui(self, config):
         """Initialize user interface."""
-        main_layout = QtWidgets.QGridLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.setContentsMargins(10, 20, 10, 10)
         main_layout.setSpacing(8)
+
+        descriptions_lbl = QtWidgets.QLabel("Descriptions", self)
+        main_layout.addWidget(descriptions_lbl)
+
+        self._descriptions = EditableList(self)
+        main_layout.addWidget(self._descriptions)
 
         self._create_subfolders = QtWidgets.QCheckBox("Create sub-folders for outputs", self)
-        main_layout.addWidget(self._create_subfolders, 0, 0)
-
-    def _connect_signals(self):
-        """Initialize signals connection."""
-
-
-class ConventionSettingsForm(QtWidgets.QWidget):
-    """Form to manage naming convention settings."""
-
-    def __init__(self, config, parent=None):
-        """Initiate the widget."""
-        super(ConventionSettingsForm, self).__init__(parent)
-        self._setup_ui(config)
-        self._connect_signals()
-
-    def _setup_ui(self, config):
-        """Initialize user interface."""
-        main_layout = QtWidgets.QVBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(8)
-
-        self._tab_widget = QtWidgets.QTabWidget(self)
-
-        comp_widget = TemplateSettingsForm(config)
-        self._tab_widget.addTab(comp_widget, "Comp (.nk)")
-
-        project_widget = TemplateSettingsForm(config)
-        self._tab_widget.addTab(project_widget, "Project (.hrox)")
-
-        output_widget = TemplateSettingsForm(config)
-        self._tab_widget.addTab(output_widget, "Render Outputs")
-
-        main_layout.addWidget(self._tab_widget)
+        main_layout.addWidget(self._create_subfolders)
 
     def _connect_signals(self):
         """Initialize signals connection."""
@@ -115,26 +89,83 @@ class TemplateSettingsForm(QtWidgets.QWidget):
     def _setup_ui(self, config):
         """Initialize user interface."""
         main_layout = QtWidgets.QGridLayout(self)
-        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setContentsMargins(10, 20, 10, 10)
+        main_layout.setSpacing(20)
+
+        root_lbl = QtWidgets.QLabel("Root Path", self)
+        main_layout.addWidget(root_lbl, 0, 0, 1, 1)
+
+        self._root = QtWidgets.QLineEdit(self)
+        main_layout.addWidget(self._root, 0, 1, 1, 1)
+
+        self._tab_widget = QtWidgets.QTabWidget(self)
+
+        comp_template = _TemplateList()
+        self._tab_widget.addTab(comp_template, "Comp Names (.nk)")
+
+        project_template = _TemplateList()
+        self._tab_widget.addTab(project_template, "Project Names (.hrox)")
+
+        destination_template = _TemplateList()
+        self._tab_widget.addTab(destination_template, "Output Paths")
+
+        output_template = _TemplateList()
+        self._tab_widget.addTab(output_template, "Output Names")
+
+        main_layout.addWidget(self._tab_widget, 1, 0, 1, 2)
+
+    def _connect_signals(self):
+        """Initialize signals connection."""
+
+
+class _TemplateList(QtWidgets.QWidget):
+    """Form to manage template lists."""
+
+    def __init__(self, parent=None):
+        """Initiate the widget."""
+        super(_TemplateList, self).__init__(parent)
+        self._setup_ui()
+        self._connect_signals()
+
+    def _setup_ui(self):
+        """Initialize user interface."""
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.setContentsMargins(10, 20, 10, 10)
         main_layout.setSpacing(8)
 
-        location_lbl = QtWidgets.QLabel("Location Template", self)
-        main_layout.addWidget(location_lbl, 0, 0, 1, 1)
+        self._templates = EditableList(self)
+        main_layout.addWidget(self._templates)
 
-        self._location = QtWidgets.QLineEdit(self)
-        main_layout.addWidget(self._location, 0, 1, 1, 1)
+    def _connect_signals(self):
+        """Initialize signals connection."""
 
-        spacer = QtWidgets.QSpacerItem(
-            10, 10, QtWidgets.QSizePolicy.Fixed,
-            QtWidgets.QSizePolicy.Fixed
+
+class AdvancedSettingsForm(QtWidgets.QWidget):
+    """Form to manage advanced settings."""
+
+    def __init__(self, config, parent=None):
+        """Initiate the widget."""
+        super(AdvancedSettingsForm, self).__init__(parent)
+        self._setup_ui(config)
+        self._connect_signals()
+
+    def _setup_ui(self, config):
+        """Initialize user interface."""
+        main_layout = QtWidgets.QGridLayout(self)
+        main_layout.setContentsMargins(10, 20, 10, 10)
+        main_layout.setSpacing(8)
+
+        username_lbl = QtWidgets.QLabel("Username", self)
+        main_layout.addWidget(username_lbl, 0, 0, 1, 1)
+
+        self._username = QtWidgets.QLineEdit(self)
+        main_layout.addWidget(self._username, 0, 1, 1, 1)
+
+        spacer_v = QtWidgets.QSpacerItem(
+            0, 0, QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Expanding
         )
-        main_layout.addItem(spacer, 1, 0, 1, 2)
-
-        name_templates_lbl = QtWidgets.QLabel("Name Templates", self)
-        main_layout.addWidget(name_templates_lbl, 2, 0, 1, 2)
-
-        self._name_templates = EditableList(self)
-        main_layout.addWidget(self._name_templates, 3, 0, 1, 2)
+        main_layout.addItem(spacer_v, 1, 1, 1, 1)
 
     def _connect_signals(self):
         """Initialize signals connection."""
