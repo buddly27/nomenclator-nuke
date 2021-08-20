@@ -168,11 +168,25 @@ class AdvancedSettingsForm(QtWidgets.QWidget):
         self._username = QtWidgets.QLineEdit(self)
         main_layout.addWidget(self._username, 0, 1, 1, 1)
 
+        max_locations_lbl = QtWidgets.QLabel("Max Locations", self)
+        main_layout.addWidget(max_locations_lbl, 1, 0, 1, 1)
+
+        self._max_locations = QtWidgets.QSpinBox(self)
+        self._max_locations.setMinimumHeight(25)
+        main_layout.addWidget(self._max_locations, 1, 1, 1, 1)
+
+        max_padding_lbl = QtWidgets.QLabel("Max Padding", self)
+        main_layout.addWidget(max_padding_lbl, 2, 0, 1, 1)
+
+        self._max_padding = QtWidgets.QSpinBox(self)
+        self._max_padding.setMinimumHeight(25)
+        main_layout.addWidget(self._max_padding, 2, 1, 1, 1)
+
         spacer_v = QtWidgets.QSpacerItem(
             0, 0, QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding
         )
-        main_layout.addItem(spacer_v, 1, 1, 1, 1)
+        main_layout.addItem(spacer_v, 3, 1, 1, 1)
 
     def _connect_signals(self):
         """Initialize signals connection."""
