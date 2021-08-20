@@ -14,6 +14,7 @@ from .theme import classic_style
 class CompoManagerDialog(QtWidgets.QDialog):
 
     def __init__(self, config, parent=None):
+        """Initiate dialog."""
         super(CompoManagerDialog, self).__init__(parent)
         self._setup_ui(config)
         self._connect_signals()

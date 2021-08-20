@@ -5,15 +5,15 @@ from nomenclator.vendor.Qt import QtWidgets, QtCore
 
 class EditableList(QtWidgets.QWidget):
 
-    def __init__(self, items, parent=None):
+    def __init__(self, parent=None):
         """List with editable items."""
         super(EditableList, self).__init__(parent)
-        self._setup_ui(items)
+        self._setup_ui()
         self._connect_signals()
 
         self._toggle_delete_button()
 
-    def _setup_ui(self, items):
+    def _setup_ui(self):
         """Initialize user interface."""
         main_layout = QtWidgets.QGridLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -21,9 +21,6 @@ class EditableList(QtWidgets.QWidget):
 
         self._list = ListWidget(self)
         main_layout.addWidget(self._list)
-
-        for item in items:
-            self.add(item, editing=False)
 
         # Hardcode style to apply it to initial values.
         # TODO: Find out how to get rid of this exception.
@@ -43,16 +40,21 @@ class EditableList(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._add_btn.clicked.connect(lambda: self.add(""))
+        self._add_btn.clicked.connect(lambda: self.add_item(""))
         self._delete_btn.clicked.connect(self.remove_selection)
         self._list.itemSelectionChanged.connect(self._toggle_delete_button)
-        self._list.new_item_requested.connect(lambda: self.add(""))
+        self._list.new_item_requested.connect(lambda: self.add_item(""))
 
     def _toggle_delete_button(self):
         """Indicate whether delete button should be enabled."""
         self._delete_btn.setEnabled(len(self._list.selectedItems()) > 0)
 
-    def add(self, text, editing=True):
+    def add_items(self, texts):
+        """Add multiple items initialized with *texts*."""
+        for text in texts:
+            self.add_item(text, editing=False)
+
+    def add_item(self, text, editing=True):
         """Add item initialized with *text*."""
         item = QtWidgets.QListWidgetItem(text)
 
