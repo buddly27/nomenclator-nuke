@@ -119,7 +119,7 @@ def classic_style():
             background: none;
         }
         QListView::item {
-            height: 30px;
+            height: 25px;
         }
         """
     )

@@ -67,7 +67,7 @@ class GlobalSettingsForm(QtWidgets.QWidget):
         descriptions_lbl = QtWidgets.QLabel("Descriptions", self)
         main_layout.addWidget(descriptions_lbl)
 
-        self._descriptions = EditableList(self)
+        self._descriptions = EditableList(config.descriptions, self)
         self._descriptions.setMaximumHeight(200)
         main_layout.addWidget(self._descriptions)
 
@@ -103,21 +103,22 @@ class TemplateSettingsForm(QtWidgets.QWidget):
         main_layout.addWidget(root_lbl, 0, 0, 1, 1)
 
         self._root = QtWidgets.QLineEdit(self)
+        self._root.setText(config.template_root or "")
         main_layout.addWidget(self._root, 0, 1, 1, 1)
 
         self._tab_widget = QtWidgets.QTabWidget(self)
 
-        comp_template = _TemplateList()
-        self._tab_widget.addTab(comp_template, "Comp Names (.nk)")
+        comp_name_template = _TemplateList(config.comp_name_templates)
+        self._tab_widget.addTab(comp_name_template, "Comp Names (.nk)")
 
-        project_template = _TemplateList()
-        self._tab_widget.addTab(project_template, "Project Names (.hrox)")
+        project_name_template = _TemplateList(config.project_name_templates)
+        self._tab_widget.addTab(project_name_template, "Project Names (.hrox)")
 
-        destination_template = _TemplateList()
-        self._tab_widget.addTab(destination_template, "Output Paths")
+        output_path_template = _TemplateList(config.output_path_templates)
+        self._tab_widget.addTab(output_path_template, "Output Paths")
 
-        output_template = _TemplateList()
-        self._tab_widget.addTab(output_template, "Output Names")
+        output_name_template = _TemplateList(config.output_name_templates)
+        self._tab_widget.addTab(output_name_template, "Output Names")
 
         main_layout.addWidget(self._tab_widget, 1, 0, 1, 2)
 
@@ -128,19 +129,19 @@ class TemplateSettingsForm(QtWidgets.QWidget):
 class _TemplateList(QtWidgets.QWidget):
     """Form to manage template lists."""
 
-    def __init__(self, parent=None):
+    def __init__(self, items, parent=None):
         """Initiate the widget."""
         super(_TemplateList, self).__init__(parent)
-        self._setup_ui()
+        self._setup_ui(items)
         self._connect_signals()
 
-    def _setup_ui(self):
+    def _setup_ui(self, items):
         """Initialize user interface."""
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.setContentsMargins(10, 20, 10, 10)
         main_layout.setSpacing(8)
 
-        self._templates = EditableList(self)
+        self._templates = EditableList(items, self)
         main_layout.addWidget(self._templates)
 
     def _connect_signals(self):
@@ -172,6 +173,7 @@ class AdvancedSettingsForm(QtWidgets.QWidget):
         main_layout.addWidget(max_locations_lbl, 1, 0, 1, 1)
 
         self._max_locations = QtWidgets.QSpinBox(self)
+        self._max_locations.setValue(config.max_locations)
         self._max_locations.setMinimumHeight(25)
         main_layout.addWidget(self._max_locations, 1, 1, 1, 1)
 
@@ -179,6 +181,7 @@ class AdvancedSettingsForm(QtWidgets.QWidget):
         main_layout.addWidget(max_padding_lbl, 2, 0, 1, 1)
 
         self._max_padding = QtWidgets.QSpinBox(self)
+        self._max_padding.setValue(config.max_padding)
         self._max_padding.setMinimumHeight(25)
         main_layout.addWidget(self._max_padding, 2, 1, 1, 1)
 

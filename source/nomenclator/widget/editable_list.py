@@ -5,15 +5,15 @@ from nomenclator.vendor.Qt import QtWidgets, QtCore
 
 class EditableList(QtWidgets.QWidget):
 
-    def __init__(self, parent=None):
+    def __init__(self, items, parent=None):
         """List with editable items."""
         super(EditableList, self).__init__(parent)
-        self._setup_ui()
+        self._setup_ui(items)
         self._connect_signals()
 
         self._toggle_delete_button()
 
-    def _setup_ui(self):
+    def _setup_ui(self, items):
         """Initialize user interface."""
         main_layout = QtWidgets.QGridLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -21,6 +21,13 @@ class EditableList(QtWidgets.QWidget):
 
         self._list = ListWidget(self)
         main_layout.addWidget(self._list)
+
+        for item in items:
+            self.add(item, editing=False)
+
+        # Hardcode style to apply it to initial values.
+        # TODO: Find out how to get rid of this exception.
+        self._list.setStyleSheet("QListView::item { height: 25px; }")
 
         button_layout = QtWidgets.QHBoxLayout()
         button_layout.setContentsMargins(0, 0, 0, 0)
@@ -45,15 +52,16 @@ class EditableList(QtWidgets.QWidget):
         """Indicate whether delete button should be enabled."""
         self._delete_btn.setEnabled(len(self._list.selectedItems()) > 0)
 
-    def add(self, text):
+    def add(self, text, editing=True):
         """Add item initialized with *text*."""
         item = QtWidgets.QListWidgetItem(text)
 
         item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
         self._list.addItem(item)
 
-        self._list.editItem(item)
-        self._list.scrollToItem(item)
+        if editing:
+            self._list.editItem(item)
+            self._list.scrollToItem(item)
 
     def remove_selection(self):
         """Remove selected items."""
@@ -80,6 +88,9 @@ class ListWidget(QtWidgets.QListWidget):
         index = self.indexAt(event.pos())
         if not index.isValid():
             self.new_item_requested.emit()
+            return
+
+        super(ListWidget, self).mouseDoubleClickEvent(event)
 
     # noinspection PyPep8Naming
     def mouseReleaseEvent(self, event):
@@ -94,4 +105,6 @@ class ListWidget(QtWidgets.QListWidget):
         index = self.indexAt(event.pos())
         if not index.isValid():
             self.selectionModel().clear()
+            return
 
+        super(ListWidget, self).mouseReleaseEvent(event)

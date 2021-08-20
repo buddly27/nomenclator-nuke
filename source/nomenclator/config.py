@@ -10,7 +10,7 @@ from nomenclator.symbol import CONFIG_FILE_NAME, DEFAULT_DESCRIPTIONS
 #: Configuration Structure type.
 Config = collections.namedtuple(
     "Config", [
-        "max_recent_locations",
+        "max_locations",
         "max_padding",
         "descriptions",
         "template_root",
@@ -51,8 +51,8 @@ def extract(data):
     template_data = data.get("template", {})
 
     return Config(
-        max_recent_locations=data.get("maximum-recent-locations", 5),
-        max_padding=data.get("maximum-padding", 5),
+        max_locations=data.get("max-locations", 5),
+        max_padding=data.get("max-padding", 5),
         descriptions=tuple(data.get("descriptions", DEFAULT_DESCRIPTIONS)),
         template_root=template_data.get("root"),
         comp_name_templates=tuple(template_data.get("comp-names", [])),
