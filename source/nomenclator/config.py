@@ -6,6 +6,7 @@ import collections
 import nomenclator.vendor.toml
 from nomenclator.symbol import CONFIG_FILE_NAME, DEFAULT_DESCRIPTIONS
 
+
 #: Configuration Structure type.
 Config = collections.namedtuple(
     "Config", [
