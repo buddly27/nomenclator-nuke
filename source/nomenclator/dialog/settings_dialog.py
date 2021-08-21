@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from nomenclator.vendor.Qt import QtWidgets, QtCore
+from nomenclator.vendor.Qt import QtWidgets, QtCore, QtGui
 from nomenclator.widget import EditableList
 
 from .theme import classic_style
@@ -14,7 +14,10 @@ class SettingsDialog(QtWidgets.QDialog):
         self._setup_ui()
         self._connect_signals()
 
-        self.set_values(config)
+        self._initial_config = config
+        self._config = config
+
+        self.set_values(self._config)
 
     def set_values(self, config):
         """Initialize values."""
@@ -42,18 +45,40 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self._button_box = QtWidgets.QDialogButtonBox(self)
         self._button_box.setOrientation(QtCore.Qt.Horizontal)
-        self._button_box.addButton("Apply", QtWidgets.QDialogButtonBox.AcceptRole)
-        self._button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
+        self._button_box.addButton(QtWidgets.QDialogButtonBox.Reset)
+        self._button_box.addButton(QtWidgets.QDialogButtonBox.Apply)
+        self._button_box.addButton(QtWidgets.QDialogButtonBox.Cancel)
         main_layout.addWidget(self._button_box)
+
+        button = self._button_box.button(QtWidgets.QDialogButtonBox.Reset)
+        button.setEnabled(False)
+
+        button = self._button_box.button(QtWidgets.QDialogButtonBox.Apply)
+        button.setEnabled(False)
 
     def _connect_signals(self):
         """Initialize signals connection."""
+        self._tab_widget.widget(2).updated.connect(self._update_config)
+
         self._button_box.accepted.connect(self.accept)
         self._button_box.rejected.connect(self.reject)
+
+    def _update_config(self, key, value):
+        # noinspection PyProtectedMember
+        self._config = self._config._replace(**{key: value})
+
+        button = self._button_box.button(QtWidgets.QDialogButtonBox.Reset)
+        button.setEnabled(self._config != self._initial_config)
+
+        button = self._button_box.button(QtWidgets.QDialogButtonBox.Apply)
+        button.setEnabled(self._config != self._initial_config)
 
 
 class GlobalSettingsForm(QtWidgets.QWidget):
     """Form to manage global settings."""
+
+    #: :term:`Qt Signal` emitted when a key of the config has changed.
+    updated = QtCore.Signal(str, object)
 
     def __init__(self, parent=None):
         """Initiate the widget."""
@@ -64,6 +89,11 @@ class GlobalSettingsForm(QtWidgets.QWidget):
     def set_values(self, config):
         """Initialize values."""
         self._descriptions.add_items(config.descriptions)
+
+        self._create_subfolders.blockSignals(True)
+        state = QtCore.Qt.Checked if config.create_subfolders else QtCore.Qt.Unchecked
+        self._create_subfolders.setCheckState(state)
+        self._create_subfolders.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -141,9 +171,9 @@ class _TemplateList(QtWidgets.QWidget):
         self._setup_ui()
         self._connect_signals()
 
-    def set_values(self, items):
+    def set_values(self, templates):
         """Initialize values."""
-        self._templates.add_items(items)
+        self._templates.add_items(templates)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -161,6 +191,9 @@ class _TemplateList(QtWidgets.QWidget):
 class AdvancedSettingsForm(QtWidgets.QWidget):
     """Form to manage advanced settings."""
 
+    #: :term:`Qt Signal` emitted when a key of the config has changed.
+    updated = QtCore.Signal(str, object)
+
     def __init__(self, parent=None):
         """Initiate the widget."""
         super(AdvancedSettingsForm, self).__init__(parent)
@@ -169,8 +202,23 @@ class AdvancedSettingsForm(QtWidgets.QWidget):
 
     def set_values(self, config):
         """Initialize values."""
+        self._max_locations.blockSignals(True)
         self._max_locations.setValue(config.max_locations)
+        self._max_locations.blockSignals(False)
+
+        self._max_padding.blockSignals(True)
         self._max_padding.setValue(config.max_padding)
+        self._max_padding.blockSignals(False)
+
+        self._username.blockSignals(True)
+        self._username.setText(config.username)
+        self._username.setEnabled(not config.username_is_default)
+        self._username.blockSignals(False)
+
+        self._username_is_default.blockSignals(True)
+        state = QtCore.Qt.Checked if config.username_is_default else QtCore.Qt.Unchecked
+        self._username_is_default.setCheckState(state)
+        self._username_is_default.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -178,31 +226,42 @@ class AdvancedSettingsForm(QtWidgets.QWidget):
         main_layout.setContentsMargins(10, 20, 10, 10)
         main_layout.setSpacing(8)
 
-        username_lbl = QtWidgets.QLabel("Username", self)
-        main_layout.addWidget(username_lbl, 0, 0, 1, 1)
-
-        self._username = QtWidgets.QLineEdit(self)
-        main_layout.addWidget(self._username, 0, 1, 1, 1)
-
         max_locations_lbl = QtWidgets.QLabel("Max Locations", self)
-        main_layout.addWidget(max_locations_lbl, 1, 0, 1, 1)
+        main_layout.addWidget(max_locations_lbl, 0, 0, 1, 1)
 
         self._max_locations = QtWidgets.QSpinBox(self)
-        self._max_locations.setMinimumHeight(25)
-        main_layout.addWidget(self._max_locations, 1, 1, 1, 1)
+        main_layout.addWidget(self._max_locations, 0, 1, 1, 1)
 
         max_padding_lbl = QtWidgets.QLabel("Max Padding", self)
-        main_layout.addWidget(max_padding_lbl, 2, 0, 1, 1)
+        main_layout.addWidget(max_padding_lbl, 1, 0, 1, 1)
 
         self._max_padding = QtWidgets.QSpinBox(self)
-        self._max_padding.setMinimumHeight(25)
-        main_layout.addWidget(self._max_padding, 2, 1, 1, 1)
+        main_layout.addWidget(self._max_padding, 1, 1, 1, 1)
+
+        username_lbl = QtWidgets.QLabel("Username", self)
+        main_layout.addWidget(username_lbl, 2, 0, 1, 1)
+
+        self._username = QtWidgets.QLineEdit(self)
+        main_layout.addWidget(self._username, 2, 1, 1, 1)
+
+        self._username_is_default = QtWidgets.QCheckBox("Default username is used", self)
+        main_layout.addWidget(self._username_is_default, 3, 1, 1, 1)
 
         spacer_v = QtWidgets.QSpacerItem(
             0, 0, QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding
         )
-        main_layout.addItem(spacer_v, 3, 1, 1, 1)
+        main_layout.addItem(spacer_v, 4, 1, 1, 1)
 
     def _connect_signals(self):
         """Initialize signals connection."""
+        self._username.textChanged.connect(lambda v: self.updated.emit("username", v))
+        self._max_locations.valueChanged.connect(lambda v: self.updated.emit("max_locations", v))
+        self._max_padding.valueChanged.connect(lambda v: self.updated.emit("max_padding", v))
+        self._username_is_default.stateChanged.connect(self._toggle_username_default)
+
+    def _toggle_username_default(self):
+        """Indicate whether the username used is default or not."""
+        value = self._username_is_default.isChecked()
+        self._username.setEnabled(not value)
+        self.updated.emit("username_is_default", value)

@@ -118,6 +118,12 @@ def classic_style():
             border: 0px;
             background: none;
         }
+        QLineEdit {
+            height: 20px;
+        }
+        QSpinBox {
+            height: 25px;
+        }
         QListView::item {
             height: 25px;
         }
