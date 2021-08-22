@@ -5,7 +5,13 @@ import collections
 import getpass
 
 import nomenclator.vendor.toml
-from nomenclator.symbol import CONFIG_FILE_NAME, DEFAULT_DESCRIPTIONS
+from nomenclator.symbol import (
+    CONFIG_FILE_NAME,
+    DEFAULT_DESCRIPTIONS,
+    DEFAULT_CREATE_SUBFOLDERS,
+    DEFAULT_MAX_LOCATIONS,
+    DEFAULT_MAX_PADDING,
+)
 
 
 #: Configuration Structure type.
@@ -45,9 +51,49 @@ def fetch():
 
     if os.path.exists(path):
         with open(path, "r") as stream:
-            data = nomenclator.vendor.toml.load(stream.read())
+            data = nomenclator.vendor.toml.load(stream)
 
     return extract(data)
+
+
+def save(config):
+    """Save *config* as a configuration file."""
+    data = collections.OrderedDict()
+
+    if config.descriptions != DEFAULT_DESCRIPTIONS:
+        data["descriptions"] = config.descriptions
+
+    if config.create_subfolders != DEFAULT_CREATE_SUBFOLDERS:
+        data["create-subfolders"] = config.create_subfolders
+
+    if config.max_locations != DEFAULT_MAX_LOCATIONS:
+        data["max-locations"] = config.max_locations
+
+    if config.max_padding != DEFAULT_MAX_PADDING:
+        data["max-padding"] = config.max_padding
+
+    if config.username_is_default is False:
+        data["username"] = config.username
+
+    data["template"] = collections.OrderedDict()
+
+    if config.template_root != "":
+        data["template"]["root"] = config.template_root
+
+    if len(config.comp_name_templates) > 0:
+        data["template"]["comp-names"] = config.comp_name_templates
+
+    if len(config.project_name_templates) > 0:
+        data["template"]["project-names"] = config.project_name_templates
+
+    if len(config.output_path_templates) > 0:
+        data["template"]["output-paths"] = config.output_path_templates
+
+    if len(config.output_name_templates) > 0:
+        data["template"]["output-names"] = config.output_name_templates
+
+    with open(config_path(), "w") as stream:
+        nomenclator.vendor.toml.dump(data, stream)
 
 
 def extract(data):
@@ -56,14 +102,14 @@ def extract(data):
 
     return Config(
         descriptions=tuple(data.get("descriptions", DEFAULT_DESCRIPTIONS)),
-        create_subfolders=data.get("create-subfolders", False),
+        create_subfolders=data.get("create-subfolders", DEFAULT_CREATE_SUBFOLDERS),
         template_root=template_data.get("root", ""),
         comp_name_templates=tuple(template_data.get("comp-names", [])),
         project_name_templates=tuple(template_data.get("project-names", [])),
         output_path_templates=tuple(template_data.get("output-paths", [])),
         output_name_templates=tuple(template_data.get("output-names", [])),
-        max_locations=data.get("max-locations", 5),
-        max_padding=data.get("max-padding", 5),
+        max_locations=data.get("max-locations", DEFAULT_MAX_LOCATIONS),
+        max_padding=data.get("max-padding", DEFAULT_MAX_PADDING),
         username=data.get("username", getpass.getuser()),
         username_is_default=data.get("username") is None
     )

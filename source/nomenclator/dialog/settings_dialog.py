@@ -19,6 +19,11 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self.set_values(self._config)
 
+    @property
+    def config(self):
+        """Return updated config."""
+        return self._config
+
     def set_values(self, config):
         """Initialize values."""
         self._tab_widget.widget(0).set_values(config)
@@ -62,23 +67,35 @@ class SettingsDialog(QtWidgets.QDialog):
         self._tab_widget.widget(1).updated.connect(self._update_config)
         self._tab_widget.widget(2).updated.connect(self._update_config)
 
-        self._button_box.accepted.connect(self.accept)
-        self._button_box.rejected.connect(self.reject)
         self._button_box.clicked.connect(self._button_clicked)
 
     def _update_config(self, key, value):
+        """Update config object from *key* and *value*."""
         # noinspection PyProtectedMember
         self._config = self._config._replace(**{key: value})
         self._update_buttons_states()
 
     def _button_clicked(self, button):
-        _button = self._button_box.button(QtWidgets.QDialogButtonBox.Reset)
-        if button == _button:
+        """Modify the state of the dialog depending on the button clicked."""
+        mapping = {
+            "Apply": self._button_box.button(QtWidgets.QDialogButtonBox.Apply),
+            "Cancel": self._button_box.button(QtWidgets.QDialogButtonBox.Cancel),
+            "Reset": self._button_box.button(QtWidgets.QDialogButtonBox.Reset),
+        }
+
+        if button == mapping["Apply"]:
+            self.accept()
+
+        elif button == mapping["Cancel"]:
+            self.reject()
+
+        elif button == mapping["Reset"]:
             self._config = self._initial_config
             self.set_values(self._config)
             self._update_buttons_states()
 
     def _update_buttons_states(self):
+        """Modify the state of the buttons depending on the config state."""
         button = self._button_box.button(QtWidgets.QDialogButtonBox.Reset)
         button.setEnabled(self._config != self._initial_config)
 

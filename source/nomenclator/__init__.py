@@ -32,4 +32,6 @@ def open_settings_dialog():
     """
     config = nomenclator.config.fetch()
     panel = SettingsDialog(config)
-    panel.exec_()
+
+    if panel.exec_():
+        nomenclator.config.save(panel.config)
