@@ -58,6 +58,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def _connect_signals(self):
         """Initialize signals connection."""
+        self._tab_widget.widget(0).updated.connect(self._update_config)
         self._tab_widget.widget(2).updated.connect(self._update_config)
 
         self._button_box.accepted.connect(self.accept)
@@ -88,7 +89,9 @@ class GlobalSettingsForm(QtWidgets.QWidget):
 
     def set_values(self, config):
         """Initialize values."""
+        self._descriptions.blockSignals(True)
         self._descriptions.set_values(config.descriptions)
+        self._descriptions.blockSignals(False)
 
         self._create_subfolders.blockSignals(True)
         state = QtCore.Qt.Checked if config.create_subfolders else QtCore.Qt.Unchecked
@@ -119,6 +122,7 @@ class GlobalSettingsForm(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
+        self._descriptions.updated.connect(lambda v: self.updated.emit("descriptions", tuple(v)))
 
 
 class TemplateSettingsForm(QtWidgets.QWidget):

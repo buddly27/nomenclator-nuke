@@ -6,6 +6,9 @@ from nomenclator.vendor.Qt import QtWidgets, QtCore, QtGui
 class EditableList(QtWidgets.QWidget):
     """Widget representing a list with editable items."""
 
+    #: :term:`Qt Signal` emitted when items have changed.
+    updated = QtCore.Signal(list)
+
     def __init__(self, parent=None):
         """Initiate the widget."""
         super(EditableList, self).__init__(parent)
@@ -43,6 +46,7 @@ class EditableList(QtWidgets.QWidget):
         self._add_btn.clicked.connect(lambda: self._list.add_text("", set_focus=True))
         self._delete_btn.clicked.connect(self._list.remove_selection)
         self._list.itemSelectionChanged.connect(self._toggle_delete_button)
+        self._list.updated.connect(self.updated.emit)
 
     def _toggle_delete_button(self):
         """Indicate whether delete button should be enabled."""
@@ -68,15 +72,21 @@ class EditableList(QtWidgets.QWidget):
 class ListWidget(QtWidgets.QListWidget):
     """Custom list widget."""
 
+    #: :term:`Qt Signal` emitted when items have changed.
+    updated = QtCore.Signal(list)
+
     def __init__(self, parent=None):
         """Initiate the widget."""
         super(ListWidget, self).__init__(parent)
-        self._connect_signals()
-
         self._undo_stack = QtWidgets.QUndoStack(self)
+        self._connect_signals()
 
         # Record text in current item to allow for undoable edit.
         self._current_text = ""
+
+    def texts(self):
+        """Return list of text items."""
+        return [self.item(row).text() for row in range(self.count())]
 
     def add_texts(self, texts, undoable=True):
         """Initialize text items."""
@@ -117,6 +127,7 @@ class ListWidget(QtWidgets.QListWidget):
         """Initialize signals connection."""
         self.itemChanged.connect(self._handle_change)
         self.currentItemChanged.connect(self._record_current_text)
+        self._undo_stack.indexChanged.connect(self._emit_updated_signal)
 
     def _handle_change(self, item):
         command = CommandEdit(self, item, self._current_text)
@@ -132,6 +143,10 @@ class ListWidget(QtWidgets.QListWidget):
     def redo(self):
         """Redo last command."""
         self._undo_stack.redo()
+
+    def _emit_updated_signal(self):
+        """Emit a signal with updated items."""
+        self.updated.emit(self.texts())
 
     # noinspection PyPep8Naming
     def mouseReleaseEvent(self, event):
