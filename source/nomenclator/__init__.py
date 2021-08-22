@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import nuke
+
 import nomenclator.config
 from nomenclator.dialog import CompoManagerDialog
 from nomenclator.dialog import SettingsDialog
@@ -33,5 +35,10 @@ def open_settings_dialog():
     config = nomenclator.config.fetch()
     panel = SettingsDialog(config)
 
-    if panel.exec_():
+    if not panel.exec_():
+        return
+
+    try:
         nomenclator.config.save(panel.config)
+    except Exception as error:
+        nuke.critical("Impossible to save config: {}".format(error))
