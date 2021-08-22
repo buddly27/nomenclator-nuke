@@ -63,11 +63,21 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self._button_box.accepted.connect(self.accept)
         self._button_box.rejected.connect(self.reject)
+        self._button_box.clicked.connect(self._button_clicked)
 
     def _update_config(self, key, value):
         # noinspection PyProtectedMember
         self._config = self._config._replace(**{key: value})
+        self._update_buttons_states()
 
+    def _button_clicked(self, button):
+        _button = self._button_box.button(QtWidgets.QDialogButtonBox.Reset)
+        if button == _button:
+            self._config = self._initial_config
+            self.set_values(self._config)
+            self._update_buttons_states()
+
+    def _update_buttons_states(self):
         button = self._button_box.button(QtWidgets.QDialogButtonBox.Reset)
         button.setEnabled(self._config != self._initial_config)
 

@@ -17,7 +17,7 @@ class EditableList(QtWidgets.QWidget):
 
     def set_values(self, texts):
         """Initialize values."""
-        self._list.add_texts(texts, undoable=False)
+        self._list.set_texts(texts)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -88,19 +88,17 @@ class ListWidget(QtWidgets.QListWidget):
         """Return list of text items."""
         return [self.item(row).text() for row in range(self.count())]
 
-    def add_texts(self, texts, undoable=True):
+    def set_texts(self, texts):
         """Initialize text items."""
-        if undoable:
-            command = CommandInsert(self, texts)
-            self._undo_stack.push(command)
+        # This operation is not undoable on purpose.
+        self.clear()
 
-        else:
-            for text in texts:
-                item = self.create_item(text)
-                self.addItem(item)
+        for text in texts:
+            item = self.create_item(text)
+            self.addItem(item)
 
     def add_text(self, text, set_focus=False):
-        """Initialize text item."""
+        """add new text item."""
         command = CommandInsert(self, [text])
         self._undo_stack.push(command)
 
