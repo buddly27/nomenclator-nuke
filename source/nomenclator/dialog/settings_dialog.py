@@ -88,7 +88,7 @@ class GlobalSettingsForm(QtWidgets.QWidget):
 
     def set_values(self, config):
         """Initialize values."""
-        self._descriptions.add_items(config.descriptions)
+        self._descriptions.set_values(config.descriptions)
 
         self._create_subfolders.blockSignals(True)
         state = QtCore.Qt.Checked if config.create_subfolders else QtCore.Qt.Unchecked
@@ -173,7 +173,7 @@ class _TemplateList(QtWidgets.QWidget):
 
     def set_values(self, templates):
         """Initialize values."""
-        self._templates.add_items(templates)
+        self._templates.set_values(templates)
 
     def _setup_ui(self):
         """Initialize user interface."""
