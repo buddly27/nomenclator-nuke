@@ -12,6 +12,10 @@ class EditableList(QtWidgets.QWidget):
         self._setup_ui()
         self._connect_signals()
 
+    def set_values(self, texts):
+        """Initialize values."""
+        self._list.add_texts(texts)
+
     def _setup_ui(self):
         """Initialize user interface."""
         main_layout = QtWidgets.QGridLayout(self)
@@ -36,47 +40,38 @@ class EditableList(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._add_btn.clicked.connect(lambda: self.add_item(""))
-        self._delete_btn.clicked.connect(self.remove_selection)
+        self._add_btn.clicked.connect(lambda: self._list.add_text("", set_focus=True))
+        self._delete_btn.clicked.connect(self._list.remove_selection)
         self._list.itemSelectionChanged.connect(self._toggle_delete_button)
-        self._list.creation_requested.connect(lambda: self.add_item(""))
-        self._list.deletion_requested.connect(self.remove_selection)
 
     def _toggle_delete_button(self):
         """Indicate whether delete button should be enabled."""
         self._delete_btn.setEnabled(len(self._list.selectedItems()) > 0)
 
-    def add_items(self, texts):
-        """Add multiple items initialized with *texts*."""
-        for text in texts:
-            self.add_item(text, editing=False)
-
-    def add_item(self, text, editing=True):
-        """Add item initialized with *text*."""
-        item = QtWidgets.QListWidgetItem(text)
-
-        item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
-        self._list.addItem(item)
-
-        if editing:
-            self._list.editItem(item)
-            self._list.scrollToItem(item)
-
-    def remove_selection(self):
-        """Remove selected items."""
-        for item in self._list.selectedItems():
-            row = self._list.row(item)
-            self._list.takeItem(row)
-
 
 class ListWidget(QtWidgets.QListWidget):
     """Custom list widget."""
 
-    #: :term:`Qt Signal` emitted when a new item must be created.
-    creation_requested = QtCore.Signal()
+    def add_texts(self, texts):
+        """Initialize text items."""
+        for text in texts:
+            self.add_text(text)
 
-    #: :term:`Qt Signal` emitted when selected items must be deleted.
-    deletion_requested = QtCore.Signal()
+    def add_text(self, text, set_focus=False):
+        """Initialize text item."""
+        item = QtWidgets.QListWidgetItem(text)
+        item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
+        self.addItem(item)
+
+        if set_focus:
+            self.editItem(item)
+            self.scrollToItem(item)
+
+    def remove_selection(self):
+        """Remove selected items."""
+        for item in self.selectedItems():
+            row = self.row(item)
+            self.takeItem(row)
 
     # noinspection PyPep8Naming
     def mouseDoubleClickEvent(self, event):
@@ -86,10 +81,12 @@ class ListWidget(QtWidgets.QListWidget):
         to emit a signal to create a new item if user double-click outside
         of any items.
 
+        :param event: Instance of :class:`QtGui.QMouseEvent`
+
         """
         index = self.indexAt(event.pos())
         if not index.isValid():
-            self.creation_requested.emit()
+            self.add_text("", set_focus=True)
             return
 
         super(ListWidget, self).mouseDoubleClickEvent(event)
@@ -121,5 +118,8 @@ class ListWidget(QtWidgets.QListWidget):
         :param event: Instance of :class:`QtGui.QKeyEvent`
 
         """
-        if event in [QtGui.QKeySequence.Delete, QtGui.QKeySequence.Backspace]:
-            self.deletion_requested.emit()
+        if event in [
+            QtGui.QKeySequence.Delete,
+            QtGui.QKeySequence.Backspace
+        ]:
+            self.remove_selection()
