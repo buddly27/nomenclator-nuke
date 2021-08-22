@@ -59,6 +59,7 @@ class SettingsDialog(QtWidgets.QDialog):
     def _connect_signals(self):
         """Initialize signals connection."""
         self._tab_widget.widget(0).updated.connect(self._update_config)
+        self._tab_widget.widget(1).updated.connect(self._update_config)
         self._tab_widget.widget(2).updated.connect(self._update_config)
 
         self._button_box.accepted.connect(self.accept)
@@ -132,11 +133,19 @@ class GlobalSettingsForm(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._descriptions.updated.connect(lambda v: self.updated.emit("descriptions", tuple(v)))
+        self._descriptions.updated.connect(
+            lambda values: self.updated.emit("descriptions", tuple(values))
+        )
+        self._create_subfolders.stateChanged.connect(
+            lambda state: self.updated.emit("create_subfolders", state == QtCore.Qt.Checked)
+        )
 
 
 class TemplateSettingsForm(QtWidgets.QWidget):
     """Form to manage template settings."""
+
+    #: :term:`Qt Signal` emitted when a key of the config has changed.
+    updated = QtCore.Signal(str, object)
 
     def __init__(self, parent=None):
         """Initiate the widget."""
@@ -174,10 +183,26 @@ class TemplateSettingsForm(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
+        self._root.textChanged.connect(lambda v: self.updated.emit("template_root", v))
+        self._tab_widget.widget(0).updated.connect(
+            lambda values: self.updated.emit("comp_name_templates", tuple(values))
+        )
+        self._tab_widget.widget(1).updated.connect(
+            lambda values: self.updated.emit("project_name_templates", tuple(values))
+        )
+        self._tab_widget.widget(2).updated.connect(
+            lambda values: self.updated.emit("output_path_templates", tuple(values))
+        )
+        self._tab_widget.widget(3).updated.connect(
+            lambda values: self.updated.emit("output_name_templates", tuple(values))
+        )
 
 
 class _TemplateList(QtWidgets.QWidget):
     """Form to manage template lists."""
+
+    #: :term:`Qt Signal` emitted when the template list is updated.
+    updated = QtCore.Signal(list)
 
     def __init__(self, parent=None):
         """Initiate the widget."""
@@ -200,6 +225,7 @@ class _TemplateList(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
+        self._templates.updated.connect(self.updated.emit)
 
 
 class AdvancedSettingsForm(QtWidgets.QWidget):

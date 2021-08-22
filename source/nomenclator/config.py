@@ -57,7 +57,7 @@ def extract(data):
     return Config(
         descriptions=tuple(data.get("descriptions", DEFAULT_DESCRIPTIONS)),
         create_subfolders=data.get("create-subfolders", False),
-        template_root=template_data.get("root"),
+        template_root=template_data.get("root", ""),
         comp_name_templates=tuple(template_data.get("comp-names", [])),
         project_name_templates=tuple(template_data.get("project-names", [])),
         output_path_templates=tuple(template_data.get("output-paths", [])),
