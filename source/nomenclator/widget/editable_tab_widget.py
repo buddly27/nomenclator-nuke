@@ -38,7 +38,7 @@ class EditableTabWidget(QtWidgets.QTabWidget):
         self._plus_button = QtWidgets.QToolButton(self)
         self._plus_button.setObjectName("editable-tab-widget")
         self._plus_button.setText("+")
-        self._plus_button.setFixedSize(22, 20)
+        self._plus_button.setFixedSize(18, 18)
         self.setCornerWidget(self._plus_button)
 
         self._overlay_message = OverlayMessage(self)
