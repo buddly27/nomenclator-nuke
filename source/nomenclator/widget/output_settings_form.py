@@ -9,13 +9,18 @@ from .output_list import OutputList
 class OutputSettingsForm(QtWidgets.QWidget):
     """Form to manage render outputs settings."""
 
-    def __init__(self, config, parent=None):
+    def __init__(self, paddings, parent=None):
         """Initiate the widget."""
         super(OutputSettingsForm, self).__init__(parent)
-        self._setup_ui(config)
+        self._setup_ui(paddings)
         self._connect_signals()
 
-    def _setup_ui(self, config):
+    def set_values(self, nodes, node_names):
+        """Initialize values."""
+        for node in sorted(nodes, key=lambda n: n.name()):
+            self._output_list.add(node)
+
+    def _setup_ui(self, paddings):
         """Initialize user interface."""
         self.setObjectName("output-form")
 
@@ -30,7 +35,7 @@ class OutputSettingsForm(QtWidgets.QWidget):
         sub_folder_group.setTitle("Sub-Folder")
         main_layout.addWidget(sub_folder_group, 0, 0)
 
-        self._file_name_form = FileNameForm(config, self)
+        self._file_name_form = FileNameForm(paddings, self)
         self._file_name_form.setMinimumHeight(100)
 
         file_name_group = GroupWidget(self._file_name_form, self)
@@ -40,9 +45,6 @@ class OutputSettingsForm(QtWidgets.QWidget):
         self._output_list = OutputList(self)
         main_layout.addWidget(self._output_list, 1, 0, 1, 2)
         main_layout.rowStretch(1)
-
-        for node in sorted(config.nodes, key=lambda n: n.name()):
-            self._output_list.add(node, config)
 
     def _connect_signals(self):
         """Initialize signals connection."""
@@ -94,12 +96,12 @@ class SubFolderForm(QtWidgets.QWidget):
 class FileNameForm(QtWidgets.QWidget):
     """Form to manage output file name settings."""
 
-    def __init__(self, config, parent=None):
+    def __init__(self, paddings, parent=None):
         """Initiate the widget."""
         super(FileNameForm, self).__init__(parent)
-        self._setup_ui(config)
+        self._setup_ui(paddings)
 
-    def _setup_ui(self, config):
+    def _setup_ui(self, paddings):
         """Initialize user interface."""
         main_layout = QtWidgets.QGridLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -110,7 +112,7 @@ class FileNameForm(QtWidgets.QWidget):
         main_layout.addWidget(label, 0, 0)
 
         self._padding = QtWidgets.QComboBox(self)
-        self._padding.addItems(config.paddings)
+        self._padding.addItems(paddings)
         main_layout.addWidget(self._padding, 0, 1)
 
         self._append_passname = QtWidgets.QCheckBox(

@@ -13,13 +13,18 @@ from .theme import classic_style
 
 class CompoManagerDialog(QtWidgets.QDialog):
 
-    def __init__(self, config, parent=None):
+    def __init__(self, recent_locations, paddings, config, parent=None):
         """Initiate dialog."""
         super(CompoManagerDialog, self).__init__(parent)
-        self._setup_ui(config)
+        self._setup_ui(recent_locations, paddings, config)
         self._connect_signals()
 
-    def _setup_ui(self, config):
+    def set_values(self, nodes, node_names):
+        """Initialize values."""
+        self._outputs_settings_group.setEnabled(len(nodes) > 0)
+        self._output_settings_form.set_values(nodes, node_names)
+
+    def _setup_ui(self, recent_locations, paddings, config):
         """Initialize user interface."""
         self.setWindowTitle("Nomenclator - Composition Manager")
         self.setMinimumWidth(1100)
@@ -30,7 +35,7 @@ class CompoManagerDialog(QtWidgets.QDialog):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        self._location = LocationWidget(config.recent_locations, self)
+        self._location = LocationWidget(recent_locations, self)
         main_layout.addWidget(self._location)
 
         body_layout = QtWidgets.QVBoxLayout()
@@ -43,13 +48,12 @@ class CompoManagerDialog(QtWidgets.QDialog):
         comp_settings_group.setTitle("Composition")
         body_layout.addWidget(comp_settings_group)
 
-        self._output_settings_form = OutputSettingsForm(config, self)
+        self._output_settings_form = OutputSettingsForm(paddings, self)
 
-        outputs_settings_group = GroupWidget(self._output_settings_form, self)
-        outputs_settings_group.set_vertical_stretch(True)
-        outputs_settings_group.setTitle("Render Outputs")
-        outputs_settings_group.setEnabled(len(config.nodes) > 0)
-        body_layout.addWidget(outputs_settings_group)
+        self._outputs_settings_group = GroupWidget(self._output_settings_form, self)
+        self._outputs_settings_group.set_vertical_stretch(True)
+        self._outputs_settings_group.setTitle("Render Outputs")
+        body_layout.addWidget(self._outputs_settings_group)
 
         self._button_box = QtWidgets.QDialogButtonBox(self)
         self._button_box.setOrientation(QtCore.Qt.Horizontal)

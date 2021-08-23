@@ -23,9 +23,9 @@ class OutputList(QtWidgets.QListWidget):
     def _connect_signals(self):
         """Initialize signals connection."""
 
-    def add(self, node, config):
+    def add(self, node):
         """Add output item to list."""
-        output_form = SettingsForm(node, config, self)
+        output_form = SettingsForm(node, self)
         output_widget = SelectableItemWidget(
             output_form, not node["disable"].value(), self
         )
@@ -90,13 +90,12 @@ class SelectableItemWidget(QtWidgets.QWidget):
 class SettingsForm(QtWidgets.QWidget):
     """Form to manage render outputs settings."""
 
-    def __init__(self, node, config, parent=None):
+    def __init__(self, node, parent=None):
         """Initiate the widget."""
         super(SettingsForm, self).__init__(parent)
         self._setup_ui()
 
         self._node = node
-        self._config = config
 
         self._initiate()
 
