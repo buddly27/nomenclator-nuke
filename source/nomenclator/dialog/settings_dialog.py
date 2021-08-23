@@ -46,8 +46,8 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self._tab_widget = QtWidgets.QTabWidget(self)
         self._tab_widget.addTab(GlobalSettingsForm(), "Global")
-        self._tab_widget.addTab(CompSettingsForm(), "Comp (.nk)")
-        self._tab_widget.addTab(ProjectSettingsForm(), "Project (.hrox)")
+        self._tab_widget.addTab(CompSettingsForm(), "Comp Resolvers")
+        self._tab_widget.addTab(ProjectSettingsForm(), "Project Resolvers")
         self._tab_widget.addTab(AdvancedSettingsForm(), "Advanced")
 
         main_layout.addWidget(self._tab_widget)
@@ -199,7 +199,7 @@ class CompSettingsForm(QtWidgets.QWidget):
 
         self._tab_widget = EditableTabWidget(self)
         self._tab_widget.set_instruction(
-            "Add naming convention for Nuke composition scripts and\n"
+            "Add naming convention for Nuke composition scripts (.nk) and\n"
             "render outputs by clicking the '+' button on the top-right corner."
         )
         main_layout.addWidget(self._tab_widget)
@@ -272,7 +272,7 @@ class ProjectSettingsForm(QtWidgets.QWidget):
 
         self._tab_widget = EditableTabWidget(self)
         self._tab_widget.set_instruction(
-            "Add naming convention for Nuke Studio or Hiero projects\n"
+            "Add naming convention for Nuke Studio or Hiero projects (.hrox)\n"
             "by clicking the '+' button on the top-right corner."
         )
         main_layout.addWidget(self._tab_widget)
