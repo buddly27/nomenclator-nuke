@@ -118,8 +118,11 @@ def classic_style():
             border: 0px;
             background: none;
         }
+        QComboBox {
+            height: 18px;
+        }
         QLineEdit {
-            height: 20px;
+            height: 18px;
         }
         QSpinBox {
             height: 25px;
