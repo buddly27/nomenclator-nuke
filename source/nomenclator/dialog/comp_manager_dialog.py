@@ -13,20 +13,20 @@ from .theme import classic_style
 
 class CompoManagerDialog(QtWidgets.QDialog):
 
-    def __init__(self, context, config, parent=None):
+    def __init__(self, recent_locations, context, config, parent=None):
         """Initiate dialog."""
         super(CompoManagerDialog, self).__init__(parent)
         self._setup_ui()
         self._connect_signals()
 
-        self.set_values(context, config)
+        self.set_values(recent_locations, context, config)
 
-    def set_values(self, context, config):
+    def set_values(self, recent_locations, context, config):
         """Initialize values."""
-        self._location.set_items(context.recent_locations)
+        self._location.set_items(recent_locations)
         self._comp_settings_form.set_values(config)
-        self._outputs_settings_group.setEnabled(len(context.output.nodes) > 0)
-        self._output_settings_form.set_values(context.output)
+        self._outputs_settings_group.setEnabled(len(context["nodes"]) > 0)
+        self._output_settings_form.set_values(context)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -84,7 +84,9 @@ class CompSettingsForm(QtWidgets.QWidget):
 
     def set_values(self, config):
         """Initialize values."""
+        self._description_selector.blockSignals(True)
         self._description_selector.set_items(config.descriptions)
+        self._description_selector.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""

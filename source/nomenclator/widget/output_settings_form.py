@@ -19,7 +19,7 @@ class OutputSettingsForm(QtWidgets.QWidget):
         """Initialize values."""
         self._file_name_form.set_values(context)
 
-        for node in sorted(context.nodes, key=lambda n: n.name()):
+        for node in sorted(context["nodes"], key=lambda n: n.name()):
             self._output_list.add(node)
 
     def _setup_ui(self):
@@ -105,7 +105,7 @@ class FileNameForm(QtWidgets.QWidget):
 
     def set_values(self, context):
         """Initialize values."""
-        self._padding.addItems(context.paddings)
+        self._padding.addItems(context["paddings"])
 
     def _setup_ui(self):
         """Initialize user interface."""
