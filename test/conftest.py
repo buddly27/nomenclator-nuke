@@ -2,6 +2,7 @@
 
 import os
 import shutil
+import sys
 import tempfile
 import uuid
 
@@ -43,3 +44,15 @@ def temporary_directory(request):
     request.addfinalizer(cleanup)
 
     return path
+
+
+@pytest.fixture(autouse=True)
+def nuke_mocker(mocker):
+    """Mock the Nuke Python API."""
+    mocker.patch.dict(sys.modules, {"nuke": mocker.MagicMock()})
+
+
+@pytest.fixture(autouse=True)
+def qt_mocker(mocker):
+    """Mock the Qt library."""
+    mocker.patch.dict(sys.modules, {"nomenclator.vendor.Qt": mocker.MagicMock()})
