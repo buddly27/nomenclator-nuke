@@ -8,26 +8,24 @@ from .overlay_message import OverlayMessage
 class EditableTabWidget(QtWidgets.QTabWidget):
     """Tab Widget with editable tabs."""
 
+    #: :term:`Qt Signal` emitted when a new tab is requested.
+    new_tab_requested = QtCore.Signal()
+
+    #: :term:`Qt Signal` emitted when a tab is removed.
+    tab_removed = QtCore.Signal(int)
+
+    #: :term:`Qt Signal` emitted when a tab is edited.
+    tab_edited = QtCore.Signal(int)
+
     def __init__(self, parent=None):
         """Initiate the widget."""
         super(EditableTabWidget, self).__init__(parent)
         self._setup_ui()
         self._connect_signals()
 
-        self._tab_name = "Tab"
-        self._constructor = QtWidgets.QWidget
-
     def set_instruction(self, text):
         """Set *text* to display when no tab are added."""
         self._overlay_message.set_message(text)
-
-    def set_tab_name(self, text):
-        """Set base name for new tab."""
-        self._tab_name = text
-
-    def set_widget_constructor(self, constructor):
-        """Set constructor for new tab widgets."""
-        self._constructor = constructor
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -45,18 +43,27 @@ class EditableTabWidget(QtWidgets.QTabWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._plus_button.clicked.connect(self.add_tab)
+        self._plus_button.clicked.connect(self.new_tab_requested.emit)
         self.currentChanged.connect(self._toggle_message_overlay)
         self.tabCloseRequested.connect(self.removeTab)
+        self.tabBar().tab_text_edited.connect(self.tab_edited.emit)
 
-    def add_tab(self):
-        """Add a new tab."""
-        name = "{0}{1}".format(self._tab_name, self.count() + 1)
-        self.addTab(self._constructor(), name)
-
-    def _toggle_message_overlay(self, index):
+    def _toggle_message_overlay(self):
         """Hide the message overlay if tabs are added."""
+        index = self.currentIndex()
         self._overlay_message.setVisible(index == -1)
+
+    # noinspection PyPep8Naming
+    def tabRemoved(self, index):
+        """Handler called after a tab is removed from *index*.
+
+        The :meth:`QTabWidget.tabRemoved` method is reimplemented to
+        emit a signal when a tab is removed.
+
+        """
+        self.tab_removed.emit(index)
+        super(EditableTabWidget, self).tabRemoved(index)
+        self._toggle_message_overlay()
 
     # noinspection PyPep8Naming
     def resizeEvent(self, event):
@@ -75,6 +82,9 @@ class EditableTabWidget(QtWidgets.QTabWidget):
 
 class TabBar(QtWidgets.QTabBar):
     """Tab bar with editable labels."""
+
+    #: :term:`Qt Signal` emitted when the label of a tab is edited.
+    tab_text_edited = QtCore.Signal(int)
 
     def __init__(self, parent=None):
         """Initiate the widget."""
@@ -99,6 +109,7 @@ class TabBar(QtWidgets.QTabBar):
         if index >= 0:
             self._editor.hide()
             self.setTabText(index, self._editor.text())
+            self.tab_text_edited.emit(index)
 
     def edit_tab(self, index):
         """Edit tab label at targeted *index*."""

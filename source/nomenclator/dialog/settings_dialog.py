@@ -2,6 +2,8 @@
 
 from nomenclator.vendor.Qt import QtWidgets, QtCore, QtGui
 from nomenclator.widget import EditableList
+from nomenclator.widget import EditableTabWidget
+from nomenclator.config import CompTemplate, Template
 
 from .theme import classic_style
 
@@ -29,11 +31,12 @@ class SettingsDialog(QtWidgets.QDialog):
         self._tab_widget.widget(0).set_values(config)
         self._tab_widget.widget(1).set_values(config)
         self._tab_widget.widget(2).set_values(config)
+        self._tab_widget.widget(3).set_values(config)
 
     def _setup_ui(self):
         """Initialize user interface."""
         self.setWindowTitle("Nomenclator - Settings")
-        self.setMinimumWidth(800)
+        self.resize(QtCore.QSize(900, 500))
 
         self.setStyleSheet(classic_style())
 
@@ -43,7 +46,8 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self._tab_widget = QtWidgets.QTabWidget(self)
         self._tab_widget.addTab(GlobalSettingsForm(), "Global")
-        self._tab_widget.addTab(TemplateSettingsForm(), "Template")
+        self._tab_widget.addTab(CompSettingsForm(), "Comp (.nk)")
+        self._tab_widget.addTab(ProjectSettingsForm(), "Project (.hrox)")
         self._tab_widget.addTab(AdvancedSettingsForm(), "Advanced")
 
         main_layout.addWidget(self._tab_widget)
@@ -66,6 +70,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self._tab_widget.widget(0).updated.connect(self._update_config)
         self._tab_widget.widget(1).updated.connect(self._update_config)
         self._tab_widget.widget(2).updated.connect(self._update_config)
+        self._tab_widget.widget(3).updated.connect(self._update_config)
 
         self._button_box.clicked.connect(self._button_clicked)
 
@@ -158,78 +163,325 @@ class GlobalSettingsForm(QtWidgets.QWidget):
         )
 
 
-class TemplateSettingsForm(QtWidgets.QWidget):
-    """Form to manage template settings."""
+class CompSettingsForm(QtWidgets.QWidget):
+    """Form to manage comp settings."""
 
     #: :term:`Qt Signal` emitted when a key of the config has changed.
     updated = QtCore.Signal(str, object)
 
     def __init__(self, parent=None):
         """Initiate the widget."""
-        super(TemplateSettingsForm, self).__init__(parent)
+        super(CompSettingsForm, self).__init__(parent)
         self._setup_ui()
         self._connect_signals()
+
+        self._templates = []
 
     def set_values(self, config):
         """Initialize values."""
-        self._root.setText(config.template_root or "")
-        self._tab_widget.widget(0).set_values(config.comp_name_templates)
-        self._tab_widget.widget(1).set_values(config.project_name_templates)
-        self._tab_widget.widget(2).set_values(config.output_path_templates)
-        self._tab_widget.widget(3).set_values(config.output_name_templates)
+        self._tab_widget.blockSignals(True)
+
+        self._tab_widget.clear()
+
+        for template in config.comp_templates:
+            widget = _CompTemplateForm()
+            widget.set_template(template)
+            self._tab_widget.addTab(widget, template.id)
+            self._templates.append(template)
+
+        self._tab_widget.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
-        main_layout = QtWidgets.QGridLayout(self)
+        main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.setContentsMargins(10, 20, 10, 10)
-        main_layout.setSpacing(20)
+        main_layout.setSpacing(15)
 
-        root_lbl = QtWidgets.QLabel("Root Path", self)
-        main_layout.addWidget(root_lbl, 0, 0, 1, 1)
-
-        self._root = QtWidgets.QLineEdit(self)
-        main_layout.addWidget(self._root, 0, 1, 1, 1)
-
-        self._tab_widget = QtWidgets.QTabWidget(self)
-        self._tab_widget.addTab(_TemplateList(), "Comp Names (.nk)")
-        self._tab_widget.addTab(_TemplateList(), "Project Names (.hrox)")
-        self._tab_widget.addTab(_TemplateList(), "Output Paths")
-        self._tab_widget.addTab(_TemplateList(), "Output Names")
-
-        main_layout.addWidget(self._tab_widget, 1, 0, 1, 2)
+        self._tab_widget = EditableTabWidget(self)
+        self._tab_widget.set_instruction(
+            "Add naming convention for Nuke composition scripts and\n"
+            "render outputs by clicking the '+' button on the top-right corner."
+        )
+        main_layout.addWidget(self._tab_widget)
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._root.textChanged.connect(lambda v: self.updated.emit("template_root", v))
-        self._tab_widget.widget(0).updated.connect(
-            lambda values: self.updated.emit("comp_name_templates", tuple(values))
-        )
-        self._tab_widget.widget(1).updated.connect(
-            lambda values: self.updated.emit("project_name_templates", tuple(values))
-        )
-        self._tab_widget.widget(2).updated.connect(
-            lambda values: self.updated.emit("output_path_templates", tuple(values))
-        )
-        self._tab_widget.widget(3).updated.connect(
-            lambda values: self.updated.emit("output_name_templates", tuple(values))
-        )
+        self._tab_widget.new_tab_requested.connect(self._add_template)
+        self._tab_widget.tab_removed.connect(self._template_removed)
+        self._tab_widget.tab_edited.connect(self._template_updated)
+
+    def _add_template(self):
+        """Add a new tab for template."""
+        index = self._tab_widget.count()
+        name = "Comp{}".format(index + 1)
+
+        widget = _CompTemplateForm()
+        widget.updated.connect(lambda: self._template_updated(index))
+        self._templates.append(widget.template())
+
+        self._tab_widget.addTab(widget, name)
+        self._tab_widget.setCurrentWidget(widget)
+
+        self.updated.emit("comp_templates", tuple(self._templates))
+
+    def _template_removed(self, index):
+        """Remove template at *index* position."""
+        del self._templates[index]
+        self.updated.emit("comp_templates", tuple(self._templates))
+
+    def _template_updated(self, index):
+        """Update template at *index* position."""
+        widget = self._tab_widget.widget(index)
+        self._templates[index] = widget.template()
+        self.updated.emit("comp_templates", tuple(self._templates))
 
 
-class _TemplateList(QtWidgets.QWidget):
-    """Form to manage template lists."""
+class ProjectSettingsForm(QtWidgets.QWidget):
+    """Form to manage project settings."""
 
-    #: :term:`Qt Signal` emitted when the template list is updated.
-    updated = QtCore.Signal(list)
+    #: :term:`Qt Signal` emitted when a key of the config has changed.
+    updated = QtCore.Signal(str, object)
 
     def __init__(self, parent=None):
         """Initiate the widget."""
-        super(_TemplateList, self).__init__(parent)
+        super(ProjectSettingsForm, self).__init__(parent)
         self._setup_ui()
         self._connect_signals()
 
-    def set_values(self, templates):
+        self._templates = []
+
+    def set_values(self, config):
         """Initialize values."""
-        self._templates.set_values(templates)
+        self._tab_widget.blockSignals(True)
+
+        self._tab_widget.clear()
+
+        for template in config.project_templates:
+            widget = _ProjectTemplateForm()
+            widget.set_template(template)
+            self._tab_widget.addTab(widget, template.id)
+            self._templates.append(template)
+
+        self._tab_widget.blockSignals(False)
+
+    def _setup_ui(self):
+        """Initialize user interface."""
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.setContentsMargins(10, 20, 10, 10)
+        main_layout.setSpacing(15)
+
+        self._tab_widget = EditableTabWidget(self)
+        self._tab_widget.set_instruction(
+            "Add naming convention for Nuke Studio or Hiero projects\n"
+            "by clicking the '+' button on the top-right corner."
+        )
+        main_layout.addWidget(self._tab_widget)
+
+    def _connect_signals(self):
+        """Initialize signals connection."""
+        self._tab_widget.new_tab_requested.connect(self._add_template)
+        self._tab_widget.tab_removed.connect(self._template_removed)
+        self._tab_widget.tab_edited.connect(self._template_updated)
+
+    def _add_template(self):
+        """Add a new tab for template."""
+        index = self._tab_widget.count()
+        name = "Project{}".format(index + 1)
+
+        widget = _ProjectTemplateForm()
+        widget.updated.connect(lambda: self._template_updated(index))
+        self._templates.append(widget.template())
+
+        self._tab_widget.addTab(widget, name)
+        self._tab_widget.setCurrentWidget(widget)
+
+        self.updated.emit("project_templates", tuple(self._templates))
+
+    def _template_removed(self, index):
+        """Remove template at *index* position."""
+        del self._templates[index]
+        self.updated.emit("project_templates", tuple(self._templates))
+
+    def _template_updated(self, index):
+        """Update template at *index* position."""
+        widget = self._tab_widget.widget(index)
+        self._templates[index] = widget.template()
+        self.updated.emit("project_templates", tuple(self._templates))
+
+
+class _CompTemplateForm(QtWidgets.QWidget):
+    """Form to manage comp template settings."""
+
+    #: :term:`Qt Signal` emitted when the template is updated.
+    updated = QtCore.Signal()
+
+    def __init__(self, parent=None):
+        """Initiate the widget."""
+        super(_CompTemplateForm, self).__init__(parent)
+        self._setup_ui()
+        self._connect_signals()
+
+        self._template = CompTemplate(id="", path="", base_name="", outputs=[])
+        self._output_templates = []
+
+    def template(self):
+        """Return template object."""
+        return self._template
+
+    def set_template(self, template):
+        """Initialize values."""
+        self._template_form.blockSignals(True)
+        self._template_form.initiate(template)
+        self._template_form.blockSignals(False)
+
+        self._template = template
+
+        self._tab_widget.blockSignals(True)
+
+        self._tab_widget.clear()
+
+        for index, template in enumerate(template.outputs):
+            widget = _OutputTemplateForm()
+            widget.set_template(template)
+            widget.updated.connect(lambda: self._output_template_updated(index))
+
+            self._tab_widget.addTab(widget, template.id)
+            self._output_templates.append(template)
+
+        self._tab_widget.blockSignals(False)
+
+    def _setup_ui(self):
+        """Initialize user interface."""
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.setContentsMargins(10, 20, 10, 10)
+        main_layout.setSpacing(15)
+
+        self._template_form = _TemplateForm(self)
+        main_layout.addWidget(self._template_form)
+
+        self._tab_widget = EditableTabWidget(self)
+        self._tab_widget.set_instruction(
+            "Add naming convention for render outputs by clicking\n"
+            "the '+' button on the top-right corner."
+        )
+        main_layout.addWidget(self._tab_widget)
+
+    def _connect_signals(self):
+        """Initialize signals connection."""
+        self._template_form.updated.connect(self._update_template)
+        self._tab_widget.new_tab_requested.connect(self._add_output_template)
+        self._tab_widget.tab_removed.connect(self._output_template_removed)
+        self._tab_widget.tab_edited.connect(self._output_template_updated)
+
+    def _add_output_template(self):
+        """Add a new tab for output template."""
+        index = self._tab_widget.count()
+        name = "Output{}".format(index + 1)
+
+        widget = _OutputTemplateForm()
+        widget.updated.connect(lambda: self._output_template_updated(index))
+        self._output_templates.append(widget.template())
+
+        self._tab_widget.addTab(widget, name)
+        self._tab_widget.setCurrentWidget(widget)
+
+        self._update_template("outputs", self._output_templates)
+
+    def _output_template_removed(self, index):
+        """Remove output template at *index* position."""
+        del self._output_templates[index]
+        self._update_template("outputs", self._output_templates)
+
+    def _output_template_updated(self, index):
+        """Update output template at *index* position."""
+        widget = self._tab_widget.widget(index)
+        self._output_templates[index] = widget.template()
+        self._update_template("outputs", self._output_templates)
+
+    def _update_template(self, key, value):
+        """Update comp template object from *key* and *value*."""
+        # noinspection PyProtectedMember
+        self._template = self._template._replace(**{key: value})
+
+        self.updated.emit()
+
+
+class _ProjectTemplateForm(QtWidgets.QWidget):
+    """Form to manage project template settings."""
+
+    #: :term:`Qt Signal` emitted when the template is updated.
+    updated = QtCore.Signal()
+
+    def __init__(self, parent=None):
+        """Initiate the widget."""
+        super(_ProjectTemplateForm, self).__init__(parent)
+        self._setup_ui()
+        self._connect_signals()
+
+        self._template = Template(id="", path="", base_name="")
+
+    def template(self):
+        """Return template object."""
+        return self._template
+
+    def set_template(self, template):
+        """Initialize values."""
+        self._template_form.blockSignals(True)
+        self._template_form.initiate(template)
+        self._template_form.blockSignals(False)
+
+        self._template = template
+
+    def _setup_ui(self):
+        """Initialize user interface."""
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.setContentsMargins(10, 20, 10, 10)
+        main_layout.setSpacing(15)
+
+        self._template_form = _TemplateForm(self)
+        main_layout.addWidget(self._template_form)
+
+        spacer_v = QtWidgets.QSpacerItem(
+            0, 0, QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Expanding
+        )
+        main_layout.addItem(spacer_v)
+
+    def _connect_signals(self):
+        """Initialize signals connection."""
+        self._template_form.updated.connect(self._update_template)
+
+    def _update_template(self, key, value):
+        """Update comp template object from *key* and *value*."""
+        # noinspection PyProtectedMember
+        self._template = self._template._replace(**{key: value})
+
+        self.updated.emit()
+
+
+class _OutputTemplateForm(QtWidgets.QWidget):
+    """Form to manage output template settings."""
+
+    #: :term:`Qt Signal` emitted when the template is updated.
+    updated = QtCore.Signal()
+
+    def __init__(self, parent=None):
+        """Initiate the widget."""
+        super(_OutputTemplateForm, self).__init__(parent)
+        self._setup_ui()
+        self._connect_signals()
+
+        self._template = Template(id="", path="", base_name="")
+
+    def template(self):
+        """Return template object."""
+        return self._template
+
+    def set_template(self, template):
+        """Initialize values."""
+        self._template_form.blockSignals(True)
+        self._template_form.initiate(template)
+        self._template_form.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -237,12 +489,71 @@ class _TemplateList(QtWidgets.QWidget):
         main_layout.setContentsMargins(10, 20, 10, 10)
         main_layout.setSpacing(8)
 
-        self._templates = EditableList(self)
-        main_layout.addWidget(self._templates)
+        self._template_form = _TemplateForm(self)
+        main_layout.addWidget(self._template_form)
+
+        spacer_v = QtWidgets.QSpacerItem(
+            0, 0, QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Expanding
+        )
+        main_layout.addItem(spacer_v)
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._templates.updated.connect(self.updated.emit)
+        self._template_form.updated.connect(self._update_template)
+
+    def _update_template(self, key, value):
+        """Update comp template object from *key* and *value*."""
+        # noinspection PyProtectedMember
+        self._template = self._template._replace(**{key: value})
+
+        self.updated.emit()
+
+
+class _TemplateForm(QtWidgets.QWidget):
+    """Form to manage template path and name."""
+
+    #: :term:`Qt Signal` emitted when a key of the template has changed.
+    updated = QtCore.Signal(str, object)
+
+    def __init__(self, parent=None):
+        """Initiate the widget."""
+        super(_TemplateForm, self).__init__(parent)
+        self._setup_ui()
+        self._connect_signals()
+
+    def initiate(self, template):
+        """Initialize values."""
+        self._path.blockSignals(True)
+        self._path.setText(template.path)
+        self._path.blockSignals(False)
+
+        self._name.blockSignals(True)
+        self._name.setText(template.base_name)
+        self._name.blockSignals(False)
+
+    def _setup_ui(self):
+        """Initialize user interface."""
+        main_layout = QtWidgets.QGridLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(8)
+
+        path_lbl = QtWidgets.QLabel("Path", self)
+        main_layout.addWidget(path_lbl, 0, 0, 1, 1)
+
+        self._path = QtWidgets.QLineEdit(self)
+        main_layout.addWidget(self._path, 0, 1, 1, 1)
+
+        name_lbl = QtWidgets.QLabel("Base Name", self)
+        main_layout.addWidget(name_lbl, 1, 0, 1, 1)
+
+        self._name = QtWidgets.QLineEdit(self)
+        main_layout.addWidget(self._name, 1, 1, 1, 1)
+
+    def _connect_signals(self):
+        """Initialize signals connection."""
+        self._path.textChanged.connect(lambda v: self.updated.emit("path", v))
+        self._name.textChanged.connect(lambda v: self.updated.emit("base_name", v))
 
 
 class AdvancedSettingsForm(QtWidgets.QWidget):

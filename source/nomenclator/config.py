@@ -19,15 +19,32 @@ Config = collections.namedtuple(
     "Config", [
         "descriptions",
         "create_subfolders",
-        "template_root",
-        "comp_name_templates",
-        "project_name_templates",
-        "output_path_templates",
-        "output_name_templates",
+        "comp_templates",
+        "project_templates",
         "max_locations",
         "max_padding",
         "username",
         "username_is_default",
+    ]
+)
+
+
+#: Comp Template Structure type.
+CompTemplate = collections.namedtuple(
+    "CompTemplate", [
+        "id",
+        "path",
+        "base_name",
+        "outputs",
+    ]
+)
+
+#: Template Structure type.
+Template = collections.namedtuple(
+    "OutputTemplate", [
+        "id",
+        "path",
+        "base_name",
     ]
 )
 
@@ -53,7 +70,7 @@ def fetch():
         with open(path, "r") as stream:
             data = nomenclator.vendor.toml.load(stream)
 
-    return extract(data)
+    return load(data)
 
 
 def save(config):
@@ -75,41 +92,85 @@ def save(config):
     if config.username_is_default is False:
         data["username"] = config.username
 
-    data["template"] = collections.OrderedDict()
+    if len(config.comp_templates) > 0:
+        data["comp-templates"] = _dump_comp_templates(config.comp_templates)
 
-    if config.template_root != "":
-        data["template"]["root"] = config.template_root
-
-    if len(config.comp_name_templates) > 0:
-        data["template"]["comp-names"] = config.comp_name_templates
-
-    if len(config.project_name_templates) > 0:
-        data["template"]["project-names"] = config.project_name_templates
-
-    if len(config.output_path_templates) > 0:
-        data["template"]["output-paths"] = config.output_path_templates
-
-    if len(config.output_name_templates) > 0:
-        data["template"]["output-names"] = config.output_name_templates
+    if len(config.project_templates) > 0:
+        data["project-templates"] = _dump_templates(config.project_templates)
 
     with open(config_path(), "w") as stream:
         nomenclator.vendor.toml.dump(data, stream)
 
 
-def extract(data):
-    """Extract configuration object from Nuke scene and from *data* mapping."""
-    template_data = data.get("template", {})
+def _dump_comp_templates(comp_templates):
+    """Return data mapping from list of comp templates."""
+    items = []
 
+    for template in comp_templates:
+        data = collections.OrderedDict()
+        data["id"] = template.id
+        data["path"] = template.path
+        data["base-name"] = template.base_name
+        data["outputs"] = _dump_templates(template.outputs)
+        items.append(collections.OrderedDict())
+
+    return items
+
+
+def _dump_templates(templates):
+    """Return data mapping from list of templates."""
+    items = []
+
+    for template in templates:
+        data = collections.OrderedDict()
+        data["id"] = template.id
+        data["path"] = template.path
+        data["base-name"] = template.base_name
+        items.append(data)
+
+    return items
+
+
+def load(data):
+    """Return configuration object from Nuke scene and from *data* mapping."""
     return Config(
         descriptions=tuple(data.get("descriptions", DEFAULT_DESCRIPTIONS)),
         create_subfolders=data.get("create-subfolders", DEFAULT_CREATE_SUBFOLDERS),
-        template_root=template_data.get("root", ""),
-        comp_name_templates=tuple(template_data.get("comp-names", [])),
-        project_name_templates=tuple(template_data.get("project-names", [])),
-        output_path_templates=tuple(template_data.get("output-paths", [])),
-        output_name_templates=tuple(template_data.get("output-names", [])),
+        comp_templates=tuple(_load_comp_templates(data.get("comp-templates", []))),
+        project_templates=tuple(_load_templates(data.get("project-templates", []))),
         max_locations=data.get("max-locations", DEFAULT_MAX_LOCATIONS),
         max_padding=data.get("max-padding", DEFAULT_MAX_PADDING),
         username=data.get("username", getpass.getuser()),
         username_is_default=data.get("username") is None
     )
+
+
+def _load_comp_templates(items):
+    """Return list of comp templates from *items*."""
+    templates = []
+
+    for item in items:
+        template = CompTemplate(
+            id=item["id"],
+            path=item["path"],
+            base_name=item["base-name"],
+            outputs=tuple(_load_templates(item.get("outputs", [])))
+        )
+        templates.append(template)
+
+    return templates
+
+
+def _load_templates(items):
+    """Return list of templates from *items*."""
+    templates = []
+
+    for item in items:
+        template = Template(
+            id=item["id"],
+            path=item["path"],
+            base_name=item["base-name"],
+        )
+        templates.append(template)
+
+    return templates
