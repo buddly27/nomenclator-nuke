@@ -127,6 +127,20 @@ def classic_style():
         QListView::item {
             height: 25px;
         }
+        QToolButton#editable-tab-widget {
+            border: 0px;
+            border-radius: 8px;
+            background-color: none;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        QToolButton:pressed#editable-tab-widget {
+            background-color: #111;
+        }
+        QWidget#overlay QLabel {
+            padding: 40px;
+            font-size: 12px;
+        }
         """
     )
 
