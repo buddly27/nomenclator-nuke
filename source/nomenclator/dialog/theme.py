@@ -143,4 +143,3 @@ def classic_style():
         }
         """
     )
-
