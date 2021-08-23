@@ -112,7 +112,7 @@ def _dump_comp_templates(comp_templates):
         data["path"] = template.path
         data["base-name"] = template.base_name
         data["outputs"] = _dump_templates(template.outputs)
-        items.append(collections.OrderedDict())
+        items.append(data)
 
     return items
 
