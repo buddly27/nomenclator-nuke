@@ -1,9 +1,64 @@
 # -*- coding: utf-8 -*-
 
 import os
+import collections
+
 import nuke
 
 from nomenclator.symbol import OUTPUT_CLASSES
+
+
+#: Configuration Structure type.
+CompContext = collections.namedtuple(
+    "CompContext", [
+        "recent_locations",
+        "output",
+    ]
+)
+
+
+#: Configuration Structure type.
+OutputContext = collections.namedtuple(
+    "OutputContext", [
+        "nodes",
+        "node_names",
+        "paddings"
+    ]
+)
+
+
+#: Configuration Structure type.
+ProjectContext = collections.namedtuple(
+    "ProjectContext", [
+        "recent_locations",
+    ]
+)
+
+
+def fetch_comp(config):
+    """Fetch context for comp management."""
+    return CompContext(
+        recent_locations=fetch_recent_locations(max_values=config.max_locations),
+        output=fetch_output(config)
+    )
+
+
+def fetch_output(config):
+    """Fetch context for render outputs management."""
+    nodes, node_names = fetch_outputs_and_names()
+
+    return OutputContext(
+        nodes=nodes,
+        node_names=node_names,
+        paddings=fetch_paddings(max_value=config.max_padding)
+    )
+
+
+def fetch_project(config):
+    """Fetch context for project management."""
+    return ProjectContext(
+        recent_locations=fetch_recent_locations(max_values=config.max_locations),
+    )
 
 
 def fetch_outputs_and_names():

@@ -9,18 +9,20 @@ from .output_list import OutputList
 class OutputSettingsForm(QtWidgets.QWidget):
     """Form to manage render outputs settings."""
 
-    def __init__(self, paddings, parent=None):
+    def __init__(self, parent=None):
         """Initiate the widget."""
         super(OutputSettingsForm, self).__init__(parent)
-        self._setup_ui(paddings)
+        self._setup_ui()
         self._connect_signals()
 
-    def set_values(self, nodes, node_names):
+    def set_values(self, context):
         """Initialize values."""
-        for node in sorted(nodes, key=lambda n: n.name()):
+        self._file_name_form.set_values(context)
+
+        for node in sorted(context.nodes, key=lambda n: n.name()):
             self._output_list.add(node)
 
-    def _setup_ui(self, paddings):
+    def _setup_ui(self):
         """Initialize user interface."""
         self.setObjectName("output-form")
 
@@ -35,7 +37,7 @@ class OutputSettingsForm(QtWidgets.QWidget):
         sub_folder_group.setTitle("Sub-Folder")
         main_layout.addWidget(sub_folder_group, 0, 0)
 
-        self._file_name_form = FileNameForm(paddings, self)
+        self._file_name_form = FileNameForm(self)
         self._file_name_form.setMinimumHeight(100)
 
         file_name_group = GroupWidget(self._file_name_form, self)
@@ -96,12 +98,16 @@ class SubFolderForm(QtWidgets.QWidget):
 class FileNameForm(QtWidgets.QWidget):
     """Form to manage output file name settings."""
 
-    def __init__(self, paddings, parent=None):
+    def __init__(self, parent=None):
         """Initiate the widget."""
         super(FileNameForm, self).__init__(parent)
-        self._setup_ui(paddings)
+        self._setup_ui()
 
-    def _setup_ui(self, paddings):
+    def set_values(self, context):
+        """Initialize values."""
+        self._padding.addItems(context.paddings)
+
+    def _setup_ui(self):
         """Initialize user interface."""
         main_layout = QtWidgets.QGridLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -112,7 +118,6 @@ class FileNameForm(QtWidgets.QWidget):
         main_layout.addWidget(label, 0, 0)
 
         self._padding = QtWidgets.QComboBox(self)
-        self._padding.addItems(paddings)
         main_layout.addWidget(self._padding, 0, 1)
 
         self._append_passname = QtWidgets.QCheckBox(

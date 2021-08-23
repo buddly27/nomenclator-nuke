@@ -11,11 +11,12 @@ class DescriptionSelector(QtWidgets.QWidget):
     #: :term:`Qt Signal` emitted when description value has been updated.
     updated = QtCore.Signal()
 
-    def __init__(self, descriptions, parent=None):
+    #: Item label to indicate that a custom description is requested.
+    CUSTOM_LABEL = "-- custom --"
+
+    def __init__(self, parent=None):
         """Initiate the widget."""
         super(DescriptionSelector, self).__init__(parent)
-        self._items = list(descriptions) + ["-- custom --"]
-
         self._setup_ui()
         self._connect_signals()
 
@@ -24,6 +25,11 @@ class DescriptionSelector(QtWidgets.QWidget):
         if self._description.currentIndex() == len(self._items) - 1:
             return self._custom_description.text()
         return self._description.currentText()
+
+    def set_items(self, descriptions):
+        """Initialize values."""
+        self._description.clear()
+        self._description.addItems(list(descriptions) + [self.CUSTOM_LABEL])
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -36,7 +42,6 @@ class DescriptionSelector(QtWidgets.QWidget):
         label.setMinimumWidth(80)
 
         self._description = QtWidgets.QComboBox(self)
-        self._description.addItems(self._items)
         self._custom_description = QtWidgets.QLineEdit(self)
         self._custom_description.setText("")
         self._custom_description.setVisible(False)
@@ -58,7 +63,7 @@ class DescriptionSelector(QtWidgets.QWidget):
 
     def _update_ui(self, index):
         """Update UI depending on the current *index* selected."""
-        if index == len(self._items) - 1:
+        if self._description.itemText(index) == self.CUSTOM_LABEL:
             self._custom_description.setVisible(True)
             self._custom_description.setFocus()
 
@@ -81,8 +86,3 @@ class DescriptionSelector(QtWidgets.QWidget):
         self._custom_description.blockSignals(False)
 
         self.updated.emit()
-
-
-
-
-

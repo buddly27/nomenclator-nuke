@@ -13,18 +13,22 @@ from .theme import classic_style
 
 class CompoManagerDialog(QtWidgets.QDialog):
 
-    def __init__(self, recent_locations, paddings, config, parent=None):
+    def __init__(self, context, config, parent=None):
         """Initiate dialog."""
         super(CompoManagerDialog, self).__init__(parent)
-        self._setup_ui(recent_locations, paddings, config)
+        self._setup_ui()
         self._connect_signals()
 
-    def set_values(self, nodes, node_names):
-        """Initialize values."""
-        self._outputs_settings_group.setEnabled(len(nodes) > 0)
-        self._output_settings_form.set_values(nodes, node_names)
+        self.set_values(context, config)
 
-    def _setup_ui(self, recent_locations, paddings, config):
+    def set_values(self, context, config):
+        """Initialize values."""
+        self._location.set_items(context.recent_locations)
+        self._comp_settings_form.set_values(config)
+        self._outputs_settings_group.setEnabled(len(context.output.nodes) > 0)
+        self._output_settings_form.set_values(context.output)
+
+    def _setup_ui(self):
         """Initialize user interface."""
         self.setWindowTitle("Nomenclator - Composition Manager")
         self.setMinimumWidth(1100)
@@ -35,20 +39,20 @@ class CompoManagerDialog(QtWidgets.QDialog):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        self._location = LocationWidget(recent_locations, self)
+        self._location = LocationWidget(self)
         main_layout.addWidget(self._location)
 
         body_layout = QtWidgets.QVBoxLayout()
         body_layout.setContentsMargins(10, 10, 10, 10)
         body_layout.setSpacing(8)
 
-        self._comp_settings_form = CompSettingsForm(config, self)
+        self._comp_settings_form = CompSettingsForm(self)
 
         comp_settings_group = GroupWidget(self._comp_settings_form, self)
         comp_settings_group.setTitle("Composition")
         body_layout.addWidget(comp_settings_group)
 
-        self._output_settings_form = OutputSettingsForm(paddings, self)
+        self._output_settings_form = OutputSettingsForm(self)
 
         self._outputs_settings_group = GroupWidget(self._output_settings_form, self)
         self._outputs_settings_group.set_vertical_stretch(True)
@@ -72,19 +76,23 @@ class CompoManagerDialog(QtWidgets.QDialog):
 class CompSettingsForm(QtWidgets.QWidget):
     """Form to manage composition settings."""
 
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         """Initiate the widget."""
         super(CompSettingsForm, self).__init__(parent)
-        self._setup_ui(config)
+        self._setup_ui()
         self._connect_signals()
 
-    def _setup_ui(self, config):
+    def set_values(self, config):
+        """Initialize values."""
+        self._description_selector.set_items(config.descriptions)
+
+    def _setup_ui(self):
         """Initialize user interface."""
         main_layout = QtWidgets.QGridLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(8)
 
-        self._description_selector = DescriptionSelector(config.descriptions, self)
+        self._description_selector = DescriptionSelector(self)
         main_layout.addWidget(self._description_selector, 0, 0)
 
         self._append_username = QtWidgets.QCheckBox("Append username to script", self)
