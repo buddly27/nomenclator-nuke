@@ -187,8 +187,6 @@ class CompSettingsForm(QtWidgets.QWidget):
 
     def set_values(self, config):
         """Initialize values."""
-        self._tab_widget.blockSignals(True)
-
         self._tab_widget.clear()
 
         for template in config.comp_templates:
@@ -196,8 +194,6 @@ class CompSettingsForm(QtWidgets.QWidget):
             widget.set_template(template)
             widget.updated.connect(self._template_updated)
             self._tab_widget.addTab(widget, template.id)
-
-        self._tab_widget.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -259,8 +255,6 @@ class ProjectSettingsForm(QtWidgets.QWidget):
 
     def set_values(self, config):
         """Initialize values."""
-        self._tab_widget.blockSignals(True)
-
         self._tab_widget.clear()
 
         for template in config.project_templates:
@@ -268,8 +262,6 @@ class ProjectSettingsForm(QtWidgets.QWidget):
             widget.set_template(template)
             widget.updated.connect(self._template_updated)
             self._tab_widget.addTab(widget, template.id)
-
-        self._tab_widget.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -349,8 +341,6 @@ class _CompTemplateForm(QtWidgets.QWidget):
 
         self._template = template
 
-        self._tab_widget.blockSignals(True)
-
         self._tab_widget.clear()
 
         for template in template.outputs:
@@ -358,8 +348,6 @@ class _CompTemplateForm(QtWidgets.QWidget):
             widget.set_template(template)
             widget.updated.connect(self._output_template_updated)
             self._tab_widget.addTab(widget, template.id)
-
-        self._tab_widget.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
