@@ -175,7 +175,15 @@ class CompSettingsForm(QtWidgets.QWidget):
         self._setup_ui()
         self._connect_signals()
 
-        self._templates = []
+    def templates(self):
+        """Return list of templates."""
+        templates = []
+
+        for index in range(self._tab_widget.count()):
+            widget = self._tab_widget.widget(index)
+            templates.append(widget.template())
+
+        return tuple(templates)
 
     def set_values(self, config):
         """Initialize values."""
@@ -184,10 +192,10 @@ class CompSettingsForm(QtWidgets.QWidget):
         self._tab_widget.clear()
 
         for template in config.comp_templates:
-            widget = _CompTemplateForm()
+            widget = _CompTemplateForm(template.id)
             widget.set_template(template)
+            widget.updated.connect(self._template_updated)
             self._tab_widget.addTab(widget, template.id)
-            self._templates.append(template)
 
         self._tab_widget.blockSignals(False)
 
@@ -207,33 +215,24 @@ class CompSettingsForm(QtWidgets.QWidget):
     def _connect_signals(self):
         """Initialize signals connection."""
         self._tab_widget.new_tab_requested.connect(self._add_template)
-        self._tab_widget.tab_removed.connect(self._template_removed)
+        self._tab_widget.tab_removed.connect(self._template_updated)
         self._tab_widget.tab_edited.connect(self._template_updated)
 
     def _add_template(self):
         """Add a new tab for template."""
-        index = self._tab_widget.count()
-        name = "Comp{}".format(index + 1)
+        identifier = "Comp{}".format(self._tab_widget.count() + 1)
 
-        widget = _CompTemplateForm()
-        widget.updated.connect(lambda: self._template_updated(index))
-        self._templates.append(widget.template())
+        widget = _CompTemplateForm(identifier)
+        widget.updated.connect(self._template_updated)
 
-        self._tab_widget.addTab(widget, name)
+        self._tab_widget.addTab(widget, identifier)
         self._tab_widget.setCurrentWidget(widget)
 
-        self.updated.emit("comp_templates", tuple(self._templates))
+        self._template_updated()
 
-    def _template_removed(self, index):
-        """Remove template at *index* position."""
-        del self._templates[index]
-        self.updated.emit("comp_templates", tuple(self._templates))
-
-    def _template_updated(self, index):
-        """Update template at *index* position."""
-        widget = self._tab_widget.widget(index)
-        self._templates[index] = widget.template()
-        self.updated.emit("comp_templates", tuple(self._templates))
+    def _template_updated(self):
+        """Emit signal once a template has been updated."""
+        self.updated.emit("comp_templates", self.templates())
 
 
 class ProjectSettingsForm(QtWidgets.QWidget):
@@ -248,7 +247,15 @@ class ProjectSettingsForm(QtWidgets.QWidget):
         self._setup_ui()
         self._connect_signals()
 
-        self._templates = []
+    def templates(self):
+        """Return list of templates."""
+        templates = []
+
+        for index in range(self._tab_widget.count()):
+            widget = self._tab_widget.widget(index)
+            templates.append(widget.template())
+
+        return tuple(templates)
 
     def set_values(self, config):
         """Initialize values."""
@@ -257,10 +264,10 @@ class ProjectSettingsForm(QtWidgets.QWidget):
         self._tab_widget.clear()
 
         for template in config.project_templates:
-            widget = _ProjectTemplateForm()
+            widget = _ProjectTemplateForm(template.id)
             widget.set_template(template)
+            widget.updated.connect(self._template_updated)
             self._tab_widget.addTab(widget, template.id)
-            self._templates.append(template)
 
         self._tab_widget.blockSignals(False)
 
@@ -280,33 +287,24 @@ class ProjectSettingsForm(QtWidgets.QWidget):
     def _connect_signals(self):
         """Initialize signals connection."""
         self._tab_widget.new_tab_requested.connect(self._add_template)
-        self._tab_widget.tab_removed.connect(self._template_removed)
+        self._tab_widget.tab_removed.connect(self._template_updated)
         self._tab_widget.tab_edited.connect(self._template_updated)
 
     def _add_template(self):
         """Add a new tab for template."""
-        index = self._tab_widget.count()
-        name = "Project{}".format(index + 1)
+        identifier = "Project{}".format(self._tab_widget.count() + 1)
 
-        widget = _ProjectTemplateForm()
-        widget.updated.connect(lambda: self._template_updated(index))
-        self._templates.append(widget.template())
+        widget = _ProjectTemplateForm(identifier)
+        widget.updated.connect(self._template_updated)
 
-        self._tab_widget.addTab(widget, name)
+        self._tab_widget.addTab(widget, identifier)
         self._tab_widget.setCurrentWidget(widget)
 
-        self.updated.emit("project_templates", tuple(self._templates))
+        self._template_updated()
 
-    def _template_removed(self, index):
-        """Remove template at *index* position."""
-        del self._templates[index]
-        self.updated.emit("project_templates", tuple(self._templates))
-
-    def _template_updated(self, index):
-        """Update template at *index* position."""
-        widget = self._tab_widget.widget(index)
-        self._templates[index] = widget.template()
-        self.updated.emit("project_templates", tuple(self._templates))
+    def _template_updated(self):
+        """Emit signal once a template has been updated."""
+        self.updated.emit("project_templates", self.templates())
 
 
 class _CompTemplateForm(QtWidgets.QWidget):
@@ -315,18 +313,33 @@ class _CompTemplateForm(QtWidgets.QWidget):
     #: :term:`Qt Signal` emitted when the template is updated.
     updated = QtCore.Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, identifier, parent=None):
         """Initiate the widget."""
         super(_CompTemplateForm, self).__init__(parent)
         self._setup_ui()
         self._connect_signals()
 
-        self._template = CompTemplate(id="", path="", base_name="", outputs=[])
-        self._output_templates = []
+        # Record template to update
+        self._template = CompTemplate(
+            id=identifier,
+            path="",
+            base_name="",
+            outputs=[]
+        )
 
     def template(self):
         """Return template object."""
         return self._template
+
+    def output_templates(self):
+        """Return list of output templates."""
+        templates = []
+
+        for index in range(self._tab_widget.count()):
+            widget = self._tab_widget.widget(index)
+            templates.append(widget.template())
+
+        return tuple(templates)
 
     def set_template(self, template):
         """Initialize values."""
@@ -340,13 +353,11 @@ class _CompTemplateForm(QtWidgets.QWidget):
 
         self._tab_widget.clear()
 
-        for index, template in enumerate(template.outputs):
-            widget = _OutputTemplateForm()
+        for template in template.outputs:
+            widget = _OutputTemplateForm(template.id)
             widget.set_template(template)
-            widget.updated.connect(lambda: self._output_template_updated(index))
-
+            widget.updated.connect(self._output_template_updated)
             self._tab_widget.addTab(widget, template.id)
-            self._output_templates.append(template)
 
         self._tab_widget.blockSignals(False)
 
@@ -370,33 +381,24 @@ class _CompTemplateForm(QtWidgets.QWidget):
         """Initialize signals connection."""
         self._template_form.updated.connect(self._update_template)
         self._tab_widget.new_tab_requested.connect(self._add_output_template)
-        self._tab_widget.tab_removed.connect(self._output_template_removed)
+        self._tab_widget.tab_removed.connect(self._output_template_updated)
         self._tab_widget.tab_edited.connect(self._output_template_updated)
 
     def _add_output_template(self):
         """Add a new tab for output template."""
-        index = self._tab_widget.count()
-        name = "Output{}".format(index + 1)
+        identifier = "Output{}".format(self._tab_widget.count() + 1)
 
-        widget = _OutputTemplateForm()
-        widget.updated.connect(lambda: self._output_template_updated(index))
-        self._output_templates.append(widget.template())
+        widget = _OutputTemplateForm(identifier)
+        widget.updated.connect(self._output_template_updated)
 
-        self._tab_widget.addTab(widget, name)
+        self._tab_widget.addTab(widget, identifier)
         self._tab_widget.setCurrentWidget(widget)
 
-        self._update_template("outputs", self._output_templates)
+        self._output_template_updated()
 
-    def _output_template_removed(self, index):
-        """Remove output template at *index* position."""
-        del self._output_templates[index]
-        self._update_template("outputs", self._output_templates)
-
-    def _output_template_updated(self, index):
-        """Update output template at *index* position."""
-        widget = self._tab_widget.widget(index)
-        self._output_templates[index] = widget.template()
-        self._update_template("outputs", self._output_templates)
+    def _output_template_updated(self):
+        """Emit signal once an output template has been updated."""
+        self._update_template("outputs", self.output_templates())
 
     def _update_template(self, key, value):
         """Update comp template object from *key* and *value*."""
@@ -412,13 +414,14 @@ class _ProjectTemplateForm(QtWidgets.QWidget):
     #: :term:`Qt Signal` emitted when the template is updated.
     updated = QtCore.Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, identifier, parent=None):
         """Initiate the widget."""
         super(_ProjectTemplateForm, self).__init__(parent)
         self._setup_ui()
         self._connect_signals()
 
-        self._template = Template(id="", path="", base_name="")
+        # Record template to update
+        self._template = Template(id=identifier, path="", base_name="")
 
     def template(self):
         """Return template object."""
@@ -465,13 +468,14 @@ class _OutputTemplateForm(QtWidgets.QWidget):
     #: :term:`Qt Signal` emitted when the template is updated.
     updated = QtCore.Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, identifier, parent=None):
         """Initiate the widget."""
         super(_OutputTemplateForm, self).__init__(parent)
         self._setup_ui()
         self._connect_signals()
 
-        self._template = Template(id="", path="", base_name="")
+        # Record template to update
+        self._template = Template(id=identifier, path="", base_name="")
 
     def template(self):
         """Return template object."""
