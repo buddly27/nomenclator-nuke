@@ -181,7 +181,8 @@ class CompSettingsForm(QtWidgets.QWidget):
 
         for index in range(self._tab_widget.count()):
             widget = self._tab_widget.widget(index)
-            templates.append(widget.template())
+            identifier = self._tab_widget.tabText(index)
+            templates.append(widget.template(identifier))
 
         return tuple(templates)
 
@@ -190,7 +191,7 @@ class CompSettingsForm(QtWidgets.QWidget):
         self._tab_widget.clear()
 
         for template in config.comp_templates:
-            widget = _CompTemplateForm(template.id)
+            widget = _CompTemplateForm()
             widget.set_template(template)
             widget.updated.connect(self._template_updated)
             self._tab_widget.addTab(widget, template.id)
@@ -218,7 +219,7 @@ class CompSettingsForm(QtWidgets.QWidget):
         """Add a new tab for template."""
         identifier = "Comp{}".format(self._tab_widget.count() + 1)
 
-        widget = _CompTemplateForm(identifier)
+        widget = _CompTemplateForm()
         widget.updated.connect(self._template_updated)
 
         self._tab_widget.addTab(widget, identifier)
@@ -249,7 +250,8 @@ class ProjectSettingsForm(QtWidgets.QWidget):
 
         for index in range(self._tab_widget.count()):
             widget = self._tab_widget.widget(index)
-            templates.append(widget.template())
+            identifier = self._tab_widget.tabText(index)
+            templates.append(widget.template(identifier))
 
         return tuple(templates)
 
@@ -258,7 +260,7 @@ class ProjectSettingsForm(QtWidgets.QWidget):
         self._tab_widget.clear()
 
         for template in config.project_templates:
-            widget = _ProjectTemplateForm(template.id)
+            widget = _ProjectTemplateForm()
             widget.set_template(template)
             widget.updated.connect(self._template_updated)
             self._tab_widget.addTab(widget, template.id)
@@ -286,7 +288,7 @@ class ProjectSettingsForm(QtWidgets.QWidget):
         """Add a new tab for template."""
         identifier = "Project{}".format(self._tab_widget.count() + 1)
 
-        widget = _ProjectTemplateForm(identifier)
+        widget = _ProjectTemplateForm()
         widget.updated.connect(self._template_updated)
 
         self._tab_widget.addTab(widget, identifier)
@@ -305,23 +307,20 @@ class _CompTemplateForm(QtWidgets.QWidget):
     #: :term:`Qt Signal` emitted when the template is updated.
     updated = QtCore.Signal()
 
-    def __init__(self, identifier, parent=None):
+    def __init__(self, parent=None):
         """Initiate the widget."""
         super(_CompTemplateForm, self).__init__(parent)
         self._setup_ui()
         self._connect_signals()
 
-        # Record template to update
-        self._template = CompTemplate(
-            id=identifier,
-            path="",
-            base_name="",
-            outputs=[]
-        )
-
-    def template(self):
+    def template(self, identifier):
         """Return template object."""
-        return self._template
+        return CompTemplate(
+            id=identifier,
+            path=self._template_form.path(),
+            base_name=self._template_form.base_name(),
+            outputs=self.output_templates()
+        )
 
     def output_templates(self):
         """Return list of output templates."""
@@ -329,7 +328,8 @@ class _CompTemplateForm(QtWidgets.QWidget):
 
         for index in range(self._tab_widget.count()):
             widget = self._tab_widget.widget(index)
-            templates.append(widget.template())
+            identifier = self._tab_widget.tabText(index)
+            templates.append(widget.template(identifier))
 
         return tuple(templates)
 
@@ -339,14 +339,12 @@ class _CompTemplateForm(QtWidgets.QWidget):
         self._template_form.initiate(template)
         self._template_form.blockSignals(False)
 
-        self._template = template
-
         self._tab_widget.clear()
 
         for template in template.outputs:
-            widget = _OutputTemplateForm(template.id)
+            widget = _OutputTemplateForm()
             widget.set_template(template)
-            widget.updated.connect(self._output_template_updated)
+            widget.updated.connect(self.updated.emit)
             self._tab_widget.addTab(widget, template.id)
 
     def _setup_ui(self):
@@ -367,31 +365,20 @@ class _CompTemplateForm(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._template_form.updated.connect(self._update_template)
+        self._template_form.updated.connect(self.updated.emit)
         self._tab_widget.new_tab_requested.connect(self._add_output_template)
-        self._tab_widget.tab_removed.connect(self._output_template_updated)
-        self._tab_widget.tab_edited.connect(self._output_template_updated)
+        self._tab_widget.tab_removed.connect(lambda: self.updated.emit())
+        self._tab_widget.tab_edited.connect(lambda: self.updated.emit())
 
     def _add_output_template(self):
         """Add a new tab for output template."""
         identifier = "Output{}".format(self._tab_widget.count() + 1)
 
-        widget = _OutputTemplateForm(identifier)
-        widget.updated.connect(self._output_template_updated)
+        widget = _OutputTemplateForm()
+        widget.updated.connect(self.updated.emit)
 
         self._tab_widget.addTab(widget, identifier)
         self._tab_widget.setCurrentWidget(widget)
-
-        self._output_template_updated()
-
-    def _output_template_updated(self):
-        """Emit signal once an output template has been updated."""
-        self._update_template("outputs", self.output_templates())
-
-    def _update_template(self, key, value):
-        """Update comp template object from *key* and *value*."""
-        # noinspection PyProtectedMember
-        self._template = self._template._replace(**{key: value})
 
         self.updated.emit()
 
@@ -402,26 +389,25 @@ class _ProjectTemplateForm(QtWidgets.QWidget):
     #: :term:`Qt Signal` emitted when the template is updated.
     updated = QtCore.Signal()
 
-    def __init__(self, identifier, parent=None):
+    def __init__(self, parent=None):
         """Initiate the widget."""
         super(_ProjectTemplateForm, self).__init__(parent)
         self._setup_ui()
         self._connect_signals()
 
-        # Record template to update
-        self._template = Template(id=identifier, path="", base_name="")
-
-    def template(self):
+    def template(self, identifier):
         """Return template object."""
-        return self._template
+        return Template(
+            id=identifier,
+            path=self._template_form.path(),
+            base_name=self._template_form.base_name()
+        )
 
     def set_template(self, template):
         """Initialize values."""
         self._template_form.blockSignals(True)
         self._template_form.initiate(template)
         self._template_form.blockSignals(False)
-
-        self._template = template
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -440,14 +426,7 @@ class _ProjectTemplateForm(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._template_form.updated.connect(self._update_template)
-
-    def _update_template(self, key, value):
-        """Update comp template object from *key* and *value*."""
-        # noinspection PyProtectedMember
-        self._template = self._template._replace(**{key: value})
-
-        self.updated.emit()
+        self._template_form.updated.connect(self.updated.emit)
 
 
 class _OutputTemplateForm(QtWidgets.QWidget):
@@ -456,18 +435,19 @@ class _OutputTemplateForm(QtWidgets.QWidget):
     #: :term:`Qt Signal` emitted when the template is updated.
     updated = QtCore.Signal()
 
-    def __init__(self, identifier, parent=None):
+    def __init__(self, parent=None):
         """Initiate the widget."""
         super(_OutputTemplateForm, self).__init__(parent)
         self._setup_ui()
         self._connect_signals()
 
-        # Record template to update
-        self._template = Template(id=identifier, path="", base_name="")
-
-    def template(self):
+    def template(self, identifier):
         """Return template object."""
-        return self._template
+        return Template(
+            id=identifier,
+            path=self._template_form.path(),
+            base_name=self._template_form.base_name()
+        )
 
     def set_template(self, template):
         """Initialize values."""
@@ -492,27 +472,28 @@ class _OutputTemplateForm(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._template_form.updated.connect(self._update_template)
-
-    def _update_template(self, key, value):
-        """Update comp template object from *key* and *value*."""
-        # noinspection PyProtectedMember
-        self._template = self._template._replace(**{key: value})
-
-        self.updated.emit()
+        self._template_form.updated.connect(self.updated.emit)
 
 
 class _TemplateForm(QtWidgets.QWidget):
     """Form to manage template path and name."""
 
     #: :term:`Qt Signal` emitted when a key of the template has changed.
-    updated = QtCore.Signal(str, object)
+    updated = QtCore.Signal()
 
     def __init__(self, parent=None):
         """Initiate the widget."""
         super(_TemplateForm, self).__init__(parent)
         self._setup_ui()
         self._connect_signals()
+
+    def path(self):
+        """Return template path."""
+        return self._path.text()
+
+    def base_name(self):
+        """Return template base name."""
+        return self._name.text()
 
     def initiate(self, template):
         """Initialize values."""
@@ -544,8 +525,8 @@ class _TemplateForm(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._path.textChanged.connect(lambda v: self.updated.emit("path", v))
-        self._name.textChanged.connect(lambda v: self.updated.emit("base_name", v))
+        self._path.textChanged.connect(lambda: self.updated.emit())
+        self._name.textChanged.connect(lambda: self.updated.emit())
 
 
 class AdvancedSettingsForm(QtWidgets.QWidget):
