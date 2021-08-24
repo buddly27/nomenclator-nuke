@@ -4,7 +4,7 @@ import os
 import collections
 import getpass
 
-import nomenclator.vendor.toml
+import nomenclator.vendor.toml as toml
 from nomenclator.symbol import (
     CONFIG_FILE_NAME,
     DEFAULT_DESCRIPTIONS,
@@ -68,7 +68,7 @@ def fetch():
 
     if os.path.exists(config_path):
         with open(config_path, "r") as stream:
-            data = nomenclator.vendor.toml.load(stream)
+            data = toml.load(stream)
 
     return load(data)
 
@@ -78,7 +78,7 @@ def save(config):
     data = dump(config)
 
     with open(path(), "w") as stream:
-        nomenclator.vendor.toml.dump(data, stream)
+        toml.dump(data, stream)
 
 
 def dump(config):
