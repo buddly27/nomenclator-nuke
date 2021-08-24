@@ -265,7 +265,7 @@ def test_construct_regexp(mocked_sanitize_template, template, expected):
 
 def test_construct_regexp_with_default(mocked_sanitize_template):
     """Create corresponding regular expression with default expression."""
-    template =  r"/path/{project}/{episode}"
+    template = r"/path/{project}/{episode}"
     mocked_sanitize_template.return_value = template
 
     import nomenclator.utilities
