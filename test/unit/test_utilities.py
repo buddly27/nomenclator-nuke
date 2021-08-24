@@ -30,10 +30,10 @@ def mocked_fetch_paddings(mocker):
 
 
 @pytest.fixture()
-def mocked_sanitize_template(mocker):
-    """Return mocked 'nomenclator.utilities.sanitize_template' function."""
+def mocked_sanitize_template_pattern(mocker):
+    """Return mocked 'nomenclator.utilities.sanitize_template_pattern' function."""
     import nomenclator.utilities
-    return mocker.patch.object(nomenclator.utilities, "sanitize_template")
+    return mocker.patch.object(nomenclator.utilities, "sanitize_template_pattern")
 
 
 def test_fetch_output_context(mocker, mocked_fetch_nodes, mocked_fetch_paddings):
@@ -262,23 +262,27 @@ def test_fetch_paddings_default_preferences_knob_value_error(mocker):
     "path-with-tokens",
     "path-with-tokens-and-patterns",
 ])
-def test_construct_regexp(mocked_sanitize_template, mock_re_compile, template, expected):
+def test_construct_regexp(
+    mocked_sanitize_template_pattern, mock_re_compile, template, expected
+):
     """Create corresponding regular expression."""
-    mocked_sanitize_template.return_value = template
+    mocked_sanitize_template_pattern.return_value = template
 
     import nomenclator.utilities
 
     regexp = nomenclator.utilities.construct_regexp(template)
     assert regexp == mock_re_compile.return_value
 
-    mocked_sanitize_template.assert_called_once_with(template)
+    mocked_sanitize_template_pattern.assert_called_once_with(template)
     mock_re_compile.assert_called_once_with(expected)
 
 
-def test_construct_regexp_with_default(mocked_sanitize_template, mock_re_compile):
+def test_construct_regexp_with_default(
+    mocked_sanitize_template_pattern, mock_re_compile
+):
     """Create corresponding regular expression with default expression."""
     template = r"/path/{project}/{episode}"
-    mocked_sanitize_template.return_value = template
+    mocked_sanitize_template_pattern.return_value = template
 
     import nomenclator.utilities
     regexp = nomenclator.utilities.construct_regexp(
@@ -286,7 +290,7 @@ def test_construct_regexp_with_default(mocked_sanitize_template, mock_re_compile
     )
     assert regexp == mock_re_compile.return_value
 
-    mocked_sanitize_template.assert_called_once_with(template)
+    mocked_sanitize_template_pattern.assert_called_once_with(template)
     mock_re_compile.assert_called_once_with(
         r"/path/(?P<project>\w+)/(?P<episode>\w+)"
     )
@@ -334,4 +338,4 @@ def test_sanitize_template(template, expected):
         expected = expected.replace(r"@", r"\@")
         expected = expected.replace(r"C:", r"C\:")
 
-    assert nomenclator.utilities.sanitize_template(template) == expected
+    assert nomenclator.utilities.sanitize_template_pattern(template) == expected

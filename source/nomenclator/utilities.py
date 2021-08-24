@@ -71,9 +71,9 @@ def fetch_paddings(max_value=5):
         return available["Hashes (#)"]
 
 
-def construct_regexp(template, default_expression=r"^[\w_.\-]+$"):
+def construct_regexp(template_pattern, default_expression=r"^[\w_.\-]+$"):
     """Return regular expression corresponding to *template*."""
-    template = sanitize_template(template)
+    template_pattern = sanitize_template_pattern(template_pattern)
 
     def _convert(match):
         """Return corresponding regular expression."""
@@ -82,11 +82,11 @@ def construct_regexp(template, default_expression=r"^[\w_.\-]+$"):
         return r"(?P<{0}>{1})".format(name, expression)
 
     pattern = r"{(?P<name>.+?)(:(?P<expression>.+?))?}"
-    pattern = re.sub(pattern, _convert, template)
+    pattern = re.sub(pattern, _convert, template_pattern)
     return re.compile(pattern)
 
 
-def sanitize_template(template):
+def sanitize_template_pattern(template_pattern):
     """Return template with all special characters escaped."""
 
     def _escape(match):
@@ -98,4 +98,4 @@ def sanitize_template(template):
         return groups["token"]
 
     pattern = r"(?P<token>{(.+?)(:.+?)?})|(?P<other>.+?)"
-    return re.sub(pattern, _escape, template)
+    return re.sub(pattern, _escape, template_pattern)
