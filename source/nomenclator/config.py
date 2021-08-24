@@ -75,6 +75,14 @@ def fetch():
 
 def save(config):
     """Save *config* as a configuration file."""
+    data = dump(config)
+
+    with open(path(), "w") as stream:
+        nomenclator.vendor.toml.dump(data, stream)
+
+
+def dump(config):
+    """Return data mapping from *config* object."""
     data = collections.OrderedDict()
 
     if config.descriptions != DEFAULT_DESCRIPTIONS:
@@ -98,8 +106,7 @@ def save(config):
     if len(config.project_templates) > 0:
         data["project-templates"] = _dump_templates(config.project_templates)
 
-    with open(path(), "w") as stream:
-        nomenclator.vendor.toml.dump(data, stream)
+    return data
 
 
 def _dump_comp_templates(comp_templates):
@@ -114,7 +121,7 @@ def _dump_comp_templates(comp_templates):
         data["outputs"] = _dump_templates(template.outputs)
         items.append(data)
 
-    return items
+    return tuple(items)
 
 
 def _dump_templates(templates):
@@ -128,11 +135,11 @@ def _dump_templates(templates):
         data["base-name"] = template.base_name
         items.append(data)
 
-    return items
+    return tuple(items)
 
 
 def load(data):
-    """Return configuration object from Nuke scene and from *data* mapping."""
+    """Return config object from *data* mapping."""
     return Config(
         descriptions=tuple(data.get("descriptions", DEFAULT_DESCRIPTIONS)),
         create_subfolders=data.get("create-subfolders", DEFAULT_CREATE_SUBFOLDERS),
