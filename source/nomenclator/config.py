@@ -49,7 +49,7 @@ Template = collections.namedtuple(
 )
 
 
-def config_path():
+def path():
     """Return path to configuration file.
 
     The configuration file is returned from the :envvar:`NOMENCLATURE_CONFIG_PATH`
@@ -61,13 +61,13 @@ def config_path():
 
 
 def fetch():
-    """Return configuration object from personal Nuke folder."""
-    path = config_path()
+    """Return configuration object."""
+    config_path = path()
 
     data = {}
 
-    if os.path.exists(path):
-        with open(path, "r") as stream:
+    if os.path.exists(config_path):
+        with open(config_path, "r") as stream:
             data = nomenclator.vendor.toml.load(stream)
 
     return load(data)
@@ -98,7 +98,7 @@ def save(config):
     if len(config.project_templates) > 0:
         data["project-templates"] = _dump_templates(config.project_templates)
 
-    with open(config_path(), "w") as stream:
+    with open(path(), "w") as stream:
         nomenclator.vendor.toml.dump(data, stream)
 
 
