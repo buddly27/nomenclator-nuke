@@ -71,7 +71,7 @@ def fetch_paddings(max_value=5):
         return available["Hashes (#)"]
 
 
-def construct_regexp(template, default_expression=r"[\w_.\-]+"):
+def construct_regexp(template, default_expression=r"^[\w_.\-]+$"):
     """Return regular expression corresponding to *template*."""
     template = sanitize_template(template)
 

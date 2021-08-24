@@ -244,7 +244,7 @@ def test_fetch_paddings_default_preferences_knob_value_error(mocker):
     ),
     (
         r"/path/{project}/{episode}",
-        r"/path/(?P<project>[\w_.\-]+)/(?P<episode>[\w_.\-]+)",
+        r"/path/(?P<project>^[\w_.\-]+$)/(?P<episode>^[\w_.\-]+$)",
     ),
     (
         r"/path/{project:^J_.*$}/{episode:^ep\d+$}",
