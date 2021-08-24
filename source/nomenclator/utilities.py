@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 
 import nuke
 
@@ -51,8 +52,14 @@ def fetch_recent_comp_paths(max_values=10):
 def fetch_paddings(max_value=5):
     """Return all available paddings if notation requested."""
     available = {
-        "Hashes (#)": ["#" * (i + 1) for i in range(max_value)],
-        "Printf Notation (%d)": ["%{0:02}d".format(i + 1) for i in range(max_value)]
+        "Hashes (#)": [
+            "#" * (index + 1)
+            for index in range(max_value)
+        ],
+        "Printf Notation (%d)": [
+            "%{0:02}d".format(index + 1)
+            for index in range(max_value)
+        ]
     }
 
     try:
@@ -62,3 +69,32 @@ def fetch_paddings(max_value=5):
 
     except (TypeError, NameError, KeyError):
         return available["Hashes (#)"]
+
+
+def construct_regexp(template, default_expression=r"[\w_.\-]+"):
+    """Return regular expression corresponding to *template*."""
+    template = sanitize_template(template)
+
+    def _convert(match):
+        """Return corresponding regular expression."""
+        name = match.group("name")
+        expression = match.group("expression") or default_expression
+        return r"(?P<{0}>{1})".format(name, expression)
+
+    pattern = r"{(?P<name>.+?)(:(?P<expression>.+?))?}"
+    return re.sub(pattern, _convert, template)
+
+
+def sanitize_template(template):
+    """Return template with all special characters escaped."""
+
+    def _escape(match):
+        """Escape 'other' group value if required."""
+        groups = match.groupdict()
+        if groups["other"] is not None:
+            return re.escape(groups["other"])
+
+        return groups["token"]
+
+    pattern = r"(?P<token>{(.+?)(:.+?)?})|(?P<other>.+?)"
+    return re.sub(pattern, _escape, template)
