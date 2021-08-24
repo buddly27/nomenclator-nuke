@@ -15,7 +15,7 @@ def open_comp_manager_dialog():
     """
     config = nomenclator.config.fetch()
     context = nomenclator.utilities.fetch_output_context(config)
-    recent_locations = nomenclator.utilities.fetch_recent_locations(
+    recent_locations = nomenclator.utilities.fetch_recent_comp_paths(
         max_values=config.max_locations
     )
 

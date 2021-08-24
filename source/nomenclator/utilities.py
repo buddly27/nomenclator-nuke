@@ -33,8 +33,8 @@ def fetch_nodes():
     return nodes, all_names
 
 
-def fetch_recent_locations(max_values=10):
-    """Return list of location recently used to save a composition."""
+def fetch_recent_comp_paths(max_values=10):
+    """Return list of paths recently used to save a composition."""
     paths = []
 
     try:
@@ -42,13 +42,13 @@ def fetch_recent_locations(max_values=10):
             path = os.path.dirname(nuke.recentFile(index))
             if path not in paths:
                 paths.append(path)
-    except (ValueError, RuntimeError):
+    except RuntimeError:
         pass
 
     return paths
 
 
-def fetch_paddings(max_value):
+def fetch_paddings(max_value=5):
     """Return all available paddings if notation requested."""
     available = {
         "Hashes (#)": ["#" * (i + 1) for i in range(max_value)],
@@ -58,7 +58,7 @@ def fetch_paddings(max_value):
     try:
         preferences = nuke.toNode("preferences")
         notation = preferences["UISequenceDisplayMode"].value()
-        return available.get(notation)
+        return available[notation]
 
     except (TypeError, NameError, KeyError):
-        return available.get("Hashes (#)")
+        return available["Hashes (#)"]
