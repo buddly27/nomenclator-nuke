@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import re
 import sys
 
 import pytest
+
+
+@pytest.fixture()
+def mock_re_compile(mocker):
+    """Mock 're.compile' function."""
+    return mocker.patch.object(re, "compile")
 
 
 @pytest.fixture()
@@ -255,15 +262,20 @@ def test_fetch_paddings_default_preferences_knob_value_error(mocker):
     "path-with-tokens",
     "path-with-tokens-and-patterns",
 ])
-def test_construct_regexp(mocked_sanitize_template, template, expected):
+def test_construct_regexp(mocked_sanitize_template, mock_re_compile, template, expected):
     """Create corresponding regular expression."""
     mocked_sanitize_template.return_value = template
 
     import nomenclator.utilities
-    assert nomenclator.utilities.construct_regexp(template) == expected
+
+    regexp = nomenclator.utilities.construct_regexp(template)
+    assert regexp == mock_re_compile.return_value
+
+    mocked_sanitize_template.assert_called_once_with(template)
+    mock_re_compile.assert_called_once_with(expected)
 
 
-def test_construct_regexp_with_default(mocked_sanitize_template):
+def test_construct_regexp_with_default(mocked_sanitize_template, mock_re_compile):
     """Create corresponding regular expression with default expression."""
     template = r"/path/{project}/{episode}"
     mocked_sanitize_template.return_value = template
@@ -272,8 +284,12 @@ def test_construct_regexp_with_default(mocked_sanitize_template):
     regexp = nomenclator.utilities.construct_regexp(
         template, default_expression=r"\w+"
     )
+    assert regexp == mock_re_compile.return_value
 
-    assert regexp == r"/path/(?P<project>\w+)/(?P<episode>\w+)"
+    mocked_sanitize_template.assert_called_once_with(template)
+    mock_re_compile.assert_called_once_with(
+        r"/path/(?P<project>\w+)/(?P<episode>\w+)"
+    )
 
 
 @pytest.mark.parametrize("template, expected", [

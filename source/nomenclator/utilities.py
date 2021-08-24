@@ -82,7 +82,8 @@ def construct_regexp(template, default_expression=r"^[\w_.\-]+$"):
         return r"(?P<{0}>{1})".format(name, expression)
 
     pattern = r"{(?P<name>.+?)(:(?P<expression>.+?))?}"
-    return re.sub(pattern, _convert, template)
+    pattern = re.sub(pattern, _convert, template)
+    return re.compile(pattern)
 
 
 def sanitize_template(template):
