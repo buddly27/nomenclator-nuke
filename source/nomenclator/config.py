@@ -30,8 +30,8 @@ Config = collections.namedtuple(
 
 
 #: Comp Template Structure type.
-CompTemplate = collections.namedtuple(
-    "CompTemplate", [
+CompTemplateConfig = collections.namedtuple(
+    "CompTemplateConfig", [
         "id",
         "path",
         "base_name",
@@ -40,8 +40,8 @@ CompTemplate = collections.namedtuple(
 )
 
 #: Template Structure type.
-Template = collections.namedtuple(
-    "OutputTemplate", [
+TemplateConfig = collections.namedtuple(
+    "TemplateConfig", [
         "id",
         "path",
         "base_name",
@@ -143,8 +143,8 @@ def load(data):
     return Config(
         descriptions=tuple(data.get("descriptions", DEFAULT_DESCRIPTIONS)),
         create_subfolders=data.get("create-subfolders", DEFAULT_CREATE_SUBFOLDERS),
-        comp_templates=tuple(_load_comp_templates(data.get("comp-templates", []))),
-        project_templates=tuple(_load_templates(data.get("project-templates", []))),
+        comp_templates=tuple(_load_comp_template_configs(data.get("comp-templates", []))),
+        project_templates=tuple(_load_template_configs(data.get("project-templates", []))),
         max_locations=data.get("max-locations", DEFAULT_MAX_LOCATIONS),
         max_padding=data.get("max-padding", DEFAULT_MAX_PADDING),
         username=data.get("username", getpass.getuser()),
@@ -152,28 +152,28 @@ def load(data):
     )
 
 
-def _load_comp_templates(items):
+def _load_comp_template_configs(items):
     """Return list of comp templates from *items*."""
     templates = []
 
     for item in items:
-        template = CompTemplate(
+        template = CompTemplateConfig(
             id=item["id"],
             path=item["path"],
             base_name=item["base-name"],
-            outputs=tuple(_load_templates(item.get("outputs", [])))
+            outputs=tuple(_load_template_configs(item.get("outputs", [])))
         )
         templates.append(template)
 
     return templates
 
 
-def _load_templates(items):
+def _load_template_configs(items):
     """Return list of templates from *items*."""
     templates = []
 
     for item in items:
-        template = Template(
+        template = TemplateConfig(
             id=item["id"],
             path=item["path"],
             base_name=item["base-name"],

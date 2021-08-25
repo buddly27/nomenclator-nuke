@@ -251,34 +251,34 @@ def test_dump_comp_templates():
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
         comp_templates=(
-            nomenclator.config.CompTemplate(
+            nomenclator.config.CompTemplateConfig(
                 id="Episodic",
                 path="/path/{project}/{episode}/{shot}/scripts",
                 base_name="{episode}_{shot}_{description}_v{version}",
                 outputs=(
-                    nomenclator.config.Template(
+                    nomenclator.config.TemplateConfig(
                         id="Comp",
                         path="/path/{project}/{episode}/{shot}/comps",
                         base_name="{episode}_{shot}_comp_v{version}",
                     ),
-                    nomenclator.config.Template(
+                    nomenclator.config.TemplateConfig(
                         id="Precomp",
                         path="/path/{project}/{episode}/{shot}/precomps",
                         base_name="{episode}_{shot}_precomp_v{version}",
                     ),
                 )
             ),
-            nomenclator.config.CompTemplate(
+            nomenclator.config.CompTemplateConfig(
                 id="Element",
                 path="/path/{project}/build/{element}/scripts",
                 base_name="{element}_{description}_v{version}",
                 outputs=(
-                    nomenclator.config.Template(
+                    nomenclator.config.TemplateConfig(
                         id="Comp",
                         path="/path/{project}/build/{element}/comps",
                         base_name="{element}_comp_v{version}",
                     ),
-                    nomenclator.config.Template(
+                    nomenclator.config.TemplateConfig(
                         id="Precomp",
                         path="/path/{project}/build/{element}/precomps",
                         base_name="{element}_precomp_v{version}",
@@ -349,12 +349,12 @@ def test_dump_project_templates():
         create_subfolders=False,
         comp_templates=tuple(),
         project_templates=(
-            nomenclator.config.Template(
+            nomenclator.config.TemplateConfig(
                 id="Episodic",
                 path="/path/{project}/{episode}/{shot}/scripts",
                 base_name="{episode}_{shot}_{description}_v{version}",
             ),
-            nomenclator.config.Template(
+            nomenclator.config.TemplateConfig(
                 id="Element",
                 path="/path/{project}/build/{element}/scripts",
                 base_name="{element}_{description}_v{version}",
@@ -557,34 +557,34 @@ def test_load_comp_templates():
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
         comp_templates=(
-            nomenclator.config.CompTemplate(
+            nomenclator.config.CompTemplateConfig(
                 id="Episodic",
                 path="/path/{project}/{episode}/{shot}/scripts",
                 base_name="{episode}_{shot}_{description}_v{version}",
                 outputs=(
-                    nomenclator.config.Template(
+                    nomenclator.config.TemplateConfig(
                         id="Comp",
                         path="/path/{project}/{episode}/{shot}/comps",
                         base_name="{episode}_{shot}_comp_v{version}",
                     ),
-                    nomenclator.config.Template(
+                    nomenclator.config.TemplateConfig(
                         id="Precomp",
                         path="/path/{project}/{episode}/{shot}/precomps",
                         base_name="{episode}_{shot}_precomp_v{version}",
                     ),
                 )
             ),
-            nomenclator.config.CompTemplate(
+            nomenclator.config.CompTemplateConfig(
                 id="Element",
                 path="/path/{project}/build/{element}/scripts",
                 base_name="{element}_{description}_v{version}",
                 outputs=(
-                    nomenclator.config.Template(
+                    nomenclator.config.TemplateConfig(
                         id="Comp",
                         path="/path/{project}/build/{element}/comps",
                         base_name="{element}_comp_v{version}",
                     ),
-                    nomenclator.config.Template(
+                    nomenclator.config.TemplateConfig(
                         id="Precomp",
                         path="/path/{project}/build/{element}/precomps",
                         base_name="{element}_precomp_v{version}",
@@ -625,12 +625,12 @@ def test_load_project_templates():
         create_subfolders=False,
         comp_templates=tuple(),
         project_templates=(
-            nomenclator.config.Template(
+            nomenclator.config.TemplateConfig(
                 id="Episodic",
                 path="/path/{project}/{episode}/{shot}/scripts",
                 base_name="{episode}_{shot}_{description}_v{version}",
             ),
-            nomenclator.config.Template(
+            nomenclator.config.TemplateConfig(
                 id="Element",
                 path="/path/{project}/build/{element}/scripts",
                 base_name="{element}_{description}_v{version}",
