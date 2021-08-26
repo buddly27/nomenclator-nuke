@@ -10,7 +10,7 @@ Nomenclator Nuke
     :target: https://opensource.org/licenses/MIT
     :alt: License Link
 
-.. image:: https://img.shields.io/badge/Nuke%20Versions-12%2013-red
+.. image:: https://img.shields.io/badge/Nuke%20Versions-11.3%2012.0%2012.1%2012.2%2013.0-red
     :target: https://www.foundry.com/products/nuke
     :alt: Nuke Versions
 
