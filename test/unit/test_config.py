@@ -253,35 +253,35 @@ def test_dump_comp_templates():
         comp_templates=(
             nomenclator.config.CompTemplateConfig(
                 id="Episodic",
-                path="/path/{project}/{episode}/{shot}/scripts",
-                base_name="{episode}_{shot}_{description}_v{version}",
+                pattern_path="/path/{project}/{episode}/{shot}/scripts",
+                pattern_base="{episode}_{shot}_{description}_v{version}",
                 outputs=(
                     nomenclator.config.TemplateConfig(
                         id="Comp",
-                        path="/path/{project}/{episode}/{shot}/comps",
-                        base_name="{episode}_{shot}_comp_v{version}",
+                        pattern_path="/path/{project}/{episode}/{shot}/comps",
+                        pattern_base="{episode}_{shot}_comp_v{version}",
                     ),
                     nomenclator.config.TemplateConfig(
                         id="Precomp",
-                        path="/path/{project}/{episode}/{shot}/precomps",
-                        base_name="{episode}_{shot}_precomp_v{version}",
+                        pattern_path="/path/{project}/{episode}/{shot}/precomps",
+                        pattern_base="{episode}_{shot}_precomp_v{version}",
                     ),
                 )
             ),
             nomenclator.config.CompTemplateConfig(
                 id="Element",
-                path="/path/{project}/build/{element}/scripts",
-                base_name="{element}_{description}_v{version}",
+                pattern_path="/path/{project}/build/{element}/scripts",
+                pattern_base="{element}_{description}_v{version}",
                 outputs=(
                     nomenclator.config.TemplateConfig(
                         id="Comp",
-                        path="/path/{project}/build/{element}/comps",
-                        base_name="{element}_comp_v{version}",
+                        pattern_path="/path/{project}/build/{element}/comps",
+                        pattern_base="{element}_comp_v{version}",
                     ),
                     nomenclator.config.TemplateConfig(
                         id="Precomp",
-                        path="/path/{project}/build/{element}/precomps",
-                        base_name="{element}_precomp_v{version}",
+                        pattern_path="/path/{project}/build/{element}/precomps",
+                        pattern_base="{element}_precomp_v{version}",
                     ),
                 )
             ),
@@ -299,38 +299,38 @@ def test_dump_comp_templates():
             "comp-templates", (
                 collections.OrderedDict([
                     ("id", "Episodic"),
-                    ("path", "/path/{project}/{episode}/{shot}/scripts"),
-                    ("base-name", "{episode}_{shot}_{description}_v{version}"),
+                    ("pattern-path", "/path/{project}/{episode}/{shot}/scripts"),
+                    ("pattern-base", "{episode}_{shot}_{description}_v{version}"),
                     (
                         "outputs", (
                             collections.OrderedDict([
                                 ("id", "Comp"),
-                                ("path", "/path/{project}/{episode}/{shot}/comps"),
-                                ("base-name", "{episode}_{shot}_comp_v{version}"),
+                                ("pattern-path", "/path/{project}/{episode}/{shot}/comps"),
+                                ("pattern-base", "{episode}_{shot}_comp_v{version}"),
                             ]),
                             collections.OrderedDict([
                                 ("id", "Precomp"),
-                                ("path", "/path/{project}/{episode}/{shot}/precomps"),
-                                ("base-name", "{episode}_{shot}_precomp_v{version}"),
+                                ("pattern-path", "/path/{project}/{episode}/{shot}/precomps"),
+                                ("pattern-base", "{episode}_{shot}_precomp_v{version}"),
                             ])
                         )
                     )
                 ]),
                 collections.OrderedDict([
                     ("id", "Element"),
-                    ("path", "/path/{project}/build/{element}/scripts"),
-                    ("base-name", "{element}_{description}_v{version}"),
+                    ("pattern-path", "/path/{project}/build/{element}/scripts"),
+                    ("pattern-base", "{element}_{description}_v{version}"),
                     (
                         "outputs", (
                             collections.OrderedDict([
                                 ("id", "Comp"),
-                                ("path", "/path/{project}/build/{element}/comps"),
-                                ("base-name", "{element}_comp_v{version}"),
+                                ("pattern-path", "/path/{project}/build/{element}/comps"),
+                                ("pattern-base", "{element}_comp_v{version}"),
                             ]),
                             collections.OrderedDict([
                                 ("id", "Precomp"),
-                                ("path", "/path/{project}/build/{element}/precomps"),
-                                ("base-name", "{element}_precomp_v{version}"),
+                                ("pattern-path", "/path/{project}/build/{element}/precomps"),
+                                ("pattern-base", "{element}_precomp_v{version}"),
                             ])
                         )
                     )
@@ -351,13 +351,13 @@ def test_dump_project_templates():
         project_templates=(
             nomenclator.config.TemplateConfig(
                 id="Episodic",
-                path="/path/{project}/{episode}/{shot}/scripts",
-                base_name="{episode}_{shot}_{description}_v{version}",
+                pattern_path="/path/{project}/{episode}/{shot}/scripts",
+                pattern_base="{episode}_{shot}_{description}_v{version}",
             ),
             nomenclator.config.TemplateConfig(
                 id="Element",
-                path="/path/{project}/build/{element}/scripts",
-                base_name="{element}_{description}_v{version}",
+                pattern_path="/path/{project}/build/{element}/scripts",
+                pattern_base="{element}_{description}_v{version}",
             ),
         ),
         max_locations=5,
@@ -372,13 +372,13 @@ def test_dump_project_templates():
             "project-templates", (
                 collections.OrderedDict([
                     ("id", "Episodic"),
-                    ("path", "/path/{project}/{episode}/{shot}/scripts"),
-                    ("base-name", "{episode}_{shot}_{description}_v{version}"),
+                    ("pattern-path", "/path/{project}/{episode}/{shot}/scripts"),
+                    ("pattern-base", "{episode}_{shot}_{description}_v{version}"),
                 ]),
                 collections.OrderedDict([
                     ("id", "Element"),
-                    ("path", "/path/{project}/build/{element}/scripts"),
-                    ("base-name", "{element}_{description}_v{version}"),
+                    ("pattern-path", "/path/{project}/build/{element}/scripts"),
+                    ("pattern-base", "{element}_{description}_v{version}"),
                 ])
             )
         )
@@ -518,35 +518,35 @@ def test_load_comp_templates():
         "comp-templates": [
             {
                 "id": "Episodic",
-                "path": "/path/{project}/{episode}/{shot}/scripts",
-                "base-name": "{episode}_{shot}_{description}_v{version}",
+                "pattern-path": "/path/{project}/{episode}/{shot}/scripts",
+                "pattern-base": "{episode}_{shot}_{description}_v{version}",
                 "outputs": [
                     {
                         "id": "Comp",
-                        "path": "/path/{project}/{episode}/{shot}/comps",
-                        "base-name": "{episode}_{shot}_comp_v{version}",
+                        "pattern-path": "/path/{project}/{episode}/{shot}/comps",
+                        "pattern-base": "{episode}_{shot}_comp_v{version}",
                     },
                     {
                         "id": "Precomp",
-                        "path": "/path/{project}/{episode}/{shot}/precomps",
-                        "base-name": "{episode}_{shot}_precomp_v{version}",
+                        "pattern-path": "/path/{project}/{episode}/{shot}/precomps",
+                        "pattern-base": "{episode}_{shot}_precomp_v{version}",
                     }
                 ]
             },
             {
                 "id": "Element",
-                "path": "/path/{project}/build/{element}/scripts",
-                "base-name": "{element}_{description}_v{version}",
+                "pattern-path": "/path/{project}/build/{element}/scripts",
+                "pattern-base": "{element}_{description}_v{version}",
                 "outputs": [
                     {
                         "id": "Comp",
-                        "path": "/path/{project}/build/{element}/comps",
-                        "base-name": "{element}_comp_v{version}",
+                        "pattern-path": "/path/{project}/build/{element}/comps",
+                        "pattern-base": "{element}_comp_v{version}",
                     },
                     {
                         "id": "Precomp",
-                        "path": "/path/{project}/build/{element}/precomps",
-                        "base-name": "{element}_precomp_v{version}",
+                        "pattern-path": "/path/{project}/build/{element}/precomps",
+                        "pattern-base": "{element}_precomp_v{version}",
                     }
                 ]
             }
@@ -559,35 +559,35 @@ def test_load_comp_templates():
         comp_templates=(
             nomenclator.config.CompTemplateConfig(
                 id="Episodic",
-                path="/path/{project}/{episode}/{shot}/scripts",
-                base_name="{episode}_{shot}_{description}_v{version}",
+                pattern_path="/path/{project}/{episode}/{shot}/scripts",
+                pattern_base="{episode}_{shot}_{description}_v{version}",
                 outputs=(
                     nomenclator.config.TemplateConfig(
                         id="Comp",
-                        path="/path/{project}/{episode}/{shot}/comps",
-                        base_name="{episode}_{shot}_comp_v{version}",
+                        pattern_path="/path/{project}/{episode}/{shot}/comps",
+                        pattern_base="{episode}_{shot}_comp_v{version}",
                     ),
                     nomenclator.config.TemplateConfig(
                         id="Precomp",
-                        path="/path/{project}/{episode}/{shot}/precomps",
-                        base_name="{episode}_{shot}_precomp_v{version}",
+                        pattern_path="/path/{project}/{episode}/{shot}/precomps",
+                        pattern_base="{episode}_{shot}_precomp_v{version}",
                     ),
                 )
             ),
             nomenclator.config.CompTemplateConfig(
                 id="Element",
-                path="/path/{project}/build/{element}/scripts",
-                base_name="{element}_{description}_v{version}",
+                pattern_path="/path/{project}/build/{element}/scripts",
+                pattern_base="{element}_{description}_v{version}",
                 outputs=(
                     nomenclator.config.TemplateConfig(
                         id="Comp",
-                        path="/path/{project}/build/{element}/comps",
-                        base_name="{element}_comp_v{version}",
+                        pattern_path="/path/{project}/build/{element}/comps",
+                        pattern_base="{element}_comp_v{version}",
                     ),
                     nomenclator.config.TemplateConfig(
                         id="Precomp",
-                        path="/path/{project}/build/{element}/precomps",
-                        base_name="{element}_precomp_v{version}",
+                        pattern_path="/path/{project}/build/{element}/precomps",
+                        pattern_base="{element}_precomp_v{version}",
                     ),
                 )
             ),
@@ -609,13 +609,13 @@ def test_load_project_templates():
         "project-templates": [
             {
                 "id": "Episodic",
-                "path": "/path/{project}/{episode}/{shot}/scripts",
-                "base-name": "{episode}_{shot}_{description}_v{version}",
+                "pattern-path": "/path/{project}/{episode}/{shot}/scripts",
+                "pattern-base": "{episode}_{shot}_{description}_v{version}",
             },
             {
                 "id": "Element",
-                "path": "/path/{project}/build/{element}/scripts",
-                "base-name": "{element}_{description}_v{version}",
+                "pattern-path": "/path/{project}/build/{element}/scripts",
+                "pattern-base": "{element}_{description}_v{version}",
             }
         ]
     })
@@ -627,13 +627,13 @@ def test_load_project_templates():
         project_templates=(
             nomenclator.config.TemplateConfig(
                 id="Episodic",
-                path="/path/{project}/{episode}/{shot}/scripts",
-                base_name="{episode}_{shot}_{description}_v{version}",
+                pattern_path="/path/{project}/{episode}/{shot}/scripts",
+                pattern_base="{episode}_{shot}_{description}_v{version}",
             ),
             nomenclator.config.TemplateConfig(
                 id="Element",
-                path="/path/{project}/build/{element}/scripts",
-                base_name="{element}_{description}_v{version}",
+                pattern_path="/path/{project}/build/{element}/scripts",
+                pattern_base="{element}_{description}_v{version}",
             ),
         ),
         max_locations=5,

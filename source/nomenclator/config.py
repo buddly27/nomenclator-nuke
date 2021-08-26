@@ -33,8 +33,8 @@ Config = collections.namedtuple(
 CompTemplateConfig = collections.namedtuple(
     "CompTemplateConfig", [
         "id",
-        "path",
-        "base_name",
+        "pattern_path",
+        "pattern_base",
         "outputs",
     ]
 )
@@ -43,8 +43,8 @@ CompTemplateConfig = collections.namedtuple(
 TemplateConfig = collections.namedtuple(
     "TemplateConfig", [
         "id",
-        "path",
-        "base_name",
+        "pattern_path",
+        "pattern_base",
     ]
 )
 
@@ -116,8 +116,8 @@ def _dump_comp_templates(comp_templates):
     for template in comp_templates:
         data = collections.OrderedDict()
         data["id"] = template.id
-        data["path"] = template.path
-        data["base-name"] = template.base_name
+        data["pattern-path"] = template.pattern_path
+        data["pattern-base"] = template.pattern_base
         data["outputs"] = _dump_templates(template.outputs)
         items.append(data)
 
@@ -131,8 +131,8 @@ def _dump_templates(templates):
     for template in templates:
         data = collections.OrderedDict()
         data["id"] = template.id
-        data["path"] = template.path
-        data["base-name"] = template.base_name
+        data["pattern-path"] = template.pattern_path
+        data["pattern-base"] = template.pattern_base
         items.append(data)
 
     return tuple(items)
@@ -159,8 +159,8 @@ def _load_comp_template_configs(items):
     for item in items:
         template = CompTemplateConfig(
             id=item["id"],
-            path=item["path"],
-            base_name=item["base-name"],
+            pattern_path=item["pattern-path"],
+            pattern_base=item["pattern-base"],
             outputs=tuple(_load_template_configs(item.get("outputs", [])))
         )
         templates.append(template)
@@ -175,8 +175,8 @@ def _load_template_configs(items):
     for item in items:
         template = TemplateConfig(
             id=item["id"],
-            path=item["path"],
-            base_name=item["base-name"],
+            pattern_path=item["pattern-path"],
+            pattern_base=item["pattern-base"],
         )
         templates.append(template)
 
