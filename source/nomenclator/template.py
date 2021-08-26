@@ -2,9 +2,11 @@
 
 import re
 
+from nomenclator.symbol import DEFAULT_TOKEN_EXPRESSION
+
 
 def fetch_resolved_tokens(
-    path, pattern, default_expression=r"[\w_.-]+",
+    path, pattern, default_expression=DEFAULT_TOKEN_EXPRESSION,
     match_start=True, match_end=True
 ):
     """Return resolved tokens from *path* and *pattern* if compatible.
@@ -44,7 +46,8 @@ def fetch_resolved_tokens(
         with or without tokens.
 
     :param default_expression: Regular expression pattern to use for tokens
-        when no expression is specified. Default is ``[\\w_.-]+``.
+        when no expression is specified. Default is
+        :data:`nomanclator.symbol.DEFAULT_TOKEN_EXPRESSION`.
 
     :param match_start: Indicate whether the *path* should match against the
         start of the *pattern*. Default is True.
@@ -69,7 +72,7 @@ def fetch_resolved_tokens(
 
 
 def construct_regexp(
-    pattern, default_expression=r"[\w_.-]+",
+    pattern, default_expression=DEFAULT_TOKEN_EXPRESSION,
     match_start=True, match_end=True
 ):
     """Return template pattern converted into a regular expression.
@@ -83,7 +86,8 @@ def construct_regexp(
         with or without tokens.
 
     :param default_expression: Regular expression pattern to use for tokens
-        when no expression is specified. Default is ``[\\w_.-]+``.
+        when no expression is specified. Default is
+        :data:`nomanclator.symbol.DEFAULT_TOKEN_EXPRESSION`.
 
     :param match_start: Indicate whether the regular expression returned
         should match against the start of an input. Default is True.

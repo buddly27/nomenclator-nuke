@@ -6,6 +6,9 @@ OUTPUT_CLASSES = ("Write", "DeepWrite")
 #: Name of the configuration file.
 CONFIG_FILE_NAME = "nomenclator.toml"
 
+#: Default expression to resolve token if none is specified in pattern.
+DEFAULT_TOKEN_EXPRESSION = r"[\w_.-]+"
+
 #: Default description tuples.
 DEFAULT_DESCRIPTIONS = ("comp", "precomp", "roto", "cleanup")
 
