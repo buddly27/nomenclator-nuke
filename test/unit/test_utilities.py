@@ -1,15 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re
-import sys
-
 import pytest
-
-
-@pytest.fixture()
-def mock_re_compile(mocker):
-    """Mock 're.compile' function."""
-    return mocker.patch.object(re, "compile")
 
 
 @pytest.fixture()
@@ -27,13 +18,6 @@ def mocked_fetch_paddings(mocker):
     """Return mocked 'nomenclator.utilities.fetch_paddings' function."""
     import nomenclator.utilities
     return mocker.patch.object(nomenclator.utilities, "fetch_paddings")
-
-
-@pytest.fixture()
-def mocked_sanitize_template_pattern(mocker):
-    """Return mocked 'nomenclator.utilities.sanitize_template_pattern' function."""
-    import nomenclator.utilities
-    return mocker.patch.object(nomenclator.utilities, "sanitize_template_pattern")
 
 
 def test_fetch_output_context(mocker, mocked_fetch_nodes, mocked_fetch_paddings):
@@ -242,100 +226,3 @@ def test_fetch_paddings_default_preferences_knob_value_error(mocker):
 
     nuke.toNode.assert_called_once_with("preferences")
     mocked_knob.value.assert_called_once()
-
-
-@pytest.mark.parametrize("template, expected", [
-    (
-        r"/path/to/location",
-        r"/path/to/location",
-    ),
-    (
-        r"/path/{project}/{episode}",
-        r"/path/(?P<project>^[\w_.\-]+$)/(?P<episode>^[\w_.\-]+$)",
-    ),
-    (
-        r"/path/{project:^J_.*$}/{episode:^ep\d+$}",
-        r"/path/(?P<project>^J_.*$)/(?P<episode>^ep\d+$)",
-    ),
-], ids=[
-    "no-tokens",
-    "path-with-tokens",
-    "path-with-tokens-and-patterns",
-])
-def test_construct_regexp(
-    mocked_sanitize_template_pattern, mock_re_compile, template, expected
-):
-    """Create corresponding regular expression."""
-    mocked_sanitize_template_pattern.return_value = template
-
-    import nomenclator.utilities
-
-    regexp = nomenclator.utilities.construct_regexp(template)
-    assert regexp == mock_re_compile.return_value
-
-    mocked_sanitize_template_pattern.assert_called_once_with(template)
-    mock_re_compile.assert_called_once_with(expected)
-
-
-def test_construct_regexp_with_default(
-    mocked_sanitize_template_pattern, mock_re_compile
-):
-    """Create corresponding regular expression with default expression."""
-    template = r"/path/{project}/{episode}"
-    mocked_sanitize_template_pattern.return_value = template
-
-    import nomenclator.utilities
-    regexp = nomenclator.utilities.construct_regexp(
-        template, default_expression=r"\w+"
-    )
-    assert regexp == mock_re_compile.return_value
-
-    mocked_sanitize_template_pattern.assert_called_once_with(template)
-    mock_re_compile.assert_called_once_with(
-        r"/path/(?P<project>\w+)/(?P<episode>\w+)"
-    )
-
-
-@pytest.mark.parametrize("template, expected", [
-    (
-        r"/^p@th./t0^/l*cation",
-        r"/\^p@th\./t0\^/l\*cation",
-    ),
-    (
-        r"/^p@th./{project}/{episode}",
-        r"/\^p@th\./{project}/{episode}",
-    ),
-    (
-        r"/^p@th./{project:^J_.*$}/{episode:^ep\d+$}",
-        r"/\^p@th\./{project:^J_.*$}/{episode:^ep\d+$}",
-    ),
-    (
-        r"C:\\^p@th.\t0^\l*cation",
-        r"C:\\\\\^p@th\.\\t0\^\\l\*cation",
-    ),
-    (
-        r"C:\\^p@th.\{project}\{episode}",
-        r"C:\\\\\^p@th\.\\{project}\\{episode}",
-    ),
-    (
-        r"C:\\^p@th.\{project:^J_.*$}\{episode:^ep\d+$}",
-        r"C:\\\\\^p@th\.\\{project:^J_.*$}\\{episode:^ep\d+$}",
-    ),
-], ids=[
-    "unix-path-without-tokens",
-    "unix-path-with-tokens",
-    "unix-path-with-tokens-and-patterns",
-    "windows-path-without-tokens",
-    "windows-path-with-tokens",
-    "windows-path-with-tokens-and-patterns",
-])
-def test_sanitize_template(template, expected):
-    """Sanitize template"""
-    import nomenclator.utilities
-
-    if sys.version_info.major < 3:
-        expected = expected.replace(r"/", r"\/")
-        expected = expected.replace(r"@", r"\@")
-        expected = expected.replace(r"C:", r"C\:")
-
-    assert nomenclator.utilities.sanitize_template_pattern(template) == expected
