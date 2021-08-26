@@ -3,7 +3,7 @@
 from nomenclator.vendor.Qt import QtWidgets, QtCore, QtGui
 from nomenclator.widget import EditableList
 from nomenclator.widget import EditableTabWidget
-from nomenclator.config import CompTemplate, Template
+from nomenclator.config import CompTemplateConfig, TemplateConfig
 
 from .theme import classic_style
 
@@ -315,10 +315,10 @@ class _CompTemplateForm(QtWidgets.QWidget):
 
     def template(self, identifier):
         """Return template object."""
-        return CompTemplate(
+        return CompTemplateConfig(
             id=identifier,
-            path=self._template_form.path(),
-            base_name=self._template_form.base_name(),
+            pattern_path=self._template_form.pattern_path(),
+            pattern_base=self._template_form.pattern_base(),
             outputs=self.output_templates()
         )
 
@@ -397,10 +397,10 @@ class _ProjectTemplateForm(QtWidgets.QWidget):
 
     def template(self, identifier):
         """Return template object."""
-        return Template(
+        return TemplateConfig(
             id=identifier,
-            path=self._template_form.path(),
-            base_name=self._template_form.base_name()
+            pattern_path=self._template_form.pattern_path(),
+            pattern_base=self._template_form.pattern_base()
         )
 
     def set_template(self, template):
@@ -443,10 +443,10 @@ class _OutputTemplateForm(QtWidgets.QWidget):
 
     def template(self, identifier):
         """Return template object."""
-        return Template(
+        return TemplateConfig(
             id=identifier,
-            path=self._template_form.path(),
-            base_name=self._template_form.base_name()
+            pattern_path=self._template_form.pattern_path(),
+            pattern_base=self._template_form.pattern_base()
         )
 
     def set_template(self, template):
@@ -487,23 +487,23 @@ class _TemplateForm(QtWidgets.QWidget):
         self._setup_ui()
         self._connect_signals()
 
-    def path(self):
-        """Return template path."""
-        return self._path.text()
+    def pattern_path(self):
+        """Return pattern path."""
+        return self._pattern_path.text()
 
-    def base_name(self):
-        """Return template base name."""
-        return self._name.text()
+    def pattern_base(self):
+        """Return pattern base."""
+        return self._pattern_base.text()
 
     def initiate(self, template):
         """Initialize values."""
-        self._path.blockSignals(True)
-        self._path.setText(template.path)
-        self._path.blockSignals(False)
+        self._pattern_path.blockSignals(True)
+        self._pattern_path.setText(template.pattern_path)
+        self._pattern_path.blockSignals(False)
 
-        self._name.blockSignals(True)
-        self._name.setText(template.base_name)
-        self._name.blockSignals(False)
+        self._pattern_base.blockSignals(True)
+        self._pattern_base.setText(template.pattern_base)
+        self._pattern_base.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -511,22 +511,22 @@ class _TemplateForm(QtWidgets.QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(8)
 
-        path_lbl = QtWidgets.QLabel("Path", self)
-        main_layout.addWidget(path_lbl, 0, 0, 1, 1)
+        pattern_path_lbl = QtWidgets.QLabel("Pattern Path", self)
+        main_layout.addWidget(pattern_path_lbl, 0, 0, 1, 1)
 
-        self._path = QtWidgets.QLineEdit(self)
-        main_layout.addWidget(self._path, 0, 1, 1, 1)
+        self._pattern_path = QtWidgets.QLineEdit(self)
+        main_layout.addWidget(self._pattern_path, 0, 1, 1, 1)
 
-        name_lbl = QtWidgets.QLabel("Base Name", self)
-        main_layout.addWidget(name_lbl, 1, 0, 1, 1)
+        pattern_base_lbl = QtWidgets.QLabel("Pattern Base", self)
+        main_layout.addWidget(pattern_base_lbl, 1, 0, 1, 1)
 
-        self._name = QtWidgets.QLineEdit(self)
-        main_layout.addWidget(self._name, 1, 1, 1, 1)
+        self._pattern_base = QtWidgets.QLineEdit(self)
+        main_layout.addWidget(self._pattern_base, 1, 1, 1, 1)
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._path.textChanged.connect(lambda: self.updated.emit())
-        self._name.textChanged.connect(lambda: self.updated.emit())
+        self._pattern_path.textChanged.connect(lambda: self.updated.emit())
+        self._pattern_base.textChanged.connect(lambda: self.updated.emit())
 
 
 class AdvancedSettingsForm(QtWidgets.QWidget):
