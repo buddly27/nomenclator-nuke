@@ -3,7 +3,7 @@
 from nomenclator.vendor.Qt import QtWidgets, QtCore, QtGui
 from nomenclator.widget import EditableList
 from nomenclator.widget import EditableTabWidget
-from nomenclator.config import CompTemplateConfig, TemplateConfig
+from nomenclator.config import TemplateConfig, load_template_configs
 
 from .theme import classic_style
 
@@ -190,11 +190,11 @@ class CompSettingsForm(QtWidgets.QWidget):
         """Initialize values."""
         self._tab_widget.clear()
 
-        for template in config.comp_templates:
+        for _config in config.comp_template_configs:
             widget = _CompTemplateForm()
-            widget.set_template(template)
+            widget.set_values(_config)
             widget.updated.connect(self._template_updated)
-            self._tab_widget.addTab(widget, template.id)
+            self._tab_widget.addTab(widget, _config.id)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -229,7 +229,7 @@ class CompSettingsForm(QtWidgets.QWidget):
 
     def _template_updated(self):
         """Emit signal once a template has been updated."""
-        self.updated.emit("comp_templates", self.templates())
+        self.updated.emit("comp_template_configs", self.templates())
 
 
 class ProjectSettingsForm(QtWidgets.QWidget):
@@ -259,11 +259,11 @@ class ProjectSettingsForm(QtWidgets.QWidget):
         """Initialize values."""
         self._tab_widget.clear()
 
-        for template in config.project_templates:
+        for _config in config.project_template_configs:
             widget = _ProjectTemplateForm()
-            widget.set_template(template)
+            widget.set_values(_config)
             widget.updated.connect(self._template_updated)
-            self._tab_widget.addTab(widget, template.id)
+            self._tab_widget.addTab(widget, _config.id)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -298,7 +298,7 @@ class ProjectSettingsForm(QtWidgets.QWidget):
 
     def _template_updated(self):
         """Emit signal once a template has been updated."""
-        self.updated.emit("project_templates", self.templates())
+        self.updated.emit("project_template_configs", self.templates())
 
 
 class _CompTemplateForm(QtWidgets.QWidget):
@@ -315,10 +315,13 @@ class _CompTemplateForm(QtWidgets.QWidget):
 
     def template(self, identifier):
         """Return template object."""
-        return CompTemplateConfig(
+        return TemplateConfig(
             id=identifier,
             pattern_path=self._template_form.pattern_path(),
             pattern_base=self._template_form.pattern_base(),
+            default_expression=self._template_form.default_expression(),
+            match_start=self._template_form.match_start(),
+            match_end=self._template_form.match_end(),
             outputs=self.output_templates()
         )
 
@@ -333,19 +336,19 @@ class _CompTemplateForm(QtWidgets.QWidget):
 
         return tuple(templates)
 
-    def set_template(self, template):
+    def set_values(self, config):
         """Initialize values."""
         self._template_form.blockSignals(True)
-        self._template_form.initiate(template)
+        self._template_form.set_values(config)
         self._template_form.blockSignals(False)
 
         self._tab_widget.clear()
 
-        for template in template.outputs:
+        for _config in config.outputs:
             widget = _OutputTemplateForm()
-            widget.set_template(template)
+            widget.set_values(_config)
             widget.updated.connect(self.updated.emit)
-            self._tab_widget.addTab(widget, template.id)
+            self._tab_widget.addTab(widget, _config.id)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -400,13 +403,17 @@ class _ProjectTemplateForm(QtWidgets.QWidget):
         return TemplateConfig(
             id=identifier,
             pattern_path=self._template_form.pattern_path(),
-            pattern_base=self._template_form.pattern_base()
+            pattern_base=self._template_form.pattern_base(),
+            default_expression=self._template_form.default_expression(),
+            match_start=self._template_form.match_start(),
+            match_end=self._template_form.match_end(),
+            outputs=None
         )
 
-    def set_template(self, template):
+    def set_values(self, config):
         """Initialize values."""
         self._template_form.blockSignals(True)
-        self._template_form.initiate(template)
+        self._template_form.set_values(config)
         self._template_form.blockSignals(False)
 
     def _setup_ui(self):
@@ -446,13 +453,17 @@ class _OutputTemplateForm(QtWidgets.QWidget):
         return TemplateConfig(
             id=identifier,
             pattern_path=self._template_form.pattern_path(),
-            pattern_base=self._template_form.pattern_base()
+            pattern_base=self._template_form.pattern_base(),
+            default_expression=self._template_form.default_expression(),
+            match_start=self._template_form.match_start(),
+            match_end=self._template_form.match_end(),
+            outputs=None
         )
 
-    def set_template(self, template):
+    def set_values(self, config):
         """Initialize values."""
         self._template_form.blockSignals(True)
-        self._template_form.initiate(template)
+        self._template_form.set_values(config)
         self._template_form.blockSignals(False)
 
     def _setup_ui(self):
@@ -487,6 +498,9 @@ class _TemplateForm(QtWidgets.QWidget):
         self._setup_ui()
         self._connect_signals()
 
+        default_config = load_template_configs([{"id": "Default"}])[0]
+        self.set_values(default_config)
+
     def pattern_path(self):
         """Return pattern path."""
         return self._pattern_path.text()
@@ -495,15 +509,41 @@ class _TemplateForm(QtWidgets.QWidget):
         """Return pattern base."""
         return self._pattern_base.text()
 
-    def initiate(self, template):
+    def default_expression(self):
+        """Return default expression."""
+        return self._default_expression.text()
+
+    def match_start(self):
+        """Return whether path should match exactly the start of the pattern."""
+        return self._match_start.isChecked()
+
+    def match_end(self):
+        """Return whether path should match exactly the end of the pattern."""
+        return self._match_end.isChecked()
+
+    def set_values(self, config):
         """Initialize values."""
         self._pattern_path.blockSignals(True)
-        self._pattern_path.setText(template.pattern_path)
+        self._pattern_path.setText(config.pattern_path)
         self._pattern_path.blockSignals(False)
 
         self._pattern_base.blockSignals(True)
-        self._pattern_base.setText(template.pattern_base)
+        self._pattern_base.setText(config.pattern_base)
         self._pattern_base.blockSignals(False)
+
+        self._default_expression.blockSignals(True)
+        self._default_expression.setText(config.default_expression)
+        self._default_expression.blockSignals(False)
+
+        self._match_start.blockSignals(True)
+        state = QtCore.Qt.Checked if config.match_start else QtCore.Qt.Unchecked
+        self._match_start.setCheckState(state)
+        self._match_start.blockSignals(False)
+
+        self._match_end.blockSignals(True)
+        state = QtCore.Qt.Checked if config.match_end else QtCore.Qt.Unchecked
+        self._match_end.setCheckState(state)
+        self._match_end.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -523,10 +563,25 @@ class _TemplateForm(QtWidgets.QWidget):
         self._pattern_base = QtWidgets.QLineEdit(self)
         main_layout.addWidget(self._pattern_base, 1, 1, 1, 1)
 
+        default_expression_lbl = QtWidgets.QLabel("Default Expression", self)
+        main_layout.addWidget(default_expression_lbl, 2, 0, 1, 1)
+
+        self._default_expression = QtWidgets.QLineEdit(self)
+        main_layout.addWidget(self._default_expression, 2, 1, 1, 1)
+
+        self._match_start = QtWidgets.QCheckBox("Match Start Pattern Exactly", self)
+        main_layout.addWidget(self._match_start, 3, 1, 1, 1)
+
+        self._match_end = QtWidgets.QCheckBox("Match End Pattern Exactly", self)
+        main_layout.addWidget(self._match_end, 4, 1, 1, 1)
+
     def _connect_signals(self):
         """Initialize signals connection."""
         self._pattern_path.textChanged.connect(lambda: self.updated.emit())
         self._pattern_base.textChanged.connect(lambda: self.updated.emit())
+        self._default_expression.textChanged.connect(lambda: self.updated.emit())
+        self._match_start.stateChanged.connect(lambda: self.updated.emit())
+        self._match_end.stateChanged.connect(lambda: self.updated.emit())
 
 
 class AdvancedSettingsForm(QtWidgets.QWidget):
