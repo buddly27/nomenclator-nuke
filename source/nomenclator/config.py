@@ -7,7 +7,7 @@ import getpass
 import nomenclator.vendor.toml as toml
 from nomenclator.symbol import (
     CONFIG_FILE_NAME,
-    DEFAULT_TOKEN_EXPRESSION,
+    DEFAULT_EXPRESSION,
     DEFAULT_MATCH_START,
     DEFAULT_MATCH_END,
     DEFAULT_DESCRIPTIONS,
@@ -98,20 +98,20 @@ def dump(config):
         data["username"] = config.username
 
     if len(config.comp_template_configs) > 0:
-        data["comp-templates"] = _dump_template_configs(
+        data["comp-templates"] = dump_template_configs(
             config.comp_template_configs,
             include_outputs=True
         )
 
     if len(config.project_template_configs) > 0:
-        data["project-templates"] = _dump_template_configs(
+        data["project-templates"] = dump_template_configs(
             config.project_template_configs
         )
 
     return data
 
 
-def _dump_template_configs(configs, include_outputs=False):
+def dump_template_configs(configs, include_outputs=False):
     """Return data mapping from list of template configs."""
     items = []
 
@@ -121,7 +121,7 @@ def _dump_template_configs(configs, include_outputs=False):
         data["pattern-path"] = config.pattern_path
         data["pattern-base"] = config.pattern_base
 
-        if config.default_expression != DEFAULT_TOKEN_EXPRESSION:
+        if config.default_expression != DEFAULT_EXPRESSION:
             data["default-expression"] = config.default_expression
 
         if config.match_start != DEFAULT_MATCH_START:
@@ -131,11 +131,11 @@ def _dump_template_configs(configs, include_outputs=False):
             data["match-end"] = config.match_end
 
         if include_outputs:
-            data["outputs"] = _dump_template_configs(config.outputs)
+            data["outputs"] = dump_template_configs(config.outputs)
 
         items.append(data)
 
-    return tuple(items)
+    return items
 
 
 def load(data):
@@ -146,12 +146,13 @@ def load(data):
             "create-subfolders", DEFAULT_CREATE_SUBFOLDERS
         ),
         comp_template_configs=tuple(
-            _load_template_configs(
-                data.get("comp-templates", []), include_outputs=True
+            load_template_configs(
+                data.get("comp-templates", []),
+                include_outputs=True
             )
         ),
         project_template_configs=tuple(
-            _load_template_configs(
+            load_template_configs(
                 data.get("project-templates", [])
             )
         ),
@@ -162,7 +163,7 @@ def load(data):
     )
 
 
-def _load_template_configs(items, include_outputs=False):
+def load_template_configs(items, include_outputs=False):
     """Return list of templates from *items*."""
     templates = []
 
@@ -170,13 +171,13 @@ def _load_template_configs(items, include_outputs=False):
         outputs = None
 
         if include_outputs:
-            outputs = tuple(_load_template_configs(item.get("outputs", [])))
+            outputs = tuple(load_template_configs(item.get("outputs", [])))
 
         template = TemplateConfig(
             id=item["id"],
-            pattern_path=item["pattern-path"],
-            pattern_base=item["pattern-base"],
-            default_expression=item.get("default-expression", DEFAULT_TOKEN_EXPRESSION),
+            pattern_path=item.get("pattern-path", ""),
+            pattern_base=item.get("pattern-base", ""),
+            default_expression=item.get("default-expression", DEFAULT_EXPRESSION),
             match_start=item.get("match-start", DEFAULT_MATCH_START),
             match_end=item.get("match-end", DEFAULT_MATCH_END),
             outputs=outputs

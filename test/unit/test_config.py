@@ -318,14 +318,14 @@ def test_dump_comp_templates():
     data = nomenclator.config.dump(config)
     assert data == collections.OrderedDict([
         (
-            "comp-templates", (
+            "comp-templates", [
                 collections.OrderedDict([
                     ("id", "Episodic"),
                     ("pattern-path", "/path/{project}/{episode}/{shot}/scripts"),
                     ("pattern-base", "{episode}_{shot}_{description}_v{version}"),
                     ("match-end", False),
                     (
-                        "outputs", (
+                        "outputs", [
                             collections.OrderedDict([
                                 ("id", "Comp"),
                                 ("pattern-path", "/path/{project}/{episode}/{shot}/comps"),
@@ -337,7 +337,7 @@ def test_dump_comp_templates():
                                 ("pattern-path", "/path/{project}/{episode}/{shot}/precomps"),
                                 ("pattern-base", "{episode}_{shot}_precomp_v{version}"),
                             ])
-                        )
+                        ]
                     )
                 ]),
                 collections.OrderedDict([
@@ -346,7 +346,7 @@ def test_dump_comp_templates():
                     ("pattern-base", "{element}_{description}_v{version}"),
                     ("match-start", False),
                     (
-                        "outputs", (
+                        "outputs", [
                             collections.OrderedDict([
                                 ("id", "Comp"),
                                 ("pattern-path", "/path/{project}/build/{element}/comps"),
@@ -357,10 +357,10 @@ def test_dump_comp_templates():
                                 ("pattern-path", "/path/{project}/build/{element}/precomps"),
                                 ("pattern-base", "{element}_precomp_v{version}"),
                             ])
-                        )
+                        ]
                     )
                 ])
-            )
+            ]
         )
     ])
 
@@ -402,7 +402,7 @@ def test_dump_project_templates():
     data = nomenclator.config.dump(config)
     assert data == collections.OrderedDict([
         (
-            "project-templates", (
+            "project-templates", [
                 collections.OrderedDict([
                     ("id", "Episodic"),
                     ("pattern-path", "/path/{project}/{episode}/{shot}/scripts"),
@@ -416,7 +416,7 @@ def test_dump_project_templates():
                     ("pattern-base", "{element}_{description}_v{version}"),
                     ("match-start", False)
                 ])
-            )
+            ]
         )
     ])
 

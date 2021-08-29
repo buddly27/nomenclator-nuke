@@ -7,7 +7,7 @@ OUTPUT_CLASSES = ("Write", "DeepWrite")
 CONFIG_FILE_NAME = "nomenclator.toml"
 
 #: Default expression to resolve token if none is specified in a template pattern.
-DEFAULT_TOKEN_EXPRESSION = r"[\w_.-]+"
+DEFAULT_EXPRESSION = r"[\w_.-]+"
 
 #: Default value for matching the start of a template path pattern.
 DEFAULT_MATCH_START = True

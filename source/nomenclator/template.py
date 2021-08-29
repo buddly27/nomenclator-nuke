@@ -2,11 +2,11 @@
 
 import re
 
-from nomenclator.symbol import DEFAULT_TOKEN_EXPRESSION
+from nomenclator.symbol import DEFAULT_EXPRESSION
 
 
 def fetch_resolved_tokens(
-    path, pattern, default_expression=DEFAULT_TOKEN_EXPRESSION,
+    path, pattern, default_expression=DEFAULT_EXPRESSION,
     match_start=True, match_end=True
 ):
     """Return resolved tokens from *path* and *pattern* if compatible.
@@ -72,7 +72,7 @@ def fetch_resolved_tokens(
 
 
 def construct_regexp(
-    pattern, default_expression=DEFAULT_TOKEN_EXPRESSION,
+    pattern, default_expression=DEFAULT_EXPRESSION,
     match_start=True, match_end=True
 ):
     """Return template pattern converted into a regular expression.
