@@ -145,3 +145,64 @@ def sanitize_pattern(pattern):
 
     sub_pattern = r"(?P<token>{(.+?)(:.+?)?})|(?P<other>.+?)"
     return re.sub(sub_pattern, _escape, pattern)
+
+
+def generate_scene_name(pattern, suffix, append_username=False, token_mapping=None):
+    """Generate scene name from *pattern* using a mapping of resolved tokens.
+
+    :param pattern: String representing a template base,
+        with or without tokens.
+
+    :param suffix: Suffix to apply for the generated name (e.g. "nk" or "hrox").
+
+    :param append_username: Indicate whether username should be appended to base name.
+        Default is False.
+
+    :param token_mapping: Mapping regrouping resolved token value associated with
+        their name. Default is None.
+
+    :return: String name.
+
+    :raise: exc:`KeyError` if a token within the *pattern* does not have any value within
+        the token map.
+
+    """
+    if append_username:
+        pattern += "_{username}"
+
+    pattern += ".{}".format(suffix)
+    return pattern.format(**(token_mapping or {}))
+
+
+def generate_output_name(
+    pattern, suffix, padding=None, append_passname_to_subfolder=False, append_passname=False,
+    append_colorspace=False, append_username=False, token_mapping=None
+):
+    """Generate output name from *pattern* using a mapping of resolved tokens.
+
+    :param pattern: String representing a template base,
+        with or without tokens.
+
+    :param suffix: Suffix to apply for the generated name (e.g. "exr").
+
+    :param padding: Padding which should be appended to output name if required.
+        Default is None, which means that the output is not a sequence.
+
+    :param append_passname_to_subfolder: Indicate whether passname should be appended to sub-folder.
+        Default is False.
+
+    :param append_passname: Indicate whether passname should be appended to base name.
+        Default is False.
+
+    :param append_colorspace: Indicate whether colorspace should be appended to base name.
+        Default is False.
+
+    :param append_username: Indicate whether username should be appended to base name.
+        Default is False.
+
+    :param token_mapping: Mapping regrouping resolved token value associated with
+        their name. Default is None.
+
+    :return: String name.
+
+    """

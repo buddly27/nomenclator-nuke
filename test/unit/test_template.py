@@ -241,3 +241,53 @@ def test_sanitize_pattern(template, expected):
         expected = expected.replace(r"C:", r"C\:")
 
     assert nomenclator.template.sanitize_pattern(template) == expected
+
+
+def test_generate_scene_name_without_tokens():
+    """Generate scene name from pattern without any tokens."""
+    import nomenclator.template
+
+    pattern = "base_name"
+
+    result = nomenclator.template.generate_scene_name(pattern, "nk")
+    assert result == "base_name.nk"
+
+    result = nomenclator.template.generate_scene_name(
+        pattern, "nk", token_mapping={"key": "value"}
+    )
+    assert result == "base_name.nk"
+
+
+def test_generate_scene_name_with_tokens():
+    """Generate scene name from pattern with tokens."""
+    import nomenclator.template
+
+    pattern = "{project}_{shot}_{description}_v{version}"
+
+    result = nomenclator.template.generate_scene_name(
+        pattern, "nk", token_mapping={
+            "project": "test",
+            "shot": "sh003",
+            "description": "comp",
+            "version": "002",
+        }
+    )
+    assert result == "test_sh003_comp_v002.nk"
+
+
+def test_generate_scene_name_with_tokens_error():
+    """Fail to generate scene name from pattern when value is missing from token."""
+    import nomenclator.template
+
+    pattern = "{project}_{shot}_{description}_v{version}"
+
+    with pytest.raises(KeyError) as error:
+        nomenclator.template.generate_scene_name(
+            pattern, "nk", token_mapping={
+                "shot": "sh003",
+                "description": "comp",
+                "version": "002",
+            }
+        )
+
+    assert str(error.value) == "'project'"
