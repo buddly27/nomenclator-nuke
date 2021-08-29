@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from nomenclator.vendor.Qt import QtWidgets
+from nomenclator.vendor.Qt import QtWidgets, QtCore
 
 from .group_widget import GroupWidget
 from .output_list import OutputList
@@ -15,8 +15,9 @@ class OutputSettingsForm(QtWidgets.QWidget):
         self._setup_ui()
         self._connect_signals()
 
-    def set_values(self, context):
+    def set_values(self, context, config):
         """Initialize values."""
+        self._file_path_form.set_values(config)
         self._file_name_form.set_values(context)
 
         for node in sorted(context["nodes"], key=lambda n: n.name()):
@@ -60,6 +61,13 @@ class FilePathForm(QtWidgets.QWidget):
         super(FilePathForm, self).__init__(parent)
         self._setup_ui()
 
+    def set_values(self, config):
+        """Initialize values."""
+        self._create_subfolders.blockSignals(True)
+        state = QtCore.Qt.Checked if config.create_subfolders else QtCore.Qt.Unchecked
+        self._create_subfolders.setCheckState(state)
+        self._create_subfolders.blockSignals(False)
+
     def _setup_ui(self):
         """Initialize user interface."""
         self.setSizePolicy(
@@ -85,8 +93,8 @@ class FilePathForm(QtWidgets.QWidget):
         )
         main_layout.addWidget(self._append_passname, 1, 0, 1, 2)
 
-        self._create_now = QtWidgets.QCheckBox("Create sub-folders now", self)
-        main_layout.addWidget(self._create_now, 2, 0, 1, 2)
+        self._create_subfolders = QtWidgets.QCheckBox("Create sub-folders now", self)
+        main_layout.addWidget(self._create_subfolders, 2, 0, 1, 2)
 
         spacer = QtWidgets.QSpacerItem(
             0, 0, QtWidgets.QSizePolicy.Minimum,
@@ -105,7 +113,9 @@ class FileNameForm(QtWidgets.QWidget):
 
     def set_values(self, context):
         """Initialize values."""
+        self._padding.blockSignals(True)
         self._padding.addItems(context["paddings"])
+        self._padding.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""

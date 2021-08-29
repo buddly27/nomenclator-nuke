@@ -26,7 +26,7 @@ class CompoManagerDialog(QtWidgets.QDialog):
         self._location.set_items(recent_locations)
         self._comp_settings_form.set_values(config)
         self._outputs_settings_group.setEnabled(len(context["nodes"]) > 0)
-        self._output_settings_form.set_values(context)
+        self._output_settings_form.set_values(context, config)
 
     def _setup_ui(self):
         """Initialize user interface."""
