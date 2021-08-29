@@ -30,12 +30,12 @@ class OutputSettingsForm(QtWidgets.QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(8)
 
-        self._sub_folder_form = SubFolderForm(self)
-        self._sub_folder_form.setMinimumHeight(100)
+        self._file_path_form = FilePathForm(self)
+        self._file_path_form.setMinimumHeight(100)
 
-        sub_folder_group = GroupWidget(self._sub_folder_form, self)
-        sub_folder_group.setTitle("Sub-Folder")
-        main_layout.addWidget(sub_folder_group, 0, 0)
+        file_path_group = GroupWidget(self._file_path_form, self)
+        file_path_group.setTitle("File Path")
+        main_layout.addWidget(file_path_group, 0, 0)
 
         self._file_name_form = FileNameForm(self)
         self._file_name_form.setMinimumHeight(100)
@@ -52,12 +52,12 @@ class OutputSettingsForm(QtWidgets.QWidget):
         """Initialize signals connection."""
 
 
-class SubFolderForm(QtWidgets.QWidget):
-    """Form to manage sub-folders settings."""
+class FilePathForm(QtWidgets.QWidget):
+    """Form to manage output file path settings."""
 
     def __init__(self, parent=None):
         """Initiate the widget."""
-        super(SubFolderForm, self).__init__(parent)
+        super(FilePathForm, self).__init__(parent)
         self._setup_ui()
 
     def _setup_ui(self):
