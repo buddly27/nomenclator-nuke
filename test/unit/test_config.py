@@ -56,7 +56,7 @@ def mocked_dump(mocker, temporary_directory):
 
 def test_path(mocked_expanduser, monkeypatch):
     """Return path to configuration file."""
-    monkeypatch.delenv("NOMENCLATURE_CONFIG_PATH", raising=False)
+    monkeypatch.delenv("NOMENCLATOR_CONFIG_PATH", raising=False)
 
     import nomenclator.config
 
@@ -68,7 +68,7 @@ def test_path(mocked_expanduser, monkeypatch):
 
 def test_path_from_env(mocked_expanduser, monkeypatch):
     """Return path to configuration file fetch from environment"""
-    monkeypatch.setenv("NOMENCLATURE_CONFIG_PATH", "__CONFIG__")
+    monkeypatch.setenv("NOMENCLATOR_CONFIG_PATH", "__CONFIG__")
 
     import nomenclator.config
 
@@ -132,8 +132,8 @@ def test_dump_empty():
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_templates=tuple(),
-        project_templates=tuple(),
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -151,8 +151,8 @@ def test_dump_descriptions():
     config = nomenclator.config.Config(
         descriptions=("test1", "test2", "test3"),
         create_subfolders=False,
-        comp_templates=tuple(),
-        project_templates=tuple(),
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -172,8 +172,8 @@ def test_dump_create_subfolders():
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=True,
-        comp_templates=tuple(),
-        project_templates=tuple(),
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -193,8 +193,8 @@ def test_dump_max_locations():
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_templates=tuple(),
-        project_templates=tuple(),
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
         max_locations=10,
         max_padding=5,
         username="john-doe",
@@ -212,8 +212,8 @@ def test_dump_max_padding():
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_templates=tuple(),
-        project_templates=tuple(),
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
         max_locations=5,
         max_padding=3,
         username="john-doe",
@@ -231,8 +231,8 @@ def test_dump_username():
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_templates=tuple(),
-        project_templates=tuple(),
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -250,43 +250,65 @@ def test_dump_comp_templates():
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_templates=(
-            nomenclator.config.CompTemplateConfig(
+        comp_template_configs=(
+            nomenclator.config.TemplateConfig(
                 id="Episodic",
                 pattern_path="/path/{project}/{episode}/{shot}/scripts",
                 pattern_base="{episode}_{shot}_{description}_v{version}",
+                default_token_expression=r"[\w_.-]+",
+                match_start=True,
+                match_end=False,
                 outputs=(
                     nomenclator.config.TemplateConfig(
                         id="Comp",
                         pattern_path="/path/{project}/{episode}/{shot}/comps",
                         pattern_base="{episode}_{shot}_comp_v{version}",
+                        default_token_expression=r"\w+",
+                        match_start=True,
+                        match_end=True,
+                        outputs=None
                     ),
                     nomenclator.config.TemplateConfig(
                         id="Precomp",
                         pattern_path="/path/{project}/{episode}/{shot}/precomps",
                         pattern_base="{episode}_{shot}_precomp_v{version}",
+                        default_token_expression=r"[\w_.-]+",
+                        match_start=True,
+                        match_end=True,
+                        outputs=None
                     ),
                 )
             ),
-            nomenclator.config.CompTemplateConfig(
+            nomenclator.config.TemplateConfig(
                 id="Element",
                 pattern_path="/path/{project}/build/{element}/scripts",
                 pattern_base="{element}_{description}_v{version}",
+                default_token_expression=r"[\w_.-]+",
+                match_start=False,
+                match_end=True,
                 outputs=(
                     nomenclator.config.TemplateConfig(
                         id="Comp",
                         pattern_path="/path/{project}/build/{element}/comps",
                         pattern_base="{element}_comp_v{version}",
+                        default_token_expression=r"[\w_.-]+",
+                        match_start=True,
+                        match_end=True,
+                        outputs=None
                     ),
                     nomenclator.config.TemplateConfig(
                         id="Precomp",
                         pattern_path="/path/{project}/build/{element}/precomps",
                         pattern_base="{element}_precomp_v{version}",
+                        default_token_expression=r"[\w_.-]+",
+                        match_start=True,
+                        match_end=True,
+                        outputs=None
                     ),
                 )
             ),
         ),
-        project_templates=tuple(),
+        project_template_configs=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -301,12 +323,14 @@ def test_dump_comp_templates():
                     ("id", "Episodic"),
                     ("pattern-path", "/path/{project}/{episode}/{shot}/scripts"),
                     ("pattern-base", "{episode}_{shot}_{description}_v{version}"),
+                    ("match-end", False),
                     (
                         "outputs", (
                             collections.OrderedDict([
                                 ("id", "Comp"),
                                 ("pattern-path", "/path/{project}/{episode}/{shot}/comps"),
                                 ("pattern-base", "{episode}_{shot}_comp_v{version}"),
+                                ("default-token-expression", r"\w+")
                             ]),
                             collections.OrderedDict([
                                 ("id", "Precomp"),
@@ -320,6 +344,7 @@ def test_dump_comp_templates():
                     ("id", "Element"),
                     ("pattern-path", "/path/{project}/build/{element}/scripts"),
                     ("pattern-base", "{element}_{description}_v{version}"),
+                    ("match-start", False),
                     (
                         "outputs", (
                             collections.OrderedDict([
@@ -347,17 +372,25 @@ def test_dump_project_templates():
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_templates=tuple(),
-        project_templates=(
+        comp_template_configs=tuple(),
+        project_template_configs=(
             nomenclator.config.TemplateConfig(
                 id="Episodic",
                 pattern_path="/path/{project}/{episode}/{shot}/scripts",
                 pattern_base="{episode}_{shot}_{description}_v{version}",
+                default_token_expression=r"\w+",
+                match_start=True,
+                match_end=False,
+                outputs=None
             ),
             nomenclator.config.TemplateConfig(
                 id="Element",
                 pattern_path="/path/{project}/build/{element}/scripts",
                 pattern_base="{element}_{description}_v{version}",
+                default_token_expression=r"[\w_.-]+",
+                match_start=False,
+                match_end=True,
+                outputs=None
             ),
         ),
         max_locations=5,
@@ -374,11 +407,14 @@ def test_dump_project_templates():
                     ("id", "Episodic"),
                     ("pattern-path", "/path/{project}/{episode}/{shot}/scripts"),
                     ("pattern-base", "{episode}_{shot}_{description}_v{version}"),
+                    ("default-token-expression", r"\w+"),
+                    ("match-end", False)
                 ]),
                 collections.OrderedDict([
                     ("id", "Element"),
                     ("pattern-path", "/path/{project}/build/{element}/scripts"),
                     ("pattern-base", "{element}_{description}_v{version}"),
+                    ("match-start", False)
                 ])
             )
         )
@@ -395,8 +431,8 @@ def test_load_empty():
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_templates=tuple(),
-        project_templates=tuple(),
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -416,8 +452,8 @@ def test_load_descriptions():
     assert config == nomenclator.config.Config(
         descriptions=("test1", "test2", "test3"),
         create_subfolders=False,
-        comp_templates=tuple(),
-        project_templates=tuple(),
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -437,8 +473,8 @@ def test_load_create_subfolders():
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=True,
-        comp_templates=tuple(),
-        project_templates=tuple(),
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -458,8 +494,8 @@ def test_load_max_locations():
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_templates=tuple(),
-        project_templates=tuple(),
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
         max_locations=10,
         max_padding=5,
         username="john-doe",
@@ -479,8 +515,8 @@ def test_load_max_padding():
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_templates=tuple(),
-        project_templates=tuple(),
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
         max_locations=5,
         max_padding=3,
         username="john-doe",
@@ -500,8 +536,8 @@ def test_load_username():
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_templates=tuple(),
-        project_templates=tuple(),
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
         max_locations=5,
         max_padding=5,
         username="steve",
@@ -520,11 +556,13 @@ def test_load_comp_templates():
                 "id": "Episodic",
                 "pattern-path": "/path/{project}/{episode}/{shot}/scripts",
                 "pattern-base": "{episode}_{shot}_{description}_v{version}",
+                "match-end": False,
                 "outputs": [
                     {
                         "id": "Comp",
                         "pattern-path": "/path/{project}/{episode}/{shot}/comps",
                         "pattern-base": "{episode}_{shot}_comp_v{version}",
+                        "default-token-expression": r"\w+"
                     },
                     {
                         "id": "Precomp",
@@ -537,6 +575,7 @@ def test_load_comp_templates():
                 "id": "Element",
                 "pattern-path": "/path/{project}/build/{element}/scripts",
                 "pattern-base": "{element}_{description}_v{version}",
+                "match-start": False,
                 "outputs": [
                     {
                         "id": "Comp",
@@ -556,43 +595,65 @@ def test_load_comp_templates():
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_templates=(
-            nomenclator.config.CompTemplateConfig(
+        comp_template_configs=(
+            nomenclator.config.TemplateConfig(
                 id="Episodic",
                 pattern_path="/path/{project}/{episode}/{shot}/scripts",
                 pattern_base="{episode}_{shot}_{description}_v{version}",
+                default_token_expression=r"[\w_.-]+",
+                match_start=True,
+                match_end=False,
                 outputs=(
                     nomenclator.config.TemplateConfig(
                         id="Comp",
                         pattern_path="/path/{project}/{episode}/{shot}/comps",
                         pattern_base="{episode}_{shot}_comp_v{version}",
+                        default_token_expression=r"\w+",
+                        match_start=True,
+                        match_end=True,
+                        outputs=None
                     ),
                     nomenclator.config.TemplateConfig(
                         id="Precomp",
                         pattern_path="/path/{project}/{episode}/{shot}/precomps",
                         pattern_base="{episode}_{shot}_precomp_v{version}",
+                        default_token_expression=r"[\w_.-]+",
+                        match_start=True,
+                        match_end=True,
+                        outputs=None
                     ),
                 )
             ),
-            nomenclator.config.CompTemplateConfig(
+            nomenclator.config.TemplateConfig(
                 id="Element",
                 pattern_path="/path/{project}/build/{element}/scripts",
                 pattern_base="{element}_{description}_v{version}",
+                default_token_expression=r"[\w_.-]+",
+                match_start=False,
+                match_end=True,
                 outputs=(
                     nomenclator.config.TemplateConfig(
                         id="Comp",
                         pattern_path="/path/{project}/build/{element}/comps",
                         pattern_base="{element}_comp_v{version}",
+                        default_token_expression=r"[\w_.-]+",
+                        match_start=True,
+                        match_end=True,
+                        outputs=None
                     ),
                     nomenclator.config.TemplateConfig(
                         id="Precomp",
                         pattern_path="/path/{project}/build/{element}/precomps",
                         pattern_base="{element}_precomp_v{version}",
+                        default_token_expression=r"[\w_.-]+",
+                        match_start=True,
+                        match_end=True,
+                        outputs=None
                     ),
                 )
             ),
         ),
-        project_templates=tuple(),
+        project_template_configs=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -611,11 +672,14 @@ def test_load_project_templates():
                 "id": "Episodic",
                 "pattern-path": "/path/{project}/{episode}/{shot}/scripts",
                 "pattern-base": "{episode}_{shot}_{description}_v{version}",
+                "default-token-expression": r"\w+",
+                "match-end": False,
             },
             {
                 "id": "Element",
                 "pattern-path": "/path/{project}/build/{element}/scripts",
                 "pattern-base": "{element}_{description}_v{version}",
+                "match-start": False,
             }
         ]
     })
@@ -623,17 +687,25 @@ def test_load_project_templates():
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_templates=tuple(),
-        project_templates=(
+        comp_template_configs=tuple(),
+        project_template_configs=(
             nomenclator.config.TemplateConfig(
                 id="Episodic",
                 pattern_path="/path/{project}/{episode}/{shot}/scripts",
                 pattern_base="{episode}_{shot}_{description}_v{version}",
+                default_token_expression=r"\w+",
+                match_start=True,
+                match_end=False,
+                outputs=None
             ),
             nomenclator.config.TemplateConfig(
                 id="Element",
                 pattern_path="/path/{project}/build/{element}/scripts",
                 pattern_base="{element}_{description}_v{version}",
+                default_token_expression=r"[\w_.-]+",
+                match_start=False,
+                match_end=True,
+                outputs=None
             ),
         ),
         max_locations=5,

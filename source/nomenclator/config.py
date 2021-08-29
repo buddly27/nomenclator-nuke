@@ -7,6 +7,9 @@ import getpass
 import nomenclator.vendor.toml as toml
 from nomenclator.symbol import (
     CONFIG_FILE_NAME,
+    DEFAULT_TOKEN_EXPRESSION,
+    DEFAULT_MATCH_START,
+    DEFAULT_MATCH_END,
     DEFAULT_DESCRIPTIONS,
     DEFAULT_CREATE_SUBFOLDERS,
     DEFAULT_MAX_LOCATIONS,
@@ -19,8 +22,8 @@ Config = collections.namedtuple(
     "Config", [
         "descriptions",
         "create_subfolders",
-        "comp_templates",
-        "project_templates",
+        "comp_template_configs",
+        "project_template_configs",
         "max_locations",
         "max_padding",
         "username",
@@ -29,22 +32,16 @@ Config = collections.namedtuple(
 )
 
 
-#: Comp Template Structure type.
-CompTemplateConfig = collections.namedtuple(
-    "CompTemplateConfig", [
-        "id",
-        "pattern_path",
-        "pattern_base",
-        "outputs",
-    ]
-)
-
 #: Template Structure type.
 TemplateConfig = collections.namedtuple(
     "TemplateConfig", [
         "id",
         "pattern_path",
         "pattern_base",
+        "default_token_expression",
+        "match_start",
+        "match_end",
+        "outputs",
     ]
 )
 
@@ -52,12 +49,12 @@ TemplateConfig = collections.namedtuple(
 def path():
     """Return path to configuration file.
 
-    The configuration file is returned from the :envvar:`NOMENCLATURE_CONFIG_PATH`
+    The configuration file is returned from the :envvar:`NOMENCLATOR_CONFIG_PATH`
     environment variable, or from the :file:`~/.nuke` folder.
 
     """
     personal_path = os.path.join(os.path.expanduser("~"), ".nuke")
-    return os.path.join(os.getenv("NOMENCLATURE_CONFIG_PATH", personal_path), CONFIG_FILE_NAME)
+    return os.path.join(os.getenv("NOMENCLATOR_CONFIG_PATH", personal_path), CONFIG_FILE_NAME)
 
 
 def fetch():
@@ -100,39 +97,42 @@ def dump(config):
     if config.username_is_default is False:
         data["username"] = config.username
 
-    if len(config.comp_templates) > 0:
-        data["comp-templates"] = _dump_comp_templates(config.comp_templates)
+    if len(config.comp_template_configs) > 0:
+        data["comp-templates"] = _dump_template_configs(
+            config.comp_template_configs,
+            include_outputs=True
+        )
 
-    if len(config.project_templates) > 0:
-        data["project-templates"] = _dump_templates(config.project_templates)
+    if len(config.project_template_configs) > 0:
+        data["project-templates"] = _dump_template_configs(
+            config.project_template_configs
+        )
 
     return data
 
 
-def _dump_comp_templates(comp_templates):
-    """Return data mapping from list of comp templates."""
+def _dump_template_configs(configs, include_outputs=False):
+    """Return data mapping from list of template configs."""
     items = []
 
-    for template in comp_templates:
+    for config in configs:
         data = collections.OrderedDict()
-        data["id"] = template.id
-        data["pattern-path"] = template.pattern_path
-        data["pattern-base"] = template.pattern_base
-        data["outputs"] = _dump_templates(template.outputs)
-        items.append(data)
+        data["id"] = config.id
+        data["pattern-path"] = config.pattern_path
+        data["pattern-base"] = config.pattern_base
 
-    return tuple(items)
+        if config.default_token_expression != DEFAULT_TOKEN_EXPRESSION:
+            data["default-token-expression"] = config.default_token_expression
 
+        if config.match_start != DEFAULT_MATCH_START:
+            data["match-start"] = config.match_start
 
-def _dump_templates(templates):
-    """Return data mapping from list of templates."""
-    items = []
+        if config.match_end != DEFAULT_MATCH_END:
+            data["match-end"] = config.match_end
 
-    for template in templates:
-        data = collections.OrderedDict()
-        data["id"] = template.id
-        data["pattern-path"] = template.pattern_path
-        data["pattern-base"] = template.pattern_base
+        if include_outputs:
+            data["outputs"] = _dump_template_configs(config.outputs)
+
         items.append(data)
 
     return tuple(items)
@@ -142,9 +142,19 @@ def load(data):
     """Return config object from *data* mapping."""
     return Config(
         descriptions=tuple(data.get("descriptions", DEFAULT_DESCRIPTIONS)),
-        create_subfolders=data.get("create-subfolders", DEFAULT_CREATE_SUBFOLDERS),
-        comp_templates=tuple(_load_comp_template_configs(data.get("comp-templates", []))),
-        project_templates=tuple(_load_template_configs(data.get("project-templates", []))),
+        create_subfolders=data.get(
+            "create-subfolders", DEFAULT_CREATE_SUBFOLDERS
+        ),
+        comp_template_configs=tuple(
+            _load_template_configs(
+                data.get("comp-templates", []), include_outputs=True
+            )
+        ),
+        project_template_configs=tuple(
+            _load_template_configs(
+                data.get("project-templates", [])
+            )
+        ),
         max_locations=data.get("max-locations", DEFAULT_MAX_LOCATIONS),
         max_padding=data.get("max-padding", DEFAULT_MAX_PADDING),
         username=data.get("username", getpass.getuser()),
@@ -152,31 +162,26 @@ def load(data):
     )
 
 
-def _load_comp_template_configs(items):
-    """Return list of comp templates from *items*."""
-    templates = []
-
-    for item in items:
-        template = CompTemplateConfig(
-            id=item["id"],
-            pattern_path=item["pattern-path"],
-            pattern_base=item["pattern-base"],
-            outputs=tuple(_load_template_configs(item.get("outputs", [])))
-        )
-        templates.append(template)
-
-    return templates
-
-
-def _load_template_configs(items):
+def _load_template_configs(items, include_outputs=False):
     """Return list of templates from *items*."""
     templates = []
 
     for item in items:
+        outputs = None
+
+        if include_outputs:
+            outputs = tuple(_load_template_configs(item.get("outputs", [])))
+
         template = TemplateConfig(
             id=item["id"],
             pattern_path=item["pattern-path"],
             pattern_base=item["pattern-base"],
+            default_token_expression=item.get(
+                "default-token-expression", DEFAULT_TOKEN_EXPRESSION
+            ),
+            match_start=item.get("match-start", DEFAULT_MATCH_START),
+            match_end=item.get("match-end", DEFAULT_MATCH_END),
+            outputs=outputs
         )
         templates.append(template)
 
