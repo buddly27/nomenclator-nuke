@@ -255,7 +255,7 @@ def test_dump_comp_templates():
                 id="Episodic",
                 pattern_path="/path/{project}/{episode}/{shot}/scripts",
                 pattern_base="{episode}_{shot}_{description}_v{version}",
-                default_token_expression=r"[\w_.-]+",
+                default_expression=r"[\w_.-]+",
                 match_start=True,
                 match_end=False,
                 outputs=(
@@ -263,7 +263,7 @@ def test_dump_comp_templates():
                         id="Comp",
                         pattern_path="/path/{project}/{episode}/{shot}/comps",
                         pattern_base="{episode}_{shot}_comp_v{version}",
-                        default_token_expression=r"\w+",
+                        default_expression=r"\w+",
                         match_start=True,
                         match_end=True,
                         outputs=None
@@ -272,7 +272,7 @@ def test_dump_comp_templates():
                         id="Precomp",
                         pattern_path="/path/{project}/{episode}/{shot}/precomps",
                         pattern_base="{episode}_{shot}_precomp_v{version}",
-                        default_token_expression=r"[\w_.-]+",
+                        default_expression=r"[\w_.-]+",
                         match_start=True,
                         match_end=True,
                         outputs=None
@@ -283,7 +283,7 @@ def test_dump_comp_templates():
                 id="Element",
                 pattern_path="/path/{project}/build/{element}/scripts",
                 pattern_base="{element}_{description}_v{version}",
-                default_token_expression=r"[\w_.-]+",
+                default_expression=r"[\w_.-]+",
                 match_start=False,
                 match_end=True,
                 outputs=(
@@ -291,7 +291,7 @@ def test_dump_comp_templates():
                         id="Comp",
                         pattern_path="/path/{project}/build/{element}/comps",
                         pattern_base="{element}_comp_v{version}",
-                        default_token_expression=r"[\w_.-]+",
+                        default_expression=r"[\w_.-]+",
                         match_start=True,
                         match_end=True,
                         outputs=None
@@ -300,7 +300,7 @@ def test_dump_comp_templates():
                         id="Precomp",
                         pattern_path="/path/{project}/build/{element}/precomps",
                         pattern_base="{element}_precomp_v{version}",
-                        default_token_expression=r"[\w_.-]+",
+                        default_expression=r"[\w_.-]+",
                         match_start=True,
                         match_end=True,
                         outputs=None
@@ -330,7 +330,7 @@ def test_dump_comp_templates():
                                 ("id", "Comp"),
                                 ("pattern-path", "/path/{project}/{episode}/{shot}/comps"),
                                 ("pattern-base", "{episode}_{shot}_comp_v{version}"),
-                                ("default-token-expression", r"\w+")
+                                ("default-expression", r"\w+")
                             ]),
                             collections.OrderedDict([
                                 ("id", "Precomp"),
@@ -378,7 +378,7 @@ def test_dump_project_templates():
                 id="Episodic",
                 pattern_path="/path/{project}/{episode}/{shot}/scripts",
                 pattern_base="{episode}_{shot}_{description}_v{version}",
-                default_token_expression=r"\w+",
+                default_expression=r"\w+",
                 match_start=True,
                 match_end=False,
                 outputs=None
@@ -387,7 +387,7 @@ def test_dump_project_templates():
                 id="Element",
                 pattern_path="/path/{project}/build/{element}/scripts",
                 pattern_base="{element}_{description}_v{version}",
-                default_token_expression=r"[\w_.-]+",
+                default_expression=r"[\w_.-]+",
                 match_start=False,
                 match_end=True,
                 outputs=None
@@ -407,7 +407,7 @@ def test_dump_project_templates():
                     ("id", "Episodic"),
                     ("pattern-path", "/path/{project}/{episode}/{shot}/scripts"),
                     ("pattern-base", "{episode}_{shot}_{description}_v{version}"),
-                    ("default-token-expression", r"\w+"),
+                    ("default-expression", r"\w+"),
                     ("match-end", False)
                 ]),
                 collections.OrderedDict([
@@ -562,7 +562,7 @@ def test_load_comp_templates():
                         "id": "Comp",
                         "pattern-path": "/path/{project}/{episode}/{shot}/comps",
                         "pattern-base": "{episode}_{shot}_comp_v{version}",
-                        "default-token-expression": r"\w+"
+                        "default-expression": r"\w+"
                     },
                     {
                         "id": "Precomp",
@@ -600,7 +600,7 @@ def test_load_comp_templates():
                 id="Episodic",
                 pattern_path="/path/{project}/{episode}/{shot}/scripts",
                 pattern_base="{episode}_{shot}_{description}_v{version}",
-                default_token_expression=r"[\w_.-]+",
+                default_expression=r"[\w_.-]+",
                 match_start=True,
                 match_end=False,
                 outputs=(
@@ -608,7 +608,7 @@ def test_load_comp_templates():
                         id="Comp",
                         pattern_path="/path/{project}/{episode}/{shot}/comps",
                         pattern_base="{episode}_{shot}_comp_v{version}",
-                        default_token_expression=r"\w+",
+                        default_expression=r"\w+",
                         match_start=True,
                         match_end=True,
                         outputs=None
@@ -617,7 +617,7 @@ def test_load_comp_templates():
                         id="Precomp",
                         pattern_path="/path/{project}/{episode}/{shot}/precomps",
                         pattern_base="{episode}_{shot}_precomp_v{version}",
-                        default_token_expression=r"[\w_.-]+",
+                        default_expression=r"[\w_.-]+",
                         match_start=True,
                         match_end=True,
                         outputs=None
@@ -628,7 +628,7 @@ def test_load_comp_templates():
                 id="Element",
                 pattern_path="/path/{project}/build/{element}/scripts",
                 pattern_base="{element}_{description}_v{version}",
-                default_token_expression=r"[\w_.-]+",
+                default_expression=r"[\w_.-]+",
                 match_start=False,
                 match_end=True,
                 outputs=(
@@ -636,7 +636,7 @@ def test_load_comp_templates():
                         id="Comp",
                         pattern_path="/path/{project}/build/{element}/comps",
                         pattern_base="{element}_comp_v{version}",
-                        default_token_expression=r"[\w_.-]+",
+                        default_expression=r"[\w_.-]+",
                         match_start=True,
                         match_end=True,
                         outputs=None
@@ -645,7 +645,7 @@ def test_load_comp_templates():
                         id="Precomp",
                         pattern_path="/path/{project}/build/{element}/precomps",
                         pattern_base="{element}_precomp_v{version}",
-                        default_token_expression=r"[\w_.-]+",
+                        default_expression=r"[\w_.-]+",
                         match_start=True,
                         match_end=True,
                         outputs=None
@@ -672,7 +672,7 @@ def test_load_project_templates():
                 "id": "Episodic",
                 "pattern-path": "/path/{project}/{episode}/{shot}/scripts",
                 "pattern-base": "{episode}_{shot}_{description}_v{version}",
-                "default-token-expression": r"\w+",
+                "default-expression": r"\w+",
                 "match-end": False,
             },
             {
@@ -693,7 +693,7 @@ def test_load_project_templates():
                 id="Episodic",
                 pattern_path="/path/{project}/{episode}/{shot}/scripts",
                 pattern_base="{episode}_{shot}_{description}_v{version}",
-                default_token_expression=r"\w+",
+                default_expression=r"\w+",
                 match_start=True,
                 match_end=False,
                 outputs=None
@@ -702,7 +702,7 @@ def test_load_project_templates():
                 id="Element",
                 pattern_path="/path/{project}/build/{element}/scripts",
                 pattern_base="{element}_{description}_v{version}",
-                default_token_expression=r"[\w_.-]+",
+                default_expression=r"[\w_.-]+",
                 match_start=False,
                 match_end=True,
                 outputs=None

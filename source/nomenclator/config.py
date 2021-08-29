@@ -38,7 +38,7 @@ TemplateConfig = collections.namedtuple(
         "id",
         "pattern_path",
         "pattern_base",
-        "default_token_expression",
+        "default_expression",
         "match_start",
         "match_end",
         "outputs",
@@ -121,8 +121,8 @@ def _dump_template_configs(configs, include_outputs=False):
         data["pattern-path"] = config.pattern_path
         data["pattern-base"] = config.pattern_base
 
-        if config.default_token_expression != DEFAULT_TOKEN_EXPRESSION:
-            data["default-token-expression"] = config.default_token_expression
+        if config.default_expression != DEFAULT_TOKEN_EXPRESSION:
+            data["default-expression"] = config.default_expression
 
         if config.match_start != DEFAULT_MATCH_START:
             data["match-start"] = config.match_start
@@ -176,9 +176,7 @@ def _load_template_configs(items, include_outputs=False):
             id=item["id"],
             pattern_path=item["pattern-path"],
             pattern_base=item["pattern-base"],
-            default_token_expression=item.get(
-                "default-token-expression", DEFAULT_TOKEN_EXPRESSION
-            ),
+            default_expression=item.get("default-expression", DEFAULT_TOKEN_EXPRESSION),
             match_start=item.get("match-start", DEFAULT_MATCH_START),
             match_end=item.get("match-end", DEFAULT_MATCH_END),
             outputs=outputs
