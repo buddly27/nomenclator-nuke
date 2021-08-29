@@ -291,3 +291,32 @@ def test_generate_scene_name_with_tokens_error():
         )
 
     assert str(error.value) == "'project'"
+
+
+def test_generate_scene_name_with_username():
+    """Generate scene name from pattern with username."""
+    import nomenclator.template
+
+    pattern = "base_name"
+    result = nomenclator.template.generate_scene_name(
+        pattern, "nk",
+        append_username=True,
+        token_mapping={
+            "username": "steve",
+        }
+    )
+    assert result == "base_name_steve.nk"
+
+    pattern = "{project}_{shot}_{description}_v{version}"
+    result = nomenclator.template.generate_scene_name(
+        pattern, "nk",
+        append_username=True,
+        token_mapping={
+            "project": "test",
+            "shot": "sh003",
+            "description": "comp",
+            "version": "002",
+            "username": "steve",
+        }
+    )
+    assert result == "test_sh003_comp_v002_steve.nk"
