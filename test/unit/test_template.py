@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import os
 import sys
 
 import pytest
@@ -536,7 +537,7 @@ def test_generate_output_name_with_subfolder_username():
     """Generate output name from pattern with username appended to subfolder."""
     import nomenclator.template
 
-    pattern = "path/to/folder/base_name"
+    pattern = os.path.join("folder", "base_name")
     result = nomenclator.template.generate_output_name(
         pattern, "exr",
         append_passname_to_subfolder=True,
@@ -544,9 +545,9 @@ def test_generate_output_name_with_subfolder_username():
             "passname": "beauty",
         }
     )
-    assert result == "path/to/folder_beauty/base_name.exr"
+    assert result == os.path.join("folder_beauty", "base_name.exr")
 
-    pattern = "path/to/folder/{project}_{shot}_{description}_v{version}"
+    pattern = os.path.join("folder", "{project}_{shot}_{description}_v{version}")
     result = nomenclator.template.generate_output_name(
         pattern, "exr",
         append_passname_to_subfolder=True,
@@ -558,7 +559,7 @@ def test_generate_output_name_with_subfolder_username():
             "passname": "beauty",
         }
     )
-    assert result == "path/to/folder_beauty/test_sh003_comp_v002.exr"
+    assert result == os.path.join("folder_beauty", "test_sh003_comp_v002.exr")
 
 
 def test_generate_output_name_with_subfolder_username_error():
@@ -590,7 +591,7 @@ def test_generate_output_name_complex():
     """Fail to Generate output name from pattern with many tokens."""
     import nomenclator.template
 
-    pattern = "path/to/folder/{project}_{shot}_{description}_v{version}"
+    pattern = os.path.join("folder", "{project}_{shot}_{description}_v{version}")
     result = nomenclator.template.generate_output_name(
         pattern, "exr",
         append_passname=True,
@@ -609,4 +610,6 @@ def test_generate_output_name_complex():
             "passname": "beauty",
         }
     )
-    assert result == "path/to/folder_beauty/test_sh003_comp_v002_r709_steve_beauty_%V.%02d.exr"
+    assert result == os.path.join(
+        "folder_beauty", "test_sh003_comp_v002_r709_steve_beauty_%V.%02d.exr"
+    )
