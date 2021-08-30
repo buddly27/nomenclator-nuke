@@ -48,7 +48,7 @@ def fetch_resolved_tokens(
 
     :param default_expression: Regular expression pattern to use for tokens
         when no expression is specified. Default is
-        :data:`nomanclator.symbol.DEFAULT_TOKEN_EXPRESSION`.
+        :data:`nomanclator.symbol.DEFAULT_EXPRESSION`.
 
     :param match_start: Indicate whether the *path* should match against the
         start of the *pattern*. Default is True.
