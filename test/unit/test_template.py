@@ -294,7 +294,7 @@ def test_generate_scene_name_with_tokens_error():
 
 
 def test_generate_scene_name_with_username():
-    """Generate scene name from pattern with username."""
+    """Generate scene name from pattern with username appended to base."""
     import nomenclator.template
 
     pattern = "base_name"
@@ -320,3 +320,293 @@ def test_generate_scene_name_with_username():
         }
     )
     assert result == "test_sh003_comp_v002_steve.nk"
+
+
+def test_generate_output_name_without_tokens():
+    """Generate output name from pattern without any tokens."""
+    import nomenclator.template
+
+    pattern = "base_name"
+
+    result = nomenclator.template.generate_output_name(pattern, "exr")
+    assert result == "base_name.exr"
+
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr", token_mapping={"key": "value"}
+    )
+    assert result == "base_name.exr"
+
+
+def test_generate_output_name_with_tokens():
+    """Generate output name from pattern with tokens."""
+    import nomenclator.template
+
+    pattern = "{project}_{shot}_{description}_v{version}"
+
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr", token_mapping={
+            "project": "test",
+            "shot": "sh003",
+            "description": "comp",
+            "version": "002",
+        }
+    )
+    assert result == "test_sh003_comp_v002.exr"
+
+
+def test_generate_output_name_with_tokens_error():
+    """Fail to generate output name from pattern when value is missing from token."""
+    import nomenclator.template
+
+    pattern = "{project}_{shot}_{description}_v{version}"
+
+    with pytest.raises(KeyError) as error:
+        nomenclator.template.generate_output_name(
+            pattern, "exr", token_mapping={
+                "shot": "sh003",
+                "description": "comp",
+                "version": "002",
+            }
+        )
+
+    assert str(error.value) == "'project'"
+
+
+def test_generate_output_name_with_padding():
+    """Generate output name from pattern with padding."""
+    import nomenclator.template
+
+    pattern = "base_name"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        padding="%01d"
+    )
+    assert result == "base_name.%01d.exr"
+
+    pattern = "{project}_{shot}_{description}_v{version}"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        padding="%01d",
+        token_mapping={
+            "project": "test",
+            "shot": "sh003",
+            "description": "comp",
+            "version": "002",
+        }
+    )
+    assert result == "test_sh003_comp_v002.%01d.exr"
+
+
+def test_generate_output_name_with_multi_views():
+    """Generate output name from pattern with multi views appended to base."""
+    import nomenclator.template
+
+    pattern = "base_name"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        multi_views=True
+    )
+    assert result == "base_name_%V.exr"
+
+    pattern = "{project}_{shot}_{description}_v{version}"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        multi_views=True,
+        token_mapping={
+            "project": "test",
+            "shot": "sh003",
+            "description": "comp",
+            "version": "002",
+        }
+    )
+    assert result == "test_sh003_comp_v002_%V.exr"
+
+
+def test_generate_output_name_with_colorspace():
+    """Generate output name from pattern with colorspace appended to base."""
+    import nomenclator.template
+
+    pattern = "base_name"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        append_colorspace=True,
+        token_mapping={
+            "colorspace": "r709"
+        }
+    )
+    assert result == "base_name_r709.exr"
+
+    pattern = "{project}_{shot}_{description}_v{version}"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        append_colorspace=True,
+        token_mapping={
+            "project": "test",
+            "shot": "sh003",
+            "description": "comp",
+            "version": "002",
+            "colorspace": "r709"
+        }
+    )
+    assert result == "test_sh003_comp_v002_r709.exr"
+
+
+def test_generate_output_name_with_username():
+    """Generate output name from pattern with username appended to base."""
+    import nomenclator.template
+
+    pattern = "base_name"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        append_username=True,
+        token_mapping={
+            "username": "steve"
+        }
+    )
+    assert result == "base_name_steve.exr"
+
+    pattern = "{project}_{shot}_{description}_v{version}"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        append_username=True,
+        token_mapping={
+            "project": "test",
+            "shot": "sh003",
+            "description": "comp",
+            "version": "002",
+            "username": "steve"
+        }
+    )
+    assert result == "test_sh003_comp_v002_steve.exr"
+
+
+def test_generate_output_name_with_passname():
+    """Generate output name from pattern with passname appended to base."""
+    import nomenclator.template
+
+    pattern = "base_name"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        append_passname=True,
+        token_mapping={
+            "passname": "beauty"
+        }
+    )
+    assert result == "base_name_beauty.exr"
+
+    pattern = "{project}_{shot}_{description}_v{version}"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        append_passname=True,
+        token_mapping={
+            "project": "test",
+            "shot": "sh003",
+            "description": "comp",
+            "version": "002",
+            "passname": "beauty"
+        }
+    )
+    assert result == "test_sh003_comp_v002_beauty.exr"
+
+
+def test_generate_output_name_with_subfolder():
+    """Generate output name from pattern with subfolder."""
+    import nomenclator.template
+
+    pattern = "path/to/folder/base_name"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+    )
+    assert result == "path/to/folder/base_name.exr"
+
+    pattern = "path/to/folder/{project}_{shot}_{description}_v{version}"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        token_mapping={
+            "project": "test",
+            "shot": "sh003",
+            "description": "comp",
+            "version": "002",
+        }
+    )
+    assert result == "path/to/folder/test_sh003_comp_v002.exr"
+
+
+def test_generate_output_name_with_subfolder_username():
+    """Generate output name from pattern with username appended to subfolder."""
+    import nomenclator.template
+
+    pattern = "path/to/folder/base_name"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        append_passname_to_subfolder=True,
+        token_mapping={
+            "passname": "beauty",
+        }
+    )
+    assert result == "path/to/folder_beauty/base_name.exr"
+
+    pattern = "path/to/folder/{project}_{shot}_{description}_v{version}"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        append_passname_to_subfolder=True,
+        token_mapping={
+            "project": "test",
+            "shot": "sh003",
+            "description": "comp",
+            "version": "002",
+            "passname": "beauty",
+        }
+    )
+    assert result == "path/to/folder_beauty/test_sh003_comp_v002.exr"
+
+
+def test_generate_output_name_with_subfolder_username_error():
+    """Fail to Generate output name from pattern with username appended to subfolder."""
+    import nomenclator.template
+
+    pattern = "base_name"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        append_passname_to_subfolder=True
+    )
+    assert result == "base_name.exr"
+
+    pattern = "{project}_{shot}_{description}_v{version}"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        append_passname_to_subfolder=True,
+        token_mapping={
+            "project": "test",
+            "shot": "sh003",
+            "description": "comp",
+            "version": "002",
+        }
+    )
+    assert result == "test_sh003_comp_v002.exr"
+
+
+def test_generate_output_name_complex():
+    """Fail to Generate output name from pattern with many tokens."""
+    import nomenclator.template
+
+    pattern = "path/to/folder/{project}_{shot}_{description}_v{version}"
+    result = nomenclator.template.generate_output_name(
+        pattern, "exr",
+        append_passname=True,
+        append_username=True,
+        append_colorspace=True,
+        append_passname_to_subfolder=True,
+        multi_views=True,
+        padding="%02d",
+        token_mapping={
+            "project": "test",
+            "shot": "sh003",
+            "description": "comp",
+            "version": "002",
+            "username": "steve",
+            "colorspace": "r709",
+            "passname": "beauty",
+        }
+    )
+    assert result == "path/to/folder_beauty/test_sh003_comp_v002_r709_steve_beauty_%V.%02d.exr"

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import os
 
 from nomenclator.symbol import DEFAULT_EXPRESSION
 
@@ -176,7 +177,7 @@ def generate_scene_name(pattern, suffix, append_username=False, token_mapping=No
 
 def generate_output_name(
     pattern, suffix, padding=None, append_passname_to_subfolder=False, append_passname=False,
-    append_colorspace=False, append_username=False, token_mapping=None
+    append_colorspace=False, append_username=False, multi_views=False, token_mapping=None
 ):
     """Generate output name from *pattern* using a mapping of resolved tokens.
 
@@ -200,9 +201,36 @@ def generate_output_name(
     :param append_username: Indicate whether username should be appended to base name.
         Default is False.
 
+    :param multi_views: Indicate whether the view should be appended to base name
+        with the pattern '%V'. Default is False.
+
     :param token_mapping: Mapping regrouping resolved token value associated with
         their name. Default is None.
 
     :return: String name.
 
+    :raise: exc:`KeyError` if a token within the *pattern* does not have any value within
+        the token map.
+
     """
+    elements = pattern.split(os.sep)
+    if len(elements) > 1 and append_passname_to_subfolder:
+        elements[-2] += "_{passname}"
+
+    if append_colorspace:
+        elements[-1] += "_{colorspace}"
+
+    if append_username:
+        elements[-1] += "_{username}"
+
+    if append_passname:
+        elements[-1] += "_{passname}"
+
+    if multi_views:
+        elements[-1] += "_%V"
+
+    if padding:
+        elements[-1] += ".{}".format(padding)
+
+    elements[-1] += ".{}".format(suffix)
+    return os.sep.join(elements).format(**(token_mapping or {}))
