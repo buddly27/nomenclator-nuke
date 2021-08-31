@@ -26,6 +26,7 @@ Config = collections.namedtuple(
         "comp_template_configs",
         "project_template_configs",
         "colorspace_aliases",
+        "tokens",
         "max_locations",
         "max_padding",
         "username",
@@ -87,13 +88,16 @@ def dump(config):
     if config.descriptions != DEFAULT_DESCRIPTIONS:
         data["descriptions"] = config.descriptions
 
+    if config.create_subfolders != DEFAULT_CREATE_SUBFOLDERS:
+        data["create-subfolders"] = config.create_subfolders
+
     if config.colorspace_aliases != DEFAULT_COLORSPACE_ALIASES:
         data["colorspace-aliases"] = collections.OrderedDict(
             config.colorspace_aliases
         )
 
-    if config.create_subfolders != DEFAULT_CREATE_SUBFOLDERS:
-        data["create-subfolders"] = config.create_subfolders
+    if len(config.tokens):
+        data["tokens"] = collections.OrderedDict(config.tokens)
 
     if config.max_locations != DEFAULT_MAX_LOCATIONS:
         data["max-locations"] = config.max_locations
@@ -165,12 +169,18 @@ def load(data):
     else:
         colorspace_aliases = DEFAULT_COLORSPACE_ALIASES
 
+    if data.get("tokens") is not None:
+        tokens = sorted(data["tokens"].items())
+    else:
+        tokens = []
+
     return Config(
         descriptions=tuple(data.get("descriptions", DEFAULT_DESCRIPTIONS)),
         create_subfolders=data.get("create-subfolders", DEFAULT_CREATE_SUBFOLDERS),
         comp_template_configs=comp_template_configs,
         project_template_configs=project_template_configs,
         colorspace_aliases=tuple(colorspace_aliases),
+        tokens=tuple(tokens),
         max_locations=data.get("max-locations", DEFAULT_MAX_LOCATIONS),
         max_padding=data.get("max-padding", DEFAULT_MAX_PADDING),
         username=data.get("username", getpass.getuser()),

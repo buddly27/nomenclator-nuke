@@ -34,6 +34,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self._tab_widget.widget(2).set_values(config)
         self._tab_widget.widget(3).set_values(config)
         self._tab_widget.widget(4).set_values(config)
+        self._tab_widget.widget(5).set_values(config)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -51,6 +52,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self._tab_widget.addTab(CompSettingsForm(), "Comp Resolvers")
         self._tab_widget.addTab(ProjectSettingsForm(), "Project Resolvers")
         self._tab_widget.addTab(ColorspaceSettingsForm(), "Colorspace")
+        self._tab_widget.addTab(TokenSettingsForm(), "Tokens")
         self._tab_widget.addTab(AdvancedSettingsForm(), "Advanced")
 
         main_layout.addWidget(self._tab_widget)
@@ -75,6 +77,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self._tab_widget.widget(2).updated.connect(self._update_config)
         self._tab_widget.widget(3).updated.connect(self._update_config)
         self._tab_widget.widget(4).updated.connect(self._update_config)
+        self._tab_widget.widget(5).updated.connect(self._update_config)
 
         self._button_box.clicked.connect(self._button_clicked)
 
@@ -623,6 +626,43 @@ class ColorspaceSettingsForm(QtWidgets.QWidget):
         """Initialize signals connection."""
         self._colorspace_table.updated.connect(
             lambda values: self.updated.emit("colorspace_aliases", values)
+        )
+
+
+class TokenSettingsForm(QtWidgets.QWidget):
+    """Form to manage token settings."""
+
+    #: :term:`Qt Signal` emitted when a key of the config has changed.
+    updated = QtCore.Signal(str, object)
+
+    def __init__(self, parent=None):
+        """Initiate the widget."""
+        super(TokenSettingsForm, self).__init__(parent)
+        self._setup_ui()
+        self._connect_signals()
+
+    def set_values(self, config):
+        """Initialize values."""
+        self._token_table.blockSignals(True)
+        self._token_table.set_values(config.tokens)
+        self._token_table.blockSignals(False)
+
+    def _setup_ui(self):
+        """Initialize user interface."""
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.setContentsMargins(10, 20, 10, 10)
+        main_layout.setSpacing(8)
+
+        token_lbl = QtWidgets.QLabel("Add additional token to resolve in patterns", self)
+        main_layout.addWidget(token_lbl)
+
+        self._token_table = EditableTable(["Key", "Value"], self)
+        main_layout.addWidget(self._token_table)
+
+    def _connect_signals(self):
+        """Initialize signals connection."""
+        self._token_table.updated.connect(
+            lambda values: self.updated.emit("tokens", values)
         )
 
 
