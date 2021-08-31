@@ -15,13 +15,9 @@ class EditableTable(QtWidgets.QWidget):
         self._setup_ui(headers)
         self._connect_signals()
 
-        self._table.setRowCount(1)
-
-        item1 = QtWidgets.QTableWidgetItem("Item1")
-        self._table.setItem(0, 0, item1)
-
-    def set_values(self, texts):
+    def set_values(self, row_items):
         """Initialize values."""
+        self._table.set_rows(row_items)
 
     def _setup_ui(self, headers):
         """Initialize user interface."""
@@ -74,9 +70,6 @@ class TableWidget(QtWidgets.QTableWidget):
         self._setup_ui(headers)
         self._connect_signals()
 
-        # Record text in current item to allow for undoable edit.
-        self._current_text = ""
-
     def _setup_ui(self, headers):
         """Initialize user interface."""
         self.setColumnCount(len(headers))
@@ -89,9 +82,9 @@ class TableWidget(QtWidgets.QTableWidget):
     def set_rows(self, row_items):
         """Initialize rows with text items."""
         # This operation is not undoable on purpose.
-        self.clear()
+        self.clearContents()
 
-        self.setRowCount(row_items)
+        self.setRowCount(len(row_items))
 
         for row, texts in enumerate(row_items):
             for column, text in enumerate(texts):
@@ -123,18 +116,7 @@ class TableWidget(QtWidgets.QTableWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self.itemChanged.connect(self._handle_change)
-        self.currentItemChanged.connect(self._record_current_text)
         self._undo_stack.indexChanged.connect(self._emit_updated_signal)
-
-    def _handle_change(self, item):
-        """Handle recording of editing operation so that it can be undone."""
-        command = CommandEdit(self, item, self._current_text)
-        self._undo_stack.push(command)
-
-    def _record_current_text(self, item):
-        """Record edited item text so that operation can be undone."""
-        self._current_text = item.text() if item is not None else ""
 
     def _emit_updated_signal(self):
         """Emit a signal with updated items."""
@@ -169,33 +151,6 @@ class TableWidget(QtWidgets.QTableWidget):
 
         elif event == QtGui.QKeySequence.Redo:
             self._undo_stack.redo()
-
-
-class CommandEdit(QtWidgets.QUndoCommand):
-    """Undoable command to edit an item on a table."""
-
-    def __init__(self, widget, item, text_before):
-        """Initiate the command."""
-        super(CommandEdit, self).__init__()
-        self._table = widget
-        self._text_before = text_before
-        self._text_after = item.text() or ""
-        self._row = self._table.row(item)
-        self._column = self._table.column(item)
-
-    def redo(self):
-        """Execute or re-execute the command."""
-        self._table.blockSignals(True)
-        self._table.item(self._row, self._column).setText(self._text_after)
-        self._table.setCurrentCell(self._row, self._column)
-        self._table.blockSignals(False)
-
-    def undo(self):
-        """Reverse execution of the command."""
-        self._table.blockSignals(True)
-        self._table.item(self._row, self._column).setText(self._text_before)
-        self._table.setCurrentCell(self._row, self._column)
-        self._table.blockSignals(False)
 
 
 class CommandInsert(QtWidgets.QUndoCommand):
