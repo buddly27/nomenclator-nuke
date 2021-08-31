@@ -11,6 +11,7 @@ from nomenclator.symbol import (
     DEFAULT_MATCH_START,
     DEFAULT_MATCH_END,
     DEFAULT_DESCRIPTIONS,
+    DEFAULT_COLORSPACE_ALIASES,
     DEFAULT_CREATE_SUBFOLDERS,
     DEFAULT_MAX_LOCATIONS,
     DEFAULT_MAX_PADDING,
@@ -24,6 +25,7 @@ Config = collections.namedtuple(
         "create_subfolders",
         "comp_template_configs",
         "project_template_configs",
+        "colorspace_aliases",
         "max_locations",
         "max_padding",
         "username",
@@ -85,6 +87,11 @@ def dump(config):
     if config.descriptions != DEFAULT_DESCRIPTIONS:
         data["descriptions"] = config.descriptions
 
+    if config.colorspace_aliases != DEFAULT_COLORSPACE_ALIASES:
+        data["colorspace-aliases"] = collections.OrderedDict(
+            config.colorspace_aliases
+        )
+
     if config.create_subfolders != DEFAULT_CREATE_SUBFOLDERS:
         data["create-subfolders"] = config.create_subfolders
 
@@ -140,22 +147,30 @@ def dump_template_configs(configs, include_outputs=False):
 
 def load(data):
     """Return config object from *data* mapping."""
+    comp_template_configs = tuple(
+        load_template_configs(
+            data.get("comp-templates", []),
+            include_outputs=True
+        )
+    )
+
+    project_template_configs = tuple(
+        load_template_configs(
+            data.get("project-templates", [])
+        )
+    )
+
+    if data.get("colorspace-aliases") is not None:
+        colorspace_aliases = sorted(data["colorspace-aliases"].items())
+    else:
+        colorspace_aliases = DEFAULT_COLORSPACE_ALIASES
+
     return Config(
         descriptions=tuple(data.get("descriptions", DEFAULT_DESCRIPTIONS)),
-        create_subfolders=data.get(
-            "create-subfolders", DEFAULT_CREATE_SUBFOLDERS
-        ),
-        comp_template_configs=tuple(
-            load_template_configs(
-                data.get("comp-templates", []),
-                include_outputs=True
-            )
-        ),
-        project_template_configs=tuple(
-            load_template_configs(
-                data.get("project-templates", [])
-            )
-        ),
+        create_subfolders=data.get("create-subfolders", DEFAULT_CREATE_SUBFOLDERS),
+        comp_template_configs=comp_template_configs,
+        project_template_configs=project_template_configs,
+        colorspace_aliases=tuple(colorspace_aliases),
         max_locations=data.get("max-locations", DEFAULT_MAX_LOCATIONS),
         max_padding=data.get("max-padding", DEFAULT_MAX_PADDING),
         username=data.get("username", getpass.getuser()),
