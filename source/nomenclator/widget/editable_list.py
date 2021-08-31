@@ -7,7 +7,7 @@ class EditableList(QtWidgets.QWidget):
     """Widget representing a list with editable items."""
 
     #: :term:`Qt Signal` emitted when items have changed.
-    updated = QtCore.Signal(list)
+    updated = QtCore.Signal(tuple)
 
     def __init__(self, parent=None):
         """Initiate the widget."""
@@ -73,7 +73,7 @@ class ListWidget(QtWidgets.QListWidget):
     """Custom list widget."""
 
     #: :term:`Qt Signal` emitted when items have changed.
-    updated = QtCore.Signal(list)
+    updated = QtCore.Signal(tuple)
 
     def __init__(self, parent=None):
         """Initiate the widget."""
@@ -83,10 +83,6 @@ class ListWidget(QtWidgets.QListWidget):
 
         # Record text in current item to allow for undoable edit.
         self._current_text = ""
-
-    def texts(self):
-        """Return list of text items."""
-        return [self.item(row).text() for row in range(self.count())]
 
     def set_rows(self, texts):
         """Initialize rows with text items."""
@@ -137,7 +133,12 @@ class ListWidget(QtWidgets.QListWidget):
 
     def _emit_updated_signal(self):
         """Emit a signal with updated items."""
-        self.updated.emit(self.texts())
+        items = [
+            self.item(row).text() for row
+            in range(self.count())
+            if len(self.item(row).text())
+        ]
+        self.updated.emit(tuple(items))
 
     def undo(self):
         """Undo last command."""
