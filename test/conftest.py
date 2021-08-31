@@ -4,15 +4,8 @@ import os
 import shutil
 import sys
 import tempfile
-import uuid
 
 import pytest
-
-
-@pytest.fixture()
-def unique_name():
-    """Return a unique name."""
-    return "unique-{0}".format(uuid.uuid4())
 
 
 @pytest.fixture()

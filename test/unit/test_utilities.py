@@ -52,14 +52,12 @@ def test_fetch_next_version(
         "project1.nk",
         "project2_sh003_comp_v001.nk",
         "project2_sh003_comp_v002_steve.nk",
-        "project2_sh003_comp_vINCORRECT.nk",
     ]
 
     mocked_fetch_resolved_tokens.side_effect = [
         None,
         {"version": "001"},
         {"version": "002"},
-        {"version": "INCORRECT"},
     ]
 
     token_mapping = {"key": "value"}
@@ -74,10 +72,10 @@ def test_fetch_next_version(
 
     mocked_listdir.assert_called_once_with("/path")
     mocked_resolve.assert_called_once_with(
-        "__PATTERN__", {"key": "value", "version": "{version}"}
+        "__PATTERN__", {"key": "value", "version": r"{version:\d+}"}
     )
 
-    assert mocked_fetch_resolved_tokens.call_count == 4
+    assert mocked_fetch_resolved_tokens.call_count == 3
     mocked_fetch_resolved_tokens.assert_any_call(
         "project1.nk",
         mocked_resolve.return_value,
@@ -90,11 +88,6 @@ def test_fetch_next_version(
     )
     mocked_fetch_resolved_tokens.assert_any_call(
         "project2_sh003_comp_v002_steve.nk",
-        mocked_resolve.return_value,
-        match_start=True, match_end=False
-    )
-    mocked_fetch_resolved_tokens.assert_any_call(
-        "project2_sh003_comp_vINCORRECT.nk",
         mocked_resolve.return_value,
         match_start=True, match_end=False
     )
@@ -118,7 +111,7 @@ def test_fetch_next_version_empty(
 
     mocked_listdir.assert_called_once_with("/path")
     mocked_resolve.assert_called_once_with(
-        "__PATTERN__", {"key": "value", "version": "{version}"}
+        "__PATTERN__", {"key": "value", "version": r"{version:\d+}"}
     )
     mocked_fetch_resolved_tokens.assert_not_called()
 

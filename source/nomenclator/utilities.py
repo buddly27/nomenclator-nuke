@@ -15,7 +15,7 @@ def fetch_next_version(path, pattern, token_mapping):
 
     # Ignore version token when resolving base pattern
     _mapping = copy.deepcopy(token_mapping)
-    _mapping["version"] = "{version}"
+    _mapping["version"] = r"{version:\d+}"
 
     # Generate expected base name pattern from resolved tokens.
     pattern = nomenclator.template.resolve(pattern, _mapping)
@@ -27,12 +27,7 @@ def fetch_next_version(path, pattern, token_mapping):
         if data is None:
             continue
 
-        try:
-            previous_version = int(data.get("version", 0))
-        except ValueError:
-            # If version token is not an integer, skip it.
-            continue
-
+        previous_version = int(data.get("version", 0))
         next_version = max(next_version, previous_version + 1)
 
     return next_version
