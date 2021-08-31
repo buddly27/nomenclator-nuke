@@ -83,7 +83,6 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def _update_config(self, key, value):
         """Update config object from *key* and *value*."""
-        print(key, value)
         # noinspection PyProtectedMember
         self._config = self._config._replace(**{key: value})
         self._update_buttons_states()
