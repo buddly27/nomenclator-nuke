@@ -3,30 +3,34 @@
 from nomenclator.vendor.Qt import QtWidgets, QtCore, QtGui
 
 
-class EditableList(QtWidgets.QWidget):
-    """Widget representing a list with editable items."""
+class EditableTable(QtWidgets.QWidget):
+    """Widget representing a table with editable items."""
 
     #: :term:`Qt Signal` emitted when items have changed.
     updated = QtCore.Signal(list)
 
-    def __init__(self, parent=None):
+    def __init__(self, headers, parent=None):
         """Initiate the widget."""
-        super(EditableList, self).__init__(parent)
-        self._setup_ui()
+        super(EditableTable, self).__init__(parent)
+        self._setup_ui(headers)
         self._connect_signals()
+
+        self._table.setRowCount(1)
+
+        item1 = QtWidgets.QTableWidgetItem("Item1")
+        self._table.setItem(0, 0, item1)
 
     def set_values(self, texts):
         """Initialize values."""
-        self._list.set_rows(texts)
 
-    def _setup_ui(self):
+    def _setup_ui(self, headers):
         """Initialize user interface."""
         main_layout = QtWidgets.QGridLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(5)
 
-        self._list = ListWidget(self)
-        main_layout.addWidget(self._list)
+        self._table = TableWidget(headers, self)
+        main_layout.addWidget(self._table)
 
         button_layout = QtWidgets.QHBoxLayout()
         button_layout.setContentsMargins(0, 0, 0, 0)
@@ -43,67 +47,65 @@ class EditableList(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._add_btn.clicked.connect(lambda: self._list.add_row("", set_focus=True))
-        self._delete_btn.clicked.connect(self._list.remove_selection)
-        self._list.itemSelectionChanged.connect(self._toggle_delete_button)
-        self._list.updated.connect(self.updated.emit)
+        self._add_btn.clicked.connect(self._add_new_row)
+        self._delete_btn.clicked.connect(self._table.remove_selection)
+        self._table.itemSelectionChanged.connect(self._toggle_delete_button)
+
+    def _add_new_row(self):
+        """Add a new row when requested."""
+        texts = ["" for _ in range(self._table.columnCount())]
+        self._table.add_row(texts, set_focus=True)
 
     def _toggle_delete_button(self):
         """Indicate whether delete button should be enabled."""
-        self._delete_btn.setEnabled(len(self._list.selectedItems()) > 0)
-
-    # noinspection PyPep8Naming
-    def keyPressEvent(self, event):
-        """Handle *event* when a key is pressed.
-
-        The :meth:`QWidget.keyPressEvent` method is reimplemented
-        to redo/undo commands.
-
-        :param event: Instance of :class:`QtGui.QKeyEvent`
-
-        """
-        if event == QtGui.QKeySequence.Undo:
-            self._list.undo()
-
-        elif event == QtGui.QKeySequence.Redo:
-            self._list.redo()
+        self._delete_btn.setEnabled(len(self._table.selectedItems()) > 0)
 
 
-class ListWidget(QtWidgets.QListWidget):
-    """Custom list widget."""
+class TableWidget(QtWidgets.QTableWidget):
+    """Custom table widget."""
 
     #: :term:`Qt Signal` emitted when items have changed.
     updated = QtCore.Signal(list)
 
-    def __init__(self, parent=None):
+    def __init__(self, headers, parent=None):
         """Initiate the widget."""
-        super(ListWidget, self).__init__(parent)
+        super(TableWidget, self).__init__(parent)
         self._undo_stack = QtWidgets.QUndoStack(self)
+        self._setup_ui(headers)
         self._connect_signals()
 
         # Record text in current item to allow for undoable edit.
         self._current_text = ""
 
-    def texts(self):
-        """Return list of text items."""
-        return [self.item(row).text() for row in range(self.count())]
+    def _setup_ui(self, headers):
+        """Initialize user interface."""
+        self.setColumnCount(len(headers))
+        self.setHorizontalHeaderLabels(headers)
+        self.setShowGrid(True)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.verticalHeader().setVisible(False)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.resizeColumnsToContents()
 
-    def set_rows(self, texts):
+    def set_rows(self, row_items):
         """Initialize rows with text items."""
         # This operation is not undoable on purpose.
         self.clear()
 
-        for text in texts:
-            item = self.create_item(text)
-            self.addItem(item)
+        self.setRowCount(row_items)
 
-    def add_row(self, text, set_focus=False):
-        """add new row with text item."""
-        command = CommandInsert(self, text)
+        for row, texts in enumerate(row_items):
+            for column, text in enumerate(texts):
+                item = self.create_item(text or "")
+                self.setItem(row, column, item)
+
+    def add_row(self, texts, set_focus=False):
+        """add new row with text items."""
+        command = CommandInsert(self, texts)
         self._undo_stack.push(command)
 
         if set_focus:
-            item = self.item(command.row)
+            item = self.item(command.row, 0)
 
             self.editItem(item)
             self.scrollToItem(item)
@@ -116,7 +118,7 @@ class ListWidget(QtWidgets.QListWidget):
     @staticmethod
     def create_item(text):
         """Create editable item from *text*."""
-        item = QtWidgets.QListWidgetItem(text)
+        item = QtWidgets.QTableWidgetItem(text)
         item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
         return item
 
@@ -137,7 +139,7 @@ class ListWidget(QtWidgets.QListWidget):
 
     def _emit_updated_signal(self):
         """Emit a signal with updated items."""
-        self.updated.emit(self.texts())
+        # self.updated.emit(self.texts())
 
     def undo(self):
         """Undo last command."""
@@ -146,23 +148,6 @@ class ListWidget(QtWidgets.QListWidget):
     def redo(self):
         """Redo last command."""
         self._undo_stack.redo()
-
-    # noinspection PyPep8Naming
-    def mouseReleaseEvent(self, event):
-        """Handle *event* when mouse is released from widget.
-
-        The :meth:`QWidget.mouseReleaseEvent` method is reimplemented to
-        ensure that a click outside of items clears the selection.
-
-        :param event: Instance of :class:`QtGui.QMouseEvent`
-
-        """
-        index = self.indexAt(event.pos())
-        if not index.isValid():
-            self.selectionModel().clear()
-            return
-
-        super(ListWidget, self).mouseReleaseEvent(event)
 
     # noinspection PyPep8Naming
     def keyPressEvent(self, event):
@@ -188,40 +173,41 @@ class ListWidget(QtWidgets.QListWidget):
 
 
 class CommandEdit(QtWidgets.QUndoCommand):
-    """Undoable command to edit an item on a list."""
+    """Undoable command to edit an item on a table."""
 
     def __init__(self, widget, item, text_before):
         """Initiate the command."""
         super(CommandEdit, self).__init__()
-        self._list = widget
+        self._table = widget
         self._text_before = text_before
-        self._text_after = item.text()
-        self._row = self._list.row(item)
+        self._text_after = item.text() or ""
+        self._row = self._table.row(item)
+        self._column = self._table.column(item)
 
     def redo(self):
         """Execute or re-execute the command."""
-        self._list.blockSignals(True)
-        self._list.item(self._row).setText(self._text_after)
-        self._list.setCurrentRow(self._row)
-        self._list.blockSignals(False)
+        self._table.blockSignals(True)
+        self._table.item(self._row, self._column).setText(self._text_after)
+        self._table.setCurrentCell(self._row, self._column)
+        self._table.blockSignals(False)
 
     def undo(self):
         """Reverse execution of the command."""
-        self._list.blockSignals(True)
-        self._list.item(self._row).setText(self._text_before)
-        self._list.setCurrentRow(self._row)
-        self._list.blockSignals(False)
+        self._table.blockSignals(True)
+        self._table.item(self._row, self._column).setText(self._text_before)
+        self._table.setCurrentCell(self._row, self._column)
+        self._table.blockSignals(False)
 
 
 class CommandInsert(QtWidgets.QUndoCommand):
-    """Undoable command to insert items to a list."""
+    """Undoable command to insert items to a table."""
 
-    def __init__(self, widget, text):
+    def __init__(self, widget, texts):
         """Initiate the command."""
         super(CommandInsert, self).__init__()
-        self._list = widget
-        self._row = self._list.count()
-        self._text = text
+        self._table = widget
+        self._row = self._table.rowCount()
+        self._texts = texts
 
     @property
     def row(self):
@@ -230,39 +216,52 @@ class CommandInsert(QtWidgets.QUndoCommand):
 
     def redo(self):
         """Execute or re-execute the command."""
-        item = self._list.create_item(self._text)
-        self._list.insertItem(self._row, item)
-        self._list.setCurrentRow(self._row)
+        initial_count = self._table.rowCount()
+        self._table.setRowCount(initial_count + 1)
+
+        for column, text in enumerate(self._texts):
+            item = self._table.create_item(text or "")
+            self._table.setItem(self._row, column, item)
 
     def undo(self):
         """Reverse execution of the command."""
-        self._list.takeItem(self._row)
+        self._table.removeRow(self._row)
 
 
 class CommandDelete(QtWidgets.QUndoCommand):
-    """Undoable command to delete items from a list."""
+    """Undoable command to delete items from a table."""
 
     def __init__(self, widget, items):
         """Initiate the command."""
         super(CommandDelete, self).__init__()
-        self._list = widget
-        self._values = [
-            (self._list.row(item), item.text())
-            for item in items
-        ]
+        self._table = widget
+
+        self._value_mapping = {}
+
+        for item in items:
+            row = self._table.row(item)
+            column = self._table.column(item)
+
+            self._value_mapping.setdefault(row, {})
+            self._value_mapping[row][column] = item.text()
 
     @property
     def rows(self):
         """Return affected rows."""
-        return [v[0] for v in self._values]
+        return list(self._value_mapping.keys())
 
     def redo(self):
         """Execute or re-execute the command."""
-        for row, _ in sorted(self._values, reverse=True):
-            self._list.takeItem(row)
+        for row in sorted(self._value_mapping.keys(), reverse=True):
+            self._table.removeRow(row)
 
     def undo(self):
         """Reverse execution of the command."""
-        for row, text in self._values:
-            item = self._list.create_item(text)
-            self._list.insertItem(row, item)
+        initial_count = self._table.rowCount()
+        total = len(self._value_mapping.keys())
+        self._table.setRowCount(initial_count + total)
+
+        for row, mapping in sorted(self._value_mapping.items()):
+            for column, text in sorted(mapping.items()):
+                item = self._table.create_item(text or "")
+                self._table.setItem(row, column, item)

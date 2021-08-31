@@ -2,6 +2,7 @@
 
 from .description_selector import DescriptionSelector
 from .editable_list import EditableList
+from .editable_table import EditableTable
 from .editable_tab_widget import EditableTabWidget
 from .group_widget import GroupWidget
 from .location_widget import LocationWidget
