@@ -19,9 +19,7 @@ DEFAULT_MATCH_END = True
 DEFAULT_DESCRIPTIONS = ("comp", "precomp", "roto", "cleanup")
 
 #: Default colorspace alias tuples.
-DEFAULT_COLORSPACE_ALIASES = (
-    ("Cineon", "log"), ("linear", "lin"), ("rec709", "r709"), ("sRGB", "srgb"),
-)
+DEFAULT_COLORSPACE_ALIASES = (("linear", "lin"), ("sRGB", "srgb"))
 
 #: Default value for creating subfolders on saving.
 DEFAULT_CREATE_SUBFOLDERS = False
