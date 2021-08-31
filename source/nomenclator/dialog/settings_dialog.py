@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from nomenclator.vendor.Qt import QtWidgets, QtCore, QtGui
+from nomenclator.vendor.Qt import QtWidgets, QtCore
 from nomenclator.widget import EditableList
 from nomenclator.widget import EditableTabWidget
+from nomenclator.widget import EditableTable
 from nomenclator.config import TemplateConfig, load_template_configs
 
 from .theme import classic_style
@@ -32,6 +33,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self._tab_widget.widget(1).set_values(config)
         self._tab_widget.widget(2).set_values(config)
         self._tab_widget.widget(3).set_values(config)
+        self._tab_widget.widget(4).set_values(config)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -48,6 +50,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self._tab_widget.addTab(GlobalSettingsForm(), "Global")
         self._tab_widget.addTab(CompSettingsForm(), "Comp Resolvers")
         self._tab_widget.addTab(ProjectSettingsForm(), "Project Resolvers")
+        self._tab_widget.addTab(ColorspaceSettingsForm(), "Colorspace")
         self._tab_widget.addTab(AdvancedSettingsForm(), "Advanced")
 
         main_layout.addWidget(self._tab_widget)
@@ -71,11 +74,13 @@ class SettingsDialog(QtWidgets.QDialog):
         self._tab_widget.widget(1).updated.connect(self._update_config)
         self._tab_widget.widget(2).updated.connect(self._update_config)
         self._tab_widget.widget(3).updated.connect(self._update_config)
+        self._tab_widget.widget(4).updated.connect(self._update_config)
 
         self._button_box.clicked.connect(self._button_clicked)
 
     def _update_config(self, key, value):
         """Update config object from *key* and *value*."""
+        print(key, value)
         # noinspection PyProtectedMember
         self._config = self._config._replace(**{key: value})
         self._update_buttons_states()
@@ -156,7 +161,7 @@ class GlobalSettingsForm(QtWidgets.QWidget):
     def _connect_signals(self):
         """Initialize signals connection."""
         self._descriptions.updated.connect(
-            lambda values: self.updated.emit("descriptions", tuple(values))
+            lambda values: self.updated.emit("descriptions", values)
         )
         self._create_subfolders.stateChanged.connect(
             lambda state: self.updated.emit("create_subfolders", state == QtCore.Qt.Checked)
@@ -582,6 +587,43 @@ class _TemplateForm(QtWidgets.QWidget):
         self._default_expression.textChanged.connect(lambda: self.updated.emit())
         self._match_start.stateChanged.connect(lambda: self.updated.emit())
         self._match_end.stateChanged.connect(lambda: self.updated.emit())
+
+
+class ColorspaceSettingsForm(QtWidgets.QWidget):
+    """Form to manage colorspace settings."""
+
+    #: :term:`Qt Signal` emitted when a key of the config has changed.
+    updated = QtCore.Signal(str, object)
+
+    def __init__(self, parent=None):
+        """Initiate the widget."""
+        super(ColorspaceSettingsForm, self).__init__(parent)
+        self._setup_ui()
+        self._connect_signals()
+
+    def set_values(self, config):
+        """Initialize values."""
+        self._colorspace_table.blockSignals(True)
+        self._colorspace_table.set_values(config.colorspace_aliases)
+        self._colorspace_table.blockSignals(False)
+
+    def _setup_ui(self):
+        """Initialize user interface."""
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.setContentsMargins(10, 20, 10, 10)
+        main_layout.setSpacing(8)
+
+        colorspace_lbl = QtWidgets.QLabel("Define aliases for colorspace token value", self)
+        main_layout.addWidget(colorspace_lbl)
+
+        self._colorspace_table = EditableTable(["Value", "Alias"], self)
+        main_layout.addWidget(self._colorspace_table)
+
+    def _connect_signals(self):
+        """Initialize signals connection."""
+        self._colorspace_table.updated.connect(
+            lambda values: self.updated.emit("colorspace_aliases", values)
+        )
 
 
 class AdvancedSettingsForm(QtWidgets.QWidget):
