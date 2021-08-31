@@ -134,6 +134,8 @@ def test_dump_empty():
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -153,6 +155,8 @@ def test_dump_descriptions():
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -174,6 +178,8 @@ def test_dump_create_subfolders():
         create_subfolders=True,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -186,6 +192,56 @@ def test_dump_create_subfolders():
     ])
 
 
+def test_dump_colorspace_aliases():
+    """Return data mapping with updated 'colorspace-aliases'."""
+    import nomenclator.config
+
+    config = nomenclator.config.Config(
+        descriptions=("comp", "precomp", "roto", "cleanup"),
+        create_subfolders=False,
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
+        colorspace_aliases=(("color1", "alias1"), ("color2", "alias2")),
+        tokens=tuple(),
+        max_locations=5,
+        max_padding=5,
+        username="john-doe",
+        username_is_default=True
+    )
+
+    data = nomenclator.config.dump(config)
+    assert data == collections.OrderedDict([
+        ("colorspace-aliases", collections.OrderedDict([
+            ("color1", "alias1"), ("color2", "alias2")
+        ]))
+    ])
+
+
+def test_dump_tokens():
+    """Return data mapping with updated 'tokens'."""
+    import nomenclator.config
+
+    config = nomenclator.config.Config(
+        descriptions=("comp", "precomp", "roto", "cleanup"),
+        create_subfolders=False,
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=(("token1", "value1"), ("token2", "value2")),
+        max_locations=5,
+        max_padding=5,
+        username="john-doe",
+        username_is_default=True
+    )
+
+    data = nomenclator.config.dump(config)
+    assert data == collections.OrderedDict([
+        ("tokens", collections.OrderedDict([
+            ("token1", "value1"), ("token2", "value2")
+        ]))
+    ])
+
+
 def test_dump_max_locations():
     """Return data mapping with updated 'max-locations'."""
     import nomenclator.config
@@ -195,6 +251,8 @@ def test_dump_max_locations():
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=10,
         max_padding=5,
         username="john-doe",
@@ -214,6 +272,8 @@ def test_dump_max_padding():
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=5,
         max_padding=3,
         username="john-doe",
@@ -233,6 +293,8 @@ def test_dump_username():
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -309,6 +371,8 @@ def test_dump_comp_templates():
             ),
         ),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -393,6 +457,8 @@ def test_dump_project_templates():
                 outputs=None
             ),
         ),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -433,6 +499,8 @@ def test_load_empty():
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -454,6 +522,8 @@ def test_load_descriptions():
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -475,6 +545,60 @@ def test_load_create_subfolders():
         create_subfolders=True,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
+        max_locations=5,
+        max_padding=5,
+        username="john-doe",
+        username_is_default=True
+    )
+
+
+@pytest.mark.usefixtures("mock_getuser")
+def test_load_colorspace_aliases():
+    """Return config with updated 'colorspace-aliases'."""
+    import nomenclator.config
+
+    config = nomenclator.config.load({
+        "colorspace-aliases": {
+            "color1": "alias1",
+            "color2": "alias2",
+        }
+    })
+
+    assert config == nomenclator.config.Config(
+        descriptions=("comp", "precomp", "roto", "cleanup"),
+        create_subfolders=False,
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
+        colorspace_aliases=(("color1", "alias1"), ("color2", "alias2")),
+        tokens=tuple(),
+        max_locations=5,
+        max_padding=5,
+        username="john-doe",
+        username_is_default=True
+    )
+
+
+@pytest.mark.usefixtures("mock_getuser")
+def test_load_tokens():
+    """Return config with updated 'tokens'."""
+    import nomenclator.config
+
+    config = nomenclator.config.load({
+        "tokens": {
+            "token1": "value1",
+            "token2": "value2",
+        }
+    })
+
+    assert config == nomenclator.config.Config(
+        descriptions=("comp", "precomp", "roto", "cleanup"),
+        create_subfolders=False,
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=(("token1", "value1"), ("token2", "value2")),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -496,6 +620,8 @@ def test_load_max_locations():
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=10,
         max_padding=5,
         username="john-doe",
@@ -517,6 +643,8 @@ def test_load_max_padding():
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=5,
         max_padding=3,
         username="john-doe",
@@ -538,6 +666,8 @@ def test_load_username():
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=5,
         max_padding=5,
         username="steve",
@@ -654,6 +784,8 @@ def test_load_comp_templates():
             ),
         ),
         project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
@@ -708,6 +840,8 @@ def test_load_project_templates():
                 outputs=None
             ),
         ),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
