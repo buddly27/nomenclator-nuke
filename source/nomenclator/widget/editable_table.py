@@ -85,7 +85,6 @@ class TableWidget(QtWidgets.QTableWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().setVisible(False)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.resizeColumnsToContents()
 
     def set_rows(self, row_items):
         """Initialize rows with text items."""
