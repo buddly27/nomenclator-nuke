@@ -619,7 +619,7 @@ class ColorspaceSettingsForm(QtWidgets.QWidget):
         colorspace_lbl = QtWidgets.QLabel("Define aliases for colorspace token value", self)
         main_layout.addWidget(colorspace_lbl)
 
-        self._colorspace_table = EditableTable(["Value", "Alias"], self)
+        self._colorspace_table = EditableTable(["Value", "Alias"], [200], self)
         main_layout.addWidget(self._colorspace_table)
 
     def _connect_signals(self):
@@ -653,10 +653,10 @@ class TokenSettingsForm(QtWidgets.QWidget):
         main_layout.setContentsMargins(10, 20, 10, 10)
         main_layout.setSpacing(8)
 
-        token_lbl = QtWidgets.QLabel("Add additional token to resolve in patterns", self)
+        token_lbl = QtWidgets.QLabel("Add tokens to resolve in patterns", self)
         main_layout.addWidget(token_lbl)
 
-        self._token_table = EditableTable(["Key", "Value"], self)
+        self._token_table = EditableTable(["Key", "Value"], [200], self)
         main_layout.addWidget(self._token_table)
 
     def _connect_signals(self):

@@ -9,10 +9,10 @@ class EditableTable(QtWidgets.QWidget):
     #: :term:`Qt Signal` emitted when items have changed.
     updated = QtCore.Signal(tuple)
 
-    def __init__(self, headers, parent=None):
+    def __init__(self, headers, column_widths, parent=None):
         """Initiate the widget."""
         super(EditableTable, self).__init__(parent)
-        self._setup_ui(headers)
+        self._setup_ui(headers, column_widths)
         self._connect_signals()
 
     def set_values(self, row_items):
@@ -21,13 +21,13 @@ class EditableTable(QtWidgets.QWidget):
         self._table.set_rows(row_items)
         self._table.blockSignals(False)
 
-    def _setup_ui(self, headers):
+    def _setup_ui(self, headers, column_widths):
         """Initialize user interface."""
         main_layout = QtWidgets.QGridLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(5)
 
-        self._table = TableWidget(headers, self)
+        self._table = TableWidget(headers, column_widths, self)
         main_layout.addWidget(self._table)
 
         button_layout = QtWidgets.QHBoxLayout()
@@ -66,14 +66,14 @@ class TableWidget(QtWidgets.QTableWidget):
     #: :term:`Qt Signal` emitted when items have changed.
     updated = QtCore.Signal(tuple)
 
-    def __init__(self, headers, parent=None):
+    def __init__(self, headers, column_widths, parent=None):
         """Initiate the widget."""
         super(TableWidget, self).__init__(parent)
         self._undo_stack = QtWidgets.QUndoStack(self)
-        self._setup_ui(headers)
+        self._setup_ui(headers, column_widths)
         self._connect_signals()
 
-    def _setup_ui(self, headers):
+    def _setup_ui(self, headers, columns_width):
         """Initialize user interface."""
         self.setColumnCount(len(headers))
         self.setHorizontalHeaderLabels(headers)
@@ -81,6 +81,9 @@ class TableWidget(QtWidgets.QTableWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().setVisible(False)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+
+        for column, width in enumerate(columns_width):
+            self.setColumnWidth(column, width)
 
     def set_rows(self, row_items):
         """Initialize rows with text items."""
