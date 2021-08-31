@@ -164,15 +164,15 @@ def generate_scene_name(pattern, suffix, append_username=False, token_mapping=No
 
     :return: String name.
 
-    :raise: exc:`KeyError` if a token within the *pattern* does not have any value within
-        the token map.
+    :raise: exc:`ValueError` if a token within the *pattern* does not have any
+        value within the token map.
 
     """
     if append_username:
         pattern += "_{username}"
 
     pattern += ".{}".format(suffix)
-    return pattern.format(**(token_mapping or {}))
+    return resolve(pattern, token_mapping or {})
 
 
 def generate_output_name(
@@ -209,8 +209,8 @@ def generate_output_name(
 
     :return: String name.
 
-    :raise: exc:`KeyError` if a token within the *pattern* does not have any value within
-        the token map.
+    :raise: exc:`ValueError` if a token within the *pattern* does not have any
+        value within the token map.
 
     """
     elements = pattern.split(os.sep)
@@ -233,4 +233,32 @@ def generate_output_name(
         elements[-1] += ".{}".format(padding)
 
     elements[-1] += ".{}".format(suffix)
-    return os.sep.join(elements).format(**(token_mapping or {}))
+    return resolve(os.sep.join(elements), token_mapping or {})
+
+
+def resolve(pattern, token_mapping):
+    """Return the resolved name for *pattern*.
+
+    :param pattern: String representing a template pattern,
+        with or without tokens.
+
+    :param token_mapping: Mapping regrouping resolved token value associated with
+        their name.
+
+    :return: String name.
+
+    :raise: exc:`ValueError` if a token within the *pattern* does not have any
+        value within the token map.
+
+    """
+    def _remove_expression(match):
+        """Return corresponding pattern without expression."""
+        return "{{{0}}}".format(match.group("name").split(":", 1)[0])
+
+    sub_pattern = r"{(?P<name>.+?)}"
+    pattern = re.sub(sub_pattern, _remove_expression, pattern)
+
+    try:
+        return pattern.format(**token_mapping)
+    except KeyError as error:
+        raise ValueError("Missing token value: {}".format(error))

@@ -9,16 +9,23 @@ import pytest
 
 @pytest.fixture()
 def mocked_construct_regexp(mocker):
-    """Return mocked 'nomenclator.utilities.construct_regexp' function."""
+    """Return mocked 'nomenclator.template.construct_regexp' function."""
     import nomenclator.template
     return mocker.patch.object(nomenclator.template, "construct_regexp")
 
 
 @pytest.fixture()
 def mocked_sanitize_pattern(mocker):
-    """Return mocked 'nomenclator.utilities.sanitize_pattern' function."""
+    """Return mocked 'nomenclator.template.sanitize_pattern' function."""
     import nomenclator.template
     return mocker.patch.object(nomenclator.template, "sanitize_pattern")
+
+
+@pytest.fixture()
+def mocked_resolve(mocker):
+    """Return mocked 'nomenclator.utilities.resolve' function."""
+    import nomenclator.template
+    return mocker.patch.object(nomenclator.template, "resolve")
 
 
 @pytest.mark.parametrize(
@@ -244,372 +251,289 @@ def test_sanitize_pattern(template, expected):
     assert nomenclator.template.sanitize_pattern(template) == expected
 
 
-def test_generate_scene_name_without_tokens():
-    """Generate scene name from pattern without any tokens."""
+@pytest.mark.parametrize("options, token_mapping", [
+    ({}, {}),
+    ({"token_mapping": {"key": "value"}}, {"key": "value"}),
+], ids=[
+    "simple",
+    "with-tokens",
+])
+def test_generate_scene_name(mocked_resolve, options, token_mapping):
+    """Generate scene name from pattern."""
     import nomenclator.template
 
-    pattern = "base_name"
+    result = nomenclator.template.generate_scene_name("BASE_NAME", "nk", **options)
+    assert result == mocked_resolve.return_value
 
-    result = nomenclator.template.generate_scene_name(pattern, "nk")
-    assert result == "base_name.nk"
-
-    result = nomenclator.template.generate_scene_name(
-        pattern, "nk", token_mapping={"key": "value"}
-    )
-    assert result == "base_name.nk"
+    mocked_resolve.assert_called_once_with("BASE_NAME.nk", token_mapping)
 
 
-def test_generate_scene_name_with_tokens():
-    """Generate scene name from pattern with tokens."""
-    import nomenclator.template
-
-    pattern = "{project}_{shot}_{description}_v{version}"
-
-    result = nomenclator.template.generate_scene_name(
-        pattern, "nk", token_mapping={
-            "project": "test",
-            "shot": "sh003",
-            "description": "comp",
-            "version": "002",
-        }
-    )
-    assert result == "test_sh003_comp_v002.nk"
-
-
-def test_generate_scene_name_with_tokens_error():
-    """Fail to generate scene name from pattern when value is missing from token."""
-    import nomenclator.template
-
-    pattern = "{project}_{shot}_{description}_v{version}"
-
-    with pytest.raises(KeyError) as error:
-        nomenclator.template.generate_scene_name(
-            pattern, "nk", token_mapping={
-                "shot": "sh003",
-                "description": "comp",
-                "version": "002",
-            }
-        )
-
-    assert str(error.value) == "'project'"
-
-
-def test_generate_scene_name_with_username():
+def test_generate_scene_name_with_username(mocked_resolve):
     """Generate scene name from pattern with username appended to base."""
     import nomenclator.template
 
-    pattern = "base_name"
     result = nomenclator.template.generate_scene_name(
-        pattern, "nk",
+        "BASE_NAME", "nk",
         append_username=True,
-        token_mapping={
-            "username": "steve",
-        }
+        token_mapping="__TOKEN_MAPPING__"
     )
-    assert result == "base_name_steve.nk"
+    assert result == mocked_resolve.return_value
 
-    pattern = "{project}_{shot}_{description}_v{version}"
-    result = nomenclator.template.generate_scene_name(
-        pattern, "nk",
-        append_username=True,
-        token_mapping={
-            "project": "test",
-            "shot": "sh003",
-            "description": "comp",
-            "version": "002",
-            "username": "steve",
-        }
+    mocked_resolve.assert_called_once_with(
+        "BASE_NAME_{username}.nk", "__TOKEN_MAPPING__"
     )
-    assert result == "test_sh003_comp_v002_steve.nk"
 
 
-def test_generate_output_name_without_tokens():
-    """Generate output name from pattern without any tokens."""
+@pytest.mark.parametrize("options, token_mapping", [
+    ({}, {}),
+    ({"token_mapping": {"key": "value"}}, {"key": "value"}),
+], ids=[
+    "simple",
+    "with-tokens",
+])
+def test_generate_output_name(mocked_resolve, options, token_mapping):
+    """Generate output name from pattern."""
     import nomenclator.template
 
-    pattern = "base_name"
+    result = nomenclator.template.generate_output_name("BASE_NAME", "nk", **options)
+    assert result == mocked_resolve.return_value
 
-    result = nomenclator.template.generate_output_name(pattern, "exr")
-    assert result == "base_name.exr"
-
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr", token_mapping={"key": "value"}
-    )
-    assert result == "base_name.exr"
+    mocked_resolve.assert_called_once_with("BASE_NAME.nk", token_mapping)
 
 
-def test_generate_output_name_with_tokens():
-    """Generate output name from pattern with tokens."""
+def test_generate_output_name_with_subfolder(mocked_resolve):
+    """Generate scene name from pattern with subfolder."""
     import nomenclator.template
 
-    pattern = "{project}_{shot}_{description}_v{version}"
+    pattern = os.path.join("folder", "BASE_NAME")
 
     result = nomenclator.template.generate_output_name(
-        pattern, "exr", token_mapping={
-            "project": "test",
-            "shot": "sh003",
-            "description": "comp",
-            "version": "002",
-        }
+        pattern, "nk", token_mapping="__TOKEN_MAPPING__"
     )
-    assert result == "test_sh003_comp_v002.exr"
+    assert result == mocked_resolve.return_value
+
+    mocked_resolve.assert_called_once_with(
+        os.path.join("folder", "BASE_NAME.nk"), "__TOKEN_MAPPING__"
+    )
 
 
-def test_generate_output_name_with_tokens_error():
-    """Fail to generate output name from pattern when value is missing from token."""
+def test_generate_output_name_with_padding(mocked_resolve):
+    """Generate scene name from pattern with padding appended to base."""
     import nomenclator.template
 
-    pattern = "{project}_{shot}_{description}_v{version}"
-
-    with pytest.raises(KeyError) as error:
-        nomenclator.template.generate_output_name(
-            pattern, "exr", token_mapping={
-                "shot": "sh003",
-                "description": "comp",
-                "version": "002",
-            }
-        )
-
-    assert str(error.value) == "'project'"
-
-
-def test_generate_output_name_with_padding():
-    """Generate output name from pattern with padding."""
-    import nomenclator.template
-
-    pattern = "base_name"
     result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-        padding="%01d"
-    )
-    assert result == "base_name.%01d.exr"
-
-    pattern = "{project}_{shot}_{description}_v{version}"
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
+        "BASE_NAME", "nk",
         padding="%01d",
-        token_mapping={
-            "project": "test",
-            "shot": "sh003",
-            "description": "comp",
-            "version": "002",
-        }
+        token_mapping="__TOKEN_MAPPING__"
     )
-    assert result == "test_sh003_comp_v002.%01d.exr"
+    assert result == mocked_resolve.return_value
+
+    mocked_resolve.assert_called_once_with(
+        "BASE_NAME.%01d.nk", "__TOKEN_MAPPING__"
+    )
 
 
-def test_generate_output_name_with_multi_views():
-    """Generate output name from pattern with multi views appended to base."""
+def test_generate_output_name_with_passname_in_subfolder(mocked_resolve):
+    """Generate scene name from pattern with passname appended to subfolder."""
     import nomenclator.template
 
-    pattern = "base_name"
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-        multi_views=True
-    )
-    assert result == "base_name_%V.exr"
+    pattern = os.path.join("folder", "BASE_NAME")
 
-    pattern = "{project}_{shot}_{description}_v{version}"
     result = nomenclator.template.generate_output_name(
-        pattern, "exr",
+        pattern, "nk",
+        append_passname_to_subfolder=True,
+        token_mapping="__TOKEN_MAPPING__"
+    )
+    assert result == mocked_resolve.return_value
+
+    mocked_resolve.assert_called_once_with(
+        os.path.join("folder_{passname}", "BASE_NAME.nk"), "__TOKEN_MAPPING__"
+    )
+
+
+def test_generate_output_name_with_passname_in_subfolder_error(mocked_resolve):
+    """Fail to generate scene name from pattern with passname appended to subfolder."""
+    import nomenclator.template
+
+    result = nomenclator.template.generate_output_name(
+        "BASE_NAME", "nk",
+        append_passname_to_subfolder=True,
+        token_mapping="__TOKEN_MAPPING__"
+    )
+    assert result == mocked_resolve.return_value
+
+    mocked_resolve.assert_called_once_with(
+        "BASE_NAME.nk", "__TOKEN_MAPPING__"
+    )
+
+
+def test_generate_output_name_with_passname(mocked_resolve):
+    """Generate scene name from pattern with passname appended to base."""
+    import nomenclator.template
+
+    pattern = os.path.join("folder", "BASE_NAME")
+
+    result = nomenclator.template.generate_output_name(
+        pattern, "nk",
+        append_passname=True,
+        token_mapping="__TOKEN_MAPPING__"
+    )
+    assert result == mocked_resolve.return_value
+
+    mocked_resolve.assert_called_once_with(
+        os.path.join("folder", "BASE_NAME_{passname}.nk"),
+        "__TOKEN_MAPPING__"
+    )
+
+
+def test_generate_output_name_with_colorspace(mocked_resolve):
+    """Generate scene name from pattern with colorspace appended to base."""
+    import nomenclator.template
+
+    pattern = os.path.join("folder", "BASE_NAME")
+
+    result = nomenclator.template.generate_output_name(
+        pattern, "nk",
+        append_colorspace=True,
+        token_mapping="__TOKEN_MAPPING__"
+    )
+    assert result == mocked_resolve.return_value
+
+    mocked_resolve.assert_called_once_with(
+        os.path.join("folder", "BASE_NAME_{colorspace}.nk"),
+        "__TOKEN_MAPPING__"
+    )
+
+
+def test_generate_output_name_with_username(mocked_resolve):
+    """Generate scene name from pattern with username appended to base."""
+    import nomenclator.template
+
+    pattern = os.path.join("folder", "BASE_NAME")
+
+    result = nomenclator.template.generate_output_name(
+        pattern, "nk",
+        append_username=True,
+        token_mapping="__TOKEN_MAPPING__"
+    )
+    assert result == mocked_resolve.return_value
+
+    mocked_resolve.assert_called_once_with(
+        os.path.join("folder", "BASE_NAME_{username}.nk"),
+        "__TOKEN_MAPPING__"
+    )
+
+
+def test_generate_output_name_with_multi_views(mocked_resolve):
+    """Generate scene name from pattern with multi views appended to base."""
+    import nomenclator.template
+
+    pattern = os.path.join("folder", "BASE_NAME")
+
+    result = nomenclator.template.generate_output_name(
+        pattern, "nk",
         multi_views=True,
-        token_mapping={
-            "project": "test",
-            "shot": "sh003",
-            "description": "comp",
-            "version": "002",
-        }
+        token_mapping="__TOKEN_MAPPING__"
     )
-    assert result == "test_sh003_comp_v002_%V.exr"
+    assert result == mocked_resolve.return_value
+
+    mocked_resolve.assert_called_once_with(
+        os.path.join("folder", "BASE_NAME_%V.nk"),
+        "__TOKEN_MAPPING__"
+    )
 
 
-def test_generate_output_name_with_colorspace():
-    """Generate output name from pattern with colorspace appended to base."""
+def test_generate_output_name_with_several_options(mocked_resolve):
+    """Generate scene name from pattern with several options."""
     import nomenclator.template
 
-    pattern = "base_name"
+    pattern = os.path.join("folder", "BASE_NAME")
+
     result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-        append_colorspace=True,
-        token_mapping={
-            "colorspace": "r709"
-        }
-    )
-    assert result == "base_name_r709.exr"
-
-    pattern = "{project}_{shot}_{description}_v{version}"
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-        append_colorspace=True,
-        token_mapping={
-            "project": "test",
-            "shot": "sh003",
-            "description": "comp",
-            "version": "002",
-            "colorspace": "r709"
-        }
-    )
-    assert result == "test_sh003_comp_v002_r709.exr"
-
-
-def test_generate_output_name_with_username():
-    """Generate output name from pattern with username appended to base."""
-    import nomenclator.template
-
-    pattern = "base_name"
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-        append_username=True,
-        token_mapping={
-            "username": "steve"
-        }
-    )
-    assert result == "base_name_steve.exr"
-
-    pattern = "{project}_{shot}_{description}_v{version}"
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-        append_username=True,
-        token_mapping={
-            "project": "test",
-            "shot": "sh003",
-            "description": "comp",
-            "version": "002",
-            "username": "steve"
-        }
-    )
-    assert result == "test_sh003_comp_v002_steve.exr"
-
-
-def test_generate_output_name_with_passname():
-    """Generate output name from pattern with passname appended to base."""
-    import nomenclator.template
-
-    pattern = "base_name"
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
+        pattern, "nk",
+        padding="%01d",
+        append_passname_to_subfolder=True,
         append_passname=True,
-        token_mapping={
-            "passname": "beauty"
-        }
-    )
-    assert result == "base_name_beauty.exr"
-
-    pattern = "{project}_{shot}_{description}_v{version}"
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-        append_passname=True,
-        token_mapping={
-            "project": "test",
-            "shot": "sh003",
-            "description": "comp",
-            "version": "002",
-            "passname": "beauty"
-        }
-    )
-    assert result == "test_sh003_comp_v002_beauty.exr"
-
-
-def test_generate_output_name_with_subfolder():
-    """Generate output name from pattern with subfolder."""
-    import nomenclator.template
-
-    pattern = "path/to/folder/base_name"
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-    )
-    assert result == "path/to/folder/base_name.exr"
-
-    pattern = "path/to/folder/{project}_{shot}_{description}_v{version}"
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-        token_mapping={
-            "project": "test",
-            "shot": "sh003",
-            "description": "comp",
-            "version": "002",
-        }
-    )
-    assert result == "path/to/folder/test_sh003_comp_v002.exr"
-
-
-def test_generate_output_name_with_subfolder_username():
-    """Generate output name from pattern with username appended to subfolder."""
-    import nomenclator.template
-
-    pattern = os.path.join("folder", "base_name")
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-        append_passname_to_subfolder=True,
-        token_mapping={
-            "passname": "beauty",
-        }
-    )
-    assert result == os.path.join("folder_beauty", "base_name.exr")
-
-    pattern = os.path.join("folder", "{project}_{shot}_{description}_v{version}")
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-        append_passname_to_subfolder=True,
-        token_mapping={
-            "project": "test",
-            "shot": "sh003",
-            "description": "comp",
-            "version": "002",
-            "passname": "beauty",
-        }
-    )
-    assert result == os.path.join("folder_beauty", "test_sh003_comp_v002.exr")
-
-
-def test_generate_output_name_with_subfolder_username_error():
-    """Fail to Generate output name from pattern with username appended to subfolder."""
-    import nomenclator.template
-
-    pattern = "base_name"
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-        append_passname_to_subfolder=True
-    )
-    assert result == "base_name.exr"
-
-    pattern = "{project}_{shot}_{description}_v{version}"
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-        append_passname_to_subfolder=True,
-        token_mapping={
-            "project": "test",
-            "shot": "sh003",
-            "description": "comp",
-            "version": "002",
-        }
-    )
-    assert result == "test_sh003_comp_v002.exr"
-
-
-def test_generate_output_name_complex():
-    """Fail to Generate output name from pattern with many tokens."""
-    import nomenclator.template
-
-    pattern = os.path.join("folder", "{project}_{shot}_{description}_v{version}")
-    result = nomenclator.template.generate_output_name(
-        pattern, "exr",
-        append_passname=True,
-        append_username=True,
         append_colorspace=True,
-        append_passname_to_subfolder=True,
+        append_username=True,
         multi_views=True,
-        padding="%02d",
-        token_mapping={
-            "project": "test",
-            "shot": "sh003",
-            "description": "comp",
-            "version": "002",
-            "username": "steve",
-            "colorspace": "r709",
-            "passname": "beauty",
-        }
+        token_mapping="__TOKEN_MAPPING__"
     )
-    assert result == os.path.join(
-        "folder_beauty", "test_sh003_comp_v002_r709_steve_beauty_%V.%02d.exr"
+    assert result == mocked_resolve.return_value
+
+    mocked_resolve.assert_called_once_with(
+        os.path.join(
+            "folder_{passname}",
+            "BASE_NAME_{colorspace}_{username}_{passname}_%V.%01d.nk"
+        ),
+        "__TOKEN_MAPPING__"
     )
+
+
+def test_resolve():
+    """Resolve name."""
+    import nomenclator.template
+
+    pattern = os.path.join(
+        "folder_{passname}",
+        "{project}_{shot}_{description}_v{version}"
+        "_{colorspace}_{username}_{passname}_%V.%01d.exr"
+    )
+
+    token_mapping = {
+        "project": "test",
+        "shot": "sh003",
+        "description": "comp",
+        "version": "002",
+        "username": "steve",
+        "colorspace": "rec709",
+        "passname": "beauty",
+    }
+
+    name = nomenclator.template.resolve(pattern, token_mapping)
+    assert name == os.path.join(
+        "folder_beauty", "test_sh003_comp_v002_rec709_steve_beauty_%V.%01d.exr"
+    )
+
+
+def test_resolve_with_discarded_expression():
+    """Resolve name with discarded expression."""
+    import nomenclator.template
+
+    pattern = os.path.join(
+        r"folder_{passname:\w+}",
+        r"{project}_{shot:sh\d+}_{description}_v{version:\d+}"
+        r"_{colorspace}_{username}_{passname:.*?}_%V.%01d.exr"
+    )
+
+    token_mapping = {
+        "project": "test",
+        "shot": "sh003",
+        "description": "comp",
+        "version": "002",
+        "username": "steve",
+        "colorspace": "rec709",
+        "passname": "beauty",
+    }
+
+    name = nomenclator.template.resolve(pattern, token_mapping)
+    assert name == os.path.join(
+        "folder_beauty",
+        "test_sh003_comp_v002_rec709_steve_beauty_%V.%01d.exr"
+    )
+
+
+def test_resolve_without_tokens():
+    """Resolve name without tokens."""
+    import nomenclator.template
+    assert nomenclator.template.resolve("BASE_NAME", {}) == "BASE_NAME"
+
+
+def test_resolve_with_missing_token():
+    """Resolve name without tokens."""
+    import nomenclator.template
+
+    with pytest.raises(ValueError) as error:
+        nomenclator.template.resolve("{foo}", {})
+
+    assert str(error.value) == "Missing token value: 'foo'"
