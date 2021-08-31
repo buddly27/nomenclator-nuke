@@ -7,7 +7,7 @@ class EditableTable(QtWidgets.QWidget):
     """Widget representing a table with editable items."""
 
     #: :term:`Qt Signal` emitted when items have changed.
-    updated = QtCore.Signal(list)
+    updated = QtCore.Signal(tuple)
 
     def __init__(self, headers, parent=None):
         """Initiate the widget."""
@@ -17,7 +17,9 @@ class EditableTable(QtWidgets.QWidget):
 
     def set_values(self, row_items):
         """Initialize values."""
+        self._table.blockSignals(True)
         self._table.set_rows(row_items)
+        self._table.blockSignals(False)
 
     def _setup_ui(self, headers):
         """Initialize user interface."""
@@ -46,6 +48,7 @@ class EditableTable(QtWidgets.QWidget):
         self._add_btn.clicked.connect(self._add_new_row)
         self._delete_btn.clicked.connect(self._table.remove_selection)
         self._table.itemSelectionChanged.connect(self._toggle_delete_button)
+        self._table.updated.connect(self.updated.emit)
 
     def _add_new_row(self):
         """Add a new row when requested."""
@@ -61,7 +64,7 @@ class TableWidget(QtWidgets.QTableWidget):
     """Custom table widget."""
 
     #: :term:`Qt Signal` emitted when items have changed.
-    updated = QtCore.Signal(list)
+    updated = QtCore.Signal(tuple)
 
     def __init__(self, headers, parent=None):
         """Initiate the widget."""
@@ -116,11 +119,27 @@ class TableWidget(QtWidgets.QTableWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
+        self.itemChanged.connect(self._emit_updated_signal)
         self._undo_stack.indexChanged.connect(self._emit_updated_signal)
 
     def _emit_updated_signal(self):
         """Emit a signal with updated items."""
-        # self.updated.emit(self.texts())
+        row_items = []
+
+        for row in range(self.rowCount()):
+            column_texts = []
+
+            for column in range(self.columnCount()):
+                item = self.item(row, column)
+                if item is not None and len(item.text()):
+                    column_texts.append(item.text())
+
+            if len(column_texts) < self.columnCount():
+                continue
+
+            row_items.append(tuple(column_texts))
+
+        self.updated.emit(tuple(sorted(row_items)))
 
     def undo(self):
         """Undo last command."""
