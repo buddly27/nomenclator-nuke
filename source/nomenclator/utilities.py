@@ -1,10 +1,41 @@
 # -*- coding: utf-8 -*-
 
+import copy
 import os
 
 import nuke
 
 from nomenclator.symbol import OUTPUT_CLASSES
+import nomenclator.template
+
+
+def fetch_next_version(path, pattern, token_mapping):
+    """Fetch next version from scene files saved in *path*."""
+    next_version = 1
+
+    # Ignore version token when resolving base pattern
+    _mapping = copy.deepcopy(token_mapping)
+    _mapping["version"] = "{version}"
+
+    # Generate expected base name pattern from resolved tokens.
+    pattern = nomenclator.template.resolve(pattern, _mapping)
+
+    for file_name in os.listdir(path):
+        data = nomenclator.template.fetch_resolved_tokens(
+            file_name, pattern, match_start=True, match_end=False
+        )
+        if data is None:
+            continue
+
+        try:
+            previous_version = int(data.get("version", 0))
+        except ValueError:
+            # If version token is not an integer, skip it.
+            continue
+
+        next_version = max(next_version, previous_version + 1)
+
+    return next_version
 
 
 def fetch_output_context(config):

@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 import pytest
+
+
+@pytest.fixture()
+def mocked_listdir(mocker):
+    """Return mocked 'os.listdir' function."""
+    return mocker.patch.object(os, "listdir")
 
 
 @pytest.fixture()
@@ -18,6 +26,101 @@ def mocked_fetch_paddings(mocker):
     """Return mocked 'nomenclator.utilities.fetch_paddings' function."""
     import nomenclator.utilities
     return mocker.patch.object(nomenclator.utilities, "fetch_paddings")
+
+
+@pytest.fixture()
+def mocked_resolve(mocker):
+    """Return mocked 'nomenclator.template.resolve' function."""
+    import nomenclator.template
+    return mocker.patch.object(nomenclator.template, "resolve")
+
+
+@pytest.fixture()
+def mocked_fetch_resolved_tokens(mocker):
+    """Return mocked 'nomenclator.template.fetch_resolved_tokens' function."""
+    import nomenclator.template
+    return mocker.patch.object(nomenclator.template, "fetch_resolved_tokens")
+
+
+def test_fetch_next_version(
+    mocked_listdir, mocked_resolve, mocked_fetch_resolved_tokens
+):
+    """Fetch next version from scene files."""
+    import nomenclator.utilities
+
+    mocked_listdir.return_value = [
+        "project1.nk",
+        "project2_sh003_comp_v001.nk",
+        "project2_sh003_comp_v002_steve.nk",
+        "project2_sh003_comp_vINCORRECT.nk",
+    ]
+
+    mocked_fetch_resolved_tokens.side_effect = [
+        None,
+        {"version": "001"},
+        {"version": "002"},
+        {"version": "INCORRECT"},
+    ]
+
+    token_mapping = {"key": "value"}
+    version = nomenclator.utilities.fetch_next_version(
+        "/path", "__PATTERN__", token_mapping
+    )
+
+    assert version == 3
+
+    # Ensure that initial token mapping is not mutated.
+    assert token_mapping == {"key": "value"}
+
+    mocked_listdir.assert_called_once_with("/path")
+    mocked_resolve.assert_called_once_with(
+        "__PATTERN__", {"key": "value", "version": "{version}"}
+    )
+
+    assert mocked_fetch_resolved_tokens.call_count == 4
+    mocked_fetch_resolved_tokens.assert_any_call(
+        "project1.nk",
+        mocked_resolve.return_value,
+        match_start=True, match_end=False
+    )
+    mocked_fetch_resolved_tokens.assert_any_call(
+        "project2_sh003_comp_v001.nk",
+        mocked_resolve.return_value,
+        match_start=True, match_end=False
+    )
+    mocked_fetch_resolved_tokens.assert_any_call(
+        "project2_sh003_comp_v002_steve.nk",
+        mocked_resolve.return_value,
+        match_start=True, match_end=False
+    )
+    mocked_fetch_resolved_tokens.assert_any_call(
+        "project2_sh003_comp_vINCORRECT.nk",
+        mocked_resolve.return_value,
+        match_start=True, match_end=False
+    )
+
+
+def test_fetch_next_version_empty(
+    mocked_listdir, mocked_resolve, mocked_fetch_resolved_tokens
+):
+    """Fetch version 1 if no scene files in path."""
+    import nomenclator.utilities
+
+    mocked_listdir.return_value = []
+    token_mapping = {"key": "value"}
+    version = nomenclator.utilities.fetch_next_version(
+        "/path", "__PATTERN__", token_mapping
+    )
+    assert version == 1
+
+    # Ensure that initial token mapping is not mutated.
+    assert token_mapping == {"key": "value"}
+
+    mocked_listdir.assert_called_once_with("/path")
+    mocked_resolve.assert_called_once_with(
+        "__PATTERN__", {"key": "value", "version": "{version}"}
+    )
+    mocked_fetch_resolved_tokens.assert_not_called()
 
 
 def test_fetch_output_context(mocker, mocked_fetch_nodes, mocked_fetch_paddings):
