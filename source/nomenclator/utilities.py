@@ -59,20 +59,20 @@ def fetch_recent_comp_paths(max_values=10):
     except RuntimeError:
         pass
 
-    return paths
+    return tuple(paths)
 
 
 def fetch_paddings(max_value=5):
     """Return all available paddings if notation requested."""
     available = {
-        "Hashes (#)": [
+        "Hashes (#)": tuple([
             "#" * (index + 1)
             for index in range(max_value)
-        ],
-        "Printf Notation (%d)": [
+        ]),
+        "Printf Notation (%d)": tuple([
             "%{0:02}d".format(index + 1)
             for index in range(max_value)
-        ]
+        ])
     }
 
     try:

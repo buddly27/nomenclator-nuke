@@ -147,7 +147,7 @@ def test_fetch_recent_locations():
     ]
 
     paths = nomenclator.utilities.fetch_recent_comp_paths()
-    assert paths == ["/path1", "/path2", "/path3", "/path4"]
+    assert paths == ("/path1", "/path2", "/path3", "/path4")
 
     assert nuke.recentFile.call_count == 7
     nuke.recentFile.assert_any_call(1)
@@ -175,7 +175,7 @@ def test_fetch_recent_locations_with_max_value():
     ]
 
     paths = nomenclator.utilities.fetch_recent_comp_paths(max_values=3)
-    assert paths == ["/path1", "/path2"]
+    assert paths == ("/path1", "/path2")
 
     assert nuke.recentFile.call_count == 3
     nuke.recentFile.assert_any_call(1)
@@ -192,7 +192,7 @@ def test_fetch_paddings_hashes_notation(mocker):
     nuke.toNode.return_value = {"UISequenceDisplayMode": mocked_knob}
 
     paddings = nomenclator.utilities.fetch_paddings()
-    assert paddings == ["#", "##", "###", "####", "#####"]
+    assert paddings == ("#", "##", "###", "####", "#####")
 
     nuke.toNode.assert_called_once_with("preferences")
     mocked_knob.value.assert_called_once()
@@ -207,7 +207,7 @@ def test_fetch_paddings_hashes_notation_with_max_value(mocker):
     nuke.toNode.return_value = {"UISequenceDisplayMode": mocked_knob}
 
     paddings = nomenclator.utilities.fetch_paddings(max_value=3)
-    assert paddings == ["#", "##", "###"]
+    assert paddings == ("#", "##", "###")
 
     nuke.toNode.assert_called_once_with("preferences")
     mocked_knob.value.assert_called_once()
@@ -222,7 +222,7 @@ def test_fetch_paddings_printf_notation(mocker):
     nuke.toNode.return_value = {"UISequenceDisplayMode": mocked_knob}
 
     paddings = nomenclator.utilities.fetch_paddings()
-    assert paddings == ["%01d", "%02d", "%03d", "%04d", "%05d"]
+    assert paddings == ("%01d", "%02d", "%03d", "%04d", "%05d")
 
     nuke.toNode.assert_called_once_with("preferences")
     mocked_knob.value.assert_called_once()
@@ -237,7 +237,7 @@ def test_fetch_paddings_printf_notation_with_max_value(mocker):
     nuke.toNode.return_value = {"UISequenceDisplayMode": mocked_knob}
 
     paddings = nomenclator.utilities.fetch_paddings(max_value=3)
-    assert paddings == ["%01d", "%02d", "%03d"]
+    assert paddings == ("%01d", "%02d", "%03d")
 
     nuke.toNode.assert_called_once_with("preferences")
     mocked_knob.value.assert_called_once()
@@ -251,7 +251,7 @@ def test_fetch_paddings_default_preferences_error():
     nuke.toNode.return_value = None
 
     paddings = nomenclator.utilities.fetch_paddings()
-    assert paddings == ["#", "##", "###", "####", "#####"]
+    assert paddings == ("#", "##", "###", "####", "#####")
 
     nuke.toNode.assert_called_once_with("preferences")
 
@@ -268,7 +268,7 @@ def test_fetch_paddings_default_preferences_knob_error(mocker):
     })
 
     paddings = nomenclator.utilities.fetch_paddings()
-    assert paddings == ["#", "##", "###", "####", "#####"]
+    assert paddings == ("#", "##", "###", "####", "#####")
 
     nuke.toNode.assert_called_once_with("preferences")
 
@@ -282,7 +282,7 @@ def test_fetch_paddings_default_preferences_knob_value_error(mocker):
     nuke.toNode.return_value = {"UISequenceDisplayMode": mocked_knob}
 
     paddings = nomenclator.utilities.fetch_paddings()
-    assert paddings == ["#", "##", "###", "####", "#####"]
+    assert paddings == ("#", "##", "###", "####", "#####")
 
     nuke.toNode.assert_called_once_with("preferences")
     mocked_knob.value.assert_called_once()
