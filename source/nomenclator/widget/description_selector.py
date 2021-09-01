@@ -22,7 +22,7 @@ class DescriptionSelector(QtWidgets.QWidget):
 
     def value(self):
         """Return current value."""
-        if self._description.currentIndex() == len(self._items) - 1:
+        if self._description.currentText() == self.CUSTOM_LABEL:
             return self._custom_description.text()
         return self._description.currentText()
 
@@ -30,6 +30,16 @@ class DescriptionSelector(QtWidgets.QWidget):
         """Initialize values."""
         self._description.clear()
         self._description.addItems(list(descriptions) + [self.CUSTOM_LABEL])
+
+    def set_current(self, description):
+        """Set current description value."""
+        index = self._description.findText(description)
+        if index >= 0:
+            self._description.setCurrentIndex(index)
+
+        else:
+            self._description.setCurrentText(self.CUSTOM_LABEL)
+            self._custom_description.setText(description)
 
     def _setup_ui(self):
         """Initialize user interface."""
