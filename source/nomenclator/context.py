@@ -83,7 +83,7 @@ def fetch_outputs():
         ]
 
         file_types = [
-            label.split()[0] for label
+            label.split()[0].strip() for label
             in node["file_type"].values()
             if len(label.split())
         ]
@@ -96,7 +96,7 @@ def fetch_outputs():
             enabled=not node["disable"].value(),
             destination=None,
             destinations=tuple(),
-            file_type=node["file_type"].value() or "exr",
+            file_type=node["file_type"].value().strip() or "exr",
             file_types=tuple(file_types),
             append_username_to_name=False,
             append_colorspace_to_name=False,
