@@ -62,9 +62,10 @@ class OutputSettingsForm(QtWidgets.QWidget):
     def _connect_signals(self):
         """Initialize signals connection."""
         self._output_list.updated.connect(self._handle_output_update)
-
-        self._file_name_form.updated.connect(self._handle_global_update)
-        self._file_path_form.updated.connect(self._handle_global_update)
+        self._file_name_form.output_updated.connect(self._handle_global_output_update)
+        self._file_path_form.output_updated.connect(self._handle_global_output_update)
+        self._file_name_form.updated.connect(self._update_context)
+        self._file_path_form.updated.connect(self._update_context)
 
     def _handle_output_update(self):
         """Handle changes to output list"""
@@ -74,10 +75,10 @@ class OutputSettingsForm(QtWidgets.QWidget):
         self._file_path_form.set_values(self._context)
         self._file_name_form.set_values(self._context)
 
-    def _handle_global_update(self, key, value):
+    def _handle_global_output_update(self, key, value):
         """Handle global changes to options"""
         method_name = "set_{}".format(key)
-        setter = getattr(self._output_list, method_name)
+        setter = getattr(self._output_list, method_name, None)
         setter(value)
 
         outputs = self._output_list.outputs_context()
@@ -96,6 +97,9 @@ class FilePathForm(QtWidgets.QWidget):
 
     #: :term:`Qt Signal` emitted when a key of the context has changed.
     updated = QtCore.Signal(str, object)
+
+    #: :term:`Qt Signal` emitted when an global output key of the context has changed.
+    output_updated = QtCore.Signal(str, object)
 
     def __init__(self, parent=None):
         """Initiate the widget."""
@@ -158,16 +162,22 @@ class FilePathForm(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._append_passname.stateChanged.connect(self._emit_signal)
+        self._append_passname.stateChanged.connect(self._emit_output_signal)
 
-    def _emit_signal(self):
-        """Emit corresponding signals"""
+        self._create_subfolders.stateChanged.connect(
+            lambda state: self.updated.emit(
+                "create_subfolders", state == QtCore.Qt.Checked
+            )
+        )
+
+    def _emit_output_signal(self):
+        """Emit corresponding signals for outputs."""
         knob = self.sender()
         context_attributes = {
             self._append_passname: "append_passname_to_subfolder",
         }
 
-        self.updated.emit(context_attributes[knob], knob.isChecked())
+        self.output_updated.emit(context_attributes[knob], knob.isChecked())
 
         # Ensure that the checkbox is not partially checked if user click on it.
         if knob.checkState() == QtCore.Qt.PartiallyChecked:
@@ -181,6 +191,9 @@ class FileNameForm(QtWidgets.QWidget):
 
     #: :term:`Qt Signal` emitted when a key of the context has changed.
     updated = QtCore.Signal(str, object)
+
+    #: :term:`Qt Signal` emitted when an global output key of the context has changed.
+    output_updated = QtCore.Signal(str, object)
 
     def __init__(self, parent=None):
         """Initiate the widget."""
@@ -264,11 +277,15 @@ class FileNameForm(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._append_passname.stateChanged.connect(self._emit_signal)
-        self._append_username.stateChanged.connect(self._emit_signal)
-        self._append_colorspace.stateChanged.connect(self._emit_signal)
+        self._append_passname.stateChanged.connect(self._emit_output_signal)
+        self._append_username.stateChanged.connect(self._emit_output_signal)
+        self._append_colorspace.stateChanged.connect(self._emit_output_signal)
 
-    def _emit_signal(self):
+        self._padding.currentTextChanged.connect(
+            lambda value: self.updated.emit("padding", value)
+        )
+
+    def _emit_output_signal(self):
         """Emit corresponding signals"""
         knob = self.sender()
         context_attributes = {
@@ -277,7 +294,7 @@ class FileNameForm(QtWidgets.QWidget):
             self._append_colorspace: "append_colorspace_to_name",
         }
 
-        self.updated.emit(context_attributes[knob], knob.isChecked())
+        self.output_updated.emit(context_attributes[knob], knob.isChecked())
 
         # Ensure that the checkbox is not partially checked if user click on it.
         if knob.checkState() == QtCore.Qt.PartiallyChecked:
