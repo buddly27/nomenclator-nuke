@@ -295,10 +295,10 @@ def test_generate_output_name(mocked_resolve, options, token_mapping):
     """Generate output name from pattern."""
     import nomenclator.template
 
-    result = nomenclator.template.generate_output_name("BASE_NAME", "nk", **options)
+    result = nomenclator.template.generate_output_name("BASE_NAME", "mp4", **options)
     assert result == mocked_resolve.return_value
 
-    mocked_resolve.assert_called_once_with("BASE_NAME.nk", token_mapping)
+    mocked_resolve.assert_called_once_with("BASE_NAME.mp4", token_mapping)
 
 
 def test_generate_output_name_with_subfolder(mocked_resolve):
@@ -308,12 +308,12 @@ def test_generate_output_name_with_subfolder(mocked_resolve):
     pattern = os.path.join("folder", "BASE_NAME")
 
     result = nomenclator.template.generate_output_name(
-        pattern, "nk", token_mapping="__TOKEN_MAPPING__"
+        pattern, "mp4", token_mapping="__TOKEN_MAPPING__"
     )
     assert result == mocked_resolve.return_value
 
     mocked_resolve.assert_called_once_with(
-        os.path.join("folder", "BASE_NAME.nk"), "__TOKEN_MAPPING__"
+        os.path.join("folder", "BASE_NAME.mp4"), "__TOKEN_MAPPING__"
     )
 
 
@@ -322,14 +322,13 @@ def test_generate_output_name_with_padding(mocked_resolve):
     import nomenclator.template
 
     result = nomenclator.template.generate_output_name(
-        "BASE_NAME", "nk",
-        padding="%01d",
+        "BASE_NAME", "exr",
         token_mapping="__TOKEN_MAPPING__"
     )
     assert result == mocked_resolve.return_value
 
     mocked_resolve.assert_called_once_with(
-        "BASE_NAME.%01d.nk", "__TOKEN_MAPPING__"
+        "BASE_NAME.{padding}.exr", "__TOKEN_MAPPING__"
     )
 
 
@@ -340,14 +339,14 @@ def test_generate_output_name_with_passname_in_subfolder(mocked_resolve):
     pattern = os.path.join("folder", "BASE_NAME")
 
     result = nomenclator.template.generate_output_name(
-        pattern, "nk",
+        pattern, "mp4",
         append_passname_to_subfolder=True,
         token_mapping="__TOKEN_MAPPING__"
     )
     assert result == mocked_resolve.return_value
 
     mocked_resolve.assert_called_once_with(
-        os.path.join("folder_{passname}", "BASE_NAME.nk"), "__TOKEN_MAPPING__"
+        os.path.join("folder_{passname}", "BASE_NAME.mp4"), "__TOKEN_MAPPING__"
     )
 
 
@@ -356,14 +355,14 @@ def test_generate_output_name_with_passname_in_subfolder_error(mocked_resolve):
     import nomenclator.template
 
     result = nomenclator.template.generate_output_name(
-        "BASE_NAME", "nk",
+        "BASE_NAME", "mp4",
         append_passname_to_subfolder=True,
         token_mapping="__TOKEN_MAPPING__"
     )
     assert result == mocked_resolve.return_value
 
     mocked_resolve.assert_called_once_with(
-        "BASE_NAME.nk", "__TOKEN_MAPPING__"
+        "BASE_NAME.mp4", "__TOKEN_MAPPING__"
     )
 
 
@@ -374,14 +373,14 @@ def test_generate_output_name_with_passname(mocked_resolve):
     pattern = os.path.join("folder", "BASE_NAME")
 
     result = nomenclator.template.generate_output_name(
-        pattern, "nk",
+        pattern, "mp4",
         append_passname=True,
         token_mapping="__TOKEN_MAPPING__"
     )
     assert result == mocked_resolve.return_value
 
     mocked_resolve.assert_called_once_with(
-        os.path.join("folder", "BASE_NAME_{passname}.nk"),
+        os.path.join("folder", "BASE_NAME_{passname}.mp4"),
         "__TOKEN_MAPPING__"
     )
 
@@ -393,14 +392,14 @@ def test_generate_output_name_with_colorspace(mocked_resolve):
     pattern = os.path.join("folder", "BASE_NAME")
 
     result = nomenclator.template.generate_output_name(
-        pattern, "nk",
+        pattern, "mp4",
         append_colorspace=True,
         token_mapping="__TOKEN_MAPPING__"
     )
     assert result == mocked_resolve.return_value
 
     mocked_resolve.assert_called_once_with(
-        os.path.join("folder", "BASE_NAME_{colorspace}.nk"),
+        os.path.join("folder", "BASE_NAME_{colorspace}.mp4"),
         "__TOKEN_MAPPING__"
     )
 
@@ -412,14 +411,14 @@ def test_generate_output_name_with_username(mocked_resolve):
     pattern = os.path.join("folder", "BASE_NAME")
 
     result = nomenclator.template.generate_output_name(
-        pattern, "nk",
+        pattern, "mp4",
         append_username=True,
         token_mapping="__TOKEN_MAPPING__"
     )
     assert result == mocked_resolve.return_value
 
     mocked_resolve.assert_called_once_with(
-        os.path.join("folder", "BASE_NAME_{username}.nk"),
+        os.path.join("folder", "BASE_NAME_{username}.mp4"),
         "__TOKEN_MAPPING__"
     )
 
@@ -431,14 +430,14 @@ def test_generate_output_name_with_multi_views(mocked_resolve):
     pattern = os.path.join("folder", "BASE_NAME")
 
     result = nomenclator.template.generate_output_name(
-        pattern, "nk",
+        pattern, "mp4",
         multi_views=True,
         token_mapping="__TOKEN_MAPPING__"
     )
     assert result == mocked_resolve.return_value
 
     mocked_resolve.assert_called_once_with(
-        os.path.join("folder", "BASE_NAME_%V.nk"),
+        os.path.join("folder", "BASE_NAME_%V.mp4"),
         "__TOKEN_MAPPING__"
     )
 
@@ -450,8 +449,7 @@ def test_generate_output_name_with_several_options(mocked_resolve):
     pattern = os.path.join("folder", "BASE_NAME")
 
     result = nomenclator.template.generate_output_name(
-        pattern, "nk",
-        padding="%01d",
+        pattern, "exr",
         append_passname_to_subfolder=True,
         append_passname=True,
         append_colorspace=True,
@@ -464,7 +462,7 @@ def test_generate_output_name_with_several_options(mocked_resolve):
     mocked_resolve.assert_called_once_with(
         os.path.join(
             "folder_{passname}",
-            "BASE_NAME_{colorspace}_{username}_{passname}_%V.%01d.nk"
+            "BASE_NAME_{colorspace}_{username}_{passname}_%V.{padding}.exr"
         ),
         "__TOKEN_MAPPING__"
     )

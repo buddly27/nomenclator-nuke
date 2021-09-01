@@ -3,7 +3,7 @@
 import re
 import os
 
-from nomenclator.symbol import DEFAULT_EXPRESSION
+from nomenclator.symbol import DEFAULT_EXPRESSION, VIDEO_TYPES
 
 
 def fetch_resolved_tokens(
@@ -159,8 +159,8 @@ def generate_scene_name(pattern, suffix, append_username=False, token_mapping=No
     :param append_username: Indicate whether username should be appended to base name.
         Default is False.
 
-    :param token_mapping: Mapping regrouping resolved token value associated with
-        their name. Default is None.
+    :param token_mapping: Mapping regrouping resolved token values associated
+        with their name. Default is None.
 
     :return: String name.
 
@@ -176,7 +176,7 @@ def generate_scene_name(pattern, suffix, append_username=False, token_mapping=No
 
 
 def generate_output_name(
-    pattern, suffix, padding=None, append_passname_to_subfolder=False, append_passname=False,
+    pattern, suffix, append_passname_to_subfolder=False, append_passname=False,
     append_colorspace=False, append_username=False, multi_views=False, token_mapping=None
 ):
     """Generate output name from *pattern* using a mapping of resolved tokens.
@@ -185,9 +185,6 @@ def generate_output_name(
         with or without tokens.
 
     :param suffix: Suffix to apply for the generated name (e.g. "exr").
-
-    :param padding: Padding which should be appended to output name if required.
-        Default is None, which means that the output is not a sequence.
 
     :param append_passname_to_subfolder: Indicate whether passname should be appended to sub-folder.
         Default is False.
@@ -204,8 +201,8 @@ def generate_output_name(
     :param multi_views: Indicate whether the view should be appended to base name
         with the pattern '%V'. Default is False.
 
-    :param token_mapping: Mapping regrouping resolved token value associated with
-        their name. Default is None.
+    :param token_mapping: Mapping regrouping resolved token values associated
+        with their name. Default is None.
 
     :return: String name.
 
@@ -229,8 +226,8 @@ def generate_output_name(
     if multi_views:
         elements[-1] += "_%V"
 
-    if padding:
-        elements[-1] += ".{}".format(padding)
+    if suffix not in VIDEO_TYPES:
+        elements[-1] += ".{padding}"
 
     elements[-1] += ".{}".format(suffix)
     return resolve(os.sep.join(elements), token_mapping or {})
@@ -242,8 +239,8 @@ def resolve(pattern, token_mapping):
     :param pattern: String representing a template pattern,
         with or without tokens.
 
-    :param token_mapping: Mapping regrouping resolved token value associated with
-        their name.
+    :param token_mapping: Mapping regrouping resolved token values associated
+        with their name.
 
     :return: String name.
 
