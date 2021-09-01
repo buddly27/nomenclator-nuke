@@ -6,6 +6,9 @@ OUTPUT_CLASSES = ("Write", "DeepWrite")
 #: Name of the configuration file.
 CONFIG_FILE_NAME = "nomenclator.toml"
 
+#: List of file types used for video formats.
+VIDEO_TYPES = ("mxf", "mov", "mp4", "avi")
+
 #: Default expression to resolve token if none is specified in a template pattern.
 DEFAULT_EXPRESSION = r"[\w_.-]+"
 
