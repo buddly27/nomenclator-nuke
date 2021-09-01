@@ -99,6 +99,64 @@ def test_fetch_next_version_empty(
     mocked_fetch_resolved_tokens.assert_not_called()
 
 
+def test_fetch_template_config_empty(mocked_fetch_resolved_tokens):
+    """Fail to return template configuration when config list is empty."""
+    import nomenclator.utilities
+
+    config = nomenclator.utilities.fetch_template_config("/path", [], {})
+    assert config is None
+
+    mocked_fetch_resolved_tokens.assert_not_called()
+
+
+def test_fetch_template_config_unmatched(mocker, mocked_fetch_resolved_tokens):
+    """Fail to return template configuration when config list do not matched."""
+    import nomenclator.utilities
+
+    mocked_fetch_resolved_tokens.return_value = None
+
+    token_mapping = {}
+    template_configs = [mocker.Mock(), mocker.Mock(), mocker.Mock()]
+    config = nomenclator.utilities.fetch_template_config(
+        "/path", template_configs, token_mapping
+    )
+    assert config is None
+    assert token_mapping == {}
+
+    assert mocked_fetch_resolved_tokens.call_count == 3
+    for index in range(3):
+        mocked_fetch_resolved_tokens.assert_any_call(
+            "/path", template_configs[index].pattern_path,
+            default_expression=template_configs[index].default_expression,
+            match_start=template_configs[index].match_start,
+            match_end=template_configs[index].match_end,
+        )
+
+
+def test_fetch_template_config(mocker, mocked_fetch_resolved_tokens):
+    """Return matching template configuration."""
+    import nomenclator.utilities
+
+    mocked_fetch_resolved_tokens.side_effect = [None, None, {"key": "value"}]
+
+    token_mapping = {}
+    template_configs = [mocker.Mock(), mocker.Mock(), mocker.Mock()]
+    config = nomenclator.utilities.fetch_template_config(
+        "/path", template_configs, token_mapping
+    )
+    assert config == template_configs[2]
+    assert token_mapping == {"key": "value"}
+
+    assert mocked_fetch_resolved_tokens.call_count == 3
+    for index in range(3):
+        mocked_fetch_resolved_tokens.assert_any_call(
+            "/path", template_configs[index].pattern_path,
+            default_expression=template_configs[index].default_expression,
+            match_start=template_configs[index].match_start,
+            match_end=template_configs[index].match_end,
+        )
+
+
 def test_fetch_nodes(mocker):
     """Return tuple with output nodes and all node names."""
     import nuke
