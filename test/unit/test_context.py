@@ -48,6 +48,20 @@ def mocked_generate_scene_name(mocker):
 
 
 @pytest.fixture()
+def mocked_generate_output_name(mocker):
+    """Return mocked 'nomenclator.template.generate_output_name' function."""
+    import nomenclator.template
+    return mocker.patch.object(nomenclator.template, "generate_output_name")
+
+
+@pytest.fixture()
+def mocked_resolve(mocker):
+    """Return mocked 'nomenclator.template.resolve' function."""
+    import nomenclator.template
+    return mocker.patch.object(nomenclator.template, "resolve")
+
+
+@pytest.fixture()
 def mocked_fetch_outputs(mocker):
     """Return mocked 'nomenclator.context.fetch_outputs' function."""
     import nomenclator.context
@@ -360,3 +374,100 @@ def test_update(
         version=mocked_fetch_next_version.return_value,
         outputs=mocked_update_outputs.return_value
     )
+
+
+def test_update_outputs_empty(mocked_generate_output_name, mocked_resolve):
+    """Return empty output contexts."""
+    import nomenclator.context
+
+    results = nomenclator.context.update_outputs([], [], {})
+    assert results == tuple()
+
+    mocked_generate_output_name.assert_not_called()
+    mocked_resolve.assert_not_called()
+
+
+def test_update_outputs(mocker, mocked_generate_output_name, mocked_resolve):
+    """Return output contexts."""
+    import nomenclator.context
+
+    mocked_resolve.side_effect = ["__PATH1__", "__PATH2__"]
+    mocked_generate_output_name.side_effect = ["__NAME1__", "__NAME2__"]
+
+    contexts = [
+        mocker.Mock(destination="Target1"),
+        mocker.Mock(destination="Target2"),
+        mocker.Mock(destination="Unknown"),
+    ]
+
+    template_configs = [
+        mocker.Mock(id="Target1"),
+        mocker.Mock(id="Target2"),
+    ]
+
+    token_mapping = {"key": "value"}
+
+    results = nomenclator.context.update_outputs(
+        contexts, template_configs, token_mapping
+    )
+    assert results == (
+        contexts[0]._replace.return_value,
+        contexts[1]._replace.return_value,
+        contexts[2]._replace.return_value,
+    )
+
+    assert mocked_resolve.call_count == 2
+    mocked_resolve.assert_any_call(
+        template_configs[0].pattern_path,
+        {
+            "key": "value",
+            "colorspace": contexts[0].colorspace,
+            "passname": contexts[0].passname,
+        }
+    )
+    mocked_resolve.assert_any_call(
+        template_configs[1].pattern_path,
+        {
+            "key": "value",
+            "colorspace": contexts[1].colorspace,
+            "passname": contexts[1].passname,
+        }
+    )
+
+    assert mocked_generate_output_name.call_count == 2
+    mocked_generate_output_name.assert_any_call(
+        template_configs[0].pattern_base,
+        contexts[0].file_type,
+        append_passname_to_subfolder=contexts[0].append_passname_to_subfolder,
+        append_passname=contexts[0].append_passname_to_name,
+        append_colorspace=contexts[0].append_colorspace_to_name,
+        append_username=contexts[0].append_username_to_name,
+        multi_views=contexts[0].multi_views,
+        token_mapping={
+            "key": "value",
+            "colorspace": contexts[0].colorspace,
+            "passname": contexts[0].passname,
+        }
+    )
+    mocked_generate_output_name.assert_any_call(
+        template_configs[1].pattern_base,
+        contexts[1].file_type,
+        append_passname_to_subfolder=contexts[1].append_passname_to_subfolder,
+        append_passname=contexts[1].append_passname_to_name,
+        append_colorspace=contexts[1].append_colorspace_to_name,
+        append_username=contexts[1].append_username_to_name,
+        multi_views=contexts[1].multi_views,
+        token_mapping={
+            "key": "value",
+            "colorspace": contexts[1].colorspace,
+            "passname": contexts[1].passname,
+        }
+    )
+
+    contexts[0]._replace.assert_called_once_with(
+        path=os.path.join("__PATH1__", "__NAME1__")
+    )
+    contexts[1]._replace.assert_called_once_with(
+        path=os.path.join("__PATH2__", "__NAME2__")
+    )
+    contexts[2]._replace.assert_called_once_with(path="")

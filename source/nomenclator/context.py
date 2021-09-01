@@ -235,13 +235,13 @@ def update_outputs(contexts, template_configs, token_mapping):
             continue
 
         # Update token values.
-        token_mapping = copy.deepcopy(token_mapping)
-        token_mapping.update({
+        _token_mapping = copy.deepcopy(token_mapping)
+        _token_mapping.update({
             "colorspace": _context.colorspace,
             "passname": _context.passname,
         })
 
-        path = nomenclator.template.resolve(config.pattern_path, token_mapping)
+        path = nomenclator.template.resolve(config.pattern_path, _token_mapping)
         name = nomenclator.template.generate_output_name(
             config.pattern_base,
             _context.file_type,
@@ -250,7 +250,7 @@ def update_outputs(contexts, template_configs, token_mapping):
             append_colorspace=_context.append_colorspace_to_name,
             append_username=_context.append_username_to_name,
             multi_views=_context.multi_views,
-            token_mapping=token_mapping
+            token_mapping=_token_mapping
         )
 
         # noinspection PyProtectedMember
