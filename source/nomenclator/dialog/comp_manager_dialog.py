@@ -13,20 +13,26 @@ from .theme import classic_style
 
 class CompoManagerDialog(QtWidgets.QDialog):
 
-    def __init__(self, recent_locations, context, config, parent=None):
+    def __init__(self, context, parent=None):
         """Initiate dialog."""
         super(CompoManagerDialog, self).__init__(parent)
         self._setup_ui()
         self._connect_signals()
 
-        self.set_values(recent_locations, context, config)
+        self._initial_context = context
+        self._context = context
 
-    def set_values(self, recent_locations, context, config):
+        self.set_values(context)
+
+    def set_values(self, context):
         """Initialize values."""
-        self._location.set_items(recent_locations)
-        self._comp_settings_form.set_values(config)
-        self._outputs_settings_group.setEnabled(len(context["nodes"]) > 0)
-        self._output_settings_form.set_values(context, config)
+        self._location.blockSignals(True)
+        self._location.set_items(context.recent_locations)
+        self._location.blockSignals(False)
+
+        self._comp_settings_form.set_values(context)
+        self._outputs_settings_group.setEnabled(len(context.outputs) > 0)
+        self._output_settings_form.set_values(context)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -61,16 +67,55 @@ class CompoManagerDialog(QtWidgets.QDialog):
 
         self._button_box = QtWidgets.QDialogButtonBox(self)
         self._button_box.setOrientation(QtCore.Qt.Horizontal)
-        self._button_box.addButton("Apply", QtWidgets.QDialogButtonBox.AcceptRole)
-        self._button_box.addButton("Cancel", QtWidgets.QDialogButtonBox.RejectRole)
+        self._button_box.addButton(QtWidgets.QDialogButtonBox.Reset)
+        self._button_box.addButton(QtWidgets.QDialogButtonBox.Apply)
+        self._button_box.addButton(QtWidgets.QDialogButtonBox.Cancel)
         body_layout.addWidget(self._button_box)
+
+        button = self._button_box.button(QtWidgets.QDialogButtonBox.Reset)
+        button.setEnabled(False)
+
+        button = self._button_box.button(QtWidgets.QDialogButtonBox.Apply)
+        button.setEnabled(False)
 
         main_layout.addItem(body_layout)
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._button_box.accepted.connect(self.accept)
-        self._button_box.rejected.connect(self.reject)
+        self._button_box.clicked.connect(self._button_clicked)
+
+    def _button_clicked(self, button):
+        """Modify the state of the dialog depending on the button clicked."""
+        mapping = {
+            "Apply": self._button_box.button(QtWidgets.QDialogButtonBox.Apply),
+            "Cancel": self._button_box.button(QtWidgets.QDialogButtonBox.Cancel),
+            "Reset": self._button_box.button(QtWidgets.QDialogButtonBox.Reset),
+        }
+
+        if button == mapping["Apply"]:
+            self.accept()
+
+        elif button == mapping["Cancel"]:
+            self.reject()
+
+        elif button == mapping["Reset"]:
+            self._context = self._initial_context
+            self.set_values(self._context)
+            self._update_buttons_states()
+
+    def _update_buttons_states(self):
+        """Modify the state of the buttons depending on the config state."""
+        button = self._button_box.button(QtWidgets.QDialogButtonBox.Reset)
+        button.setEnabled(self._context != self._initial_context)
+
+        button = self._button_box.button(QtWidgets.QDialogButtonBox.Apply)
+        button.setEnabled(
+            self._context.path is not None
+            and all(
+                output.enabled and output.path is not None
+                for output in self._context.outputs
+            )
+        )
 
 
 class CompSettingsForm(QtWidgets.QWidget):
@@ -82,10 +127,10 @@ class CompSettingsForm(QtWidgets.QWidget):
         self._setup_ui()
         self._connect_signals()
 
-    def set_values(self, config):
+    def set_values(self, context):
         """Initialize values."""
         self._description_selector.blockSignals(True)
-        self._description_selector.set_items(config.descriptions)
+        self._description_selector.set_items(context.descriptions)
         self._description_selector.blockSignals(False)
 
     def _setup_ui(self):

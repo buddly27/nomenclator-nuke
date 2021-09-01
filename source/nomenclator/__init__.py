@@ -3,6 +3,7 @@
 import nuke
 
 import nomenclator.config
+import nomenclator.context
 import nomenclator.utilities
 from nomenclator.dialog import CompoManagerDialog
 from nomenclator.dialog import SettingsDialog
@@ -14,12 +15,9 @@ def open_comp_manager_dialog():
     """Open the dialog to manage composition script and render output paths.
     """
     config = nomenclator.config.fetch()
-    context = nomenclator.utilities.fetch_output_context(config)
-    recent_locations = nomenclator.utilities.fetch_recent_comp_paths(
-        max_values=config.max_locations
-    )
+    context = nomenclator.context.fetch(config, with_outputs=True)
 
-    panel = CompoManagerDialog(recent_locations, context, config)
+    panel = CompoManagerDialog(context)
     panel.exec_()
 
 

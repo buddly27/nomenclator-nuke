@@ -15,13 +15,24 @@ class OutputSettingsForm(QtWidgets.QWidget):
         self._setup_ui()
         self._connect_signals()
 
-    def set_values(self, context, config):
-        """Initialize values."""
-        self._file_path_form.set_values(config)
-        self._file_name_form.set_values(context)
+        self._output_path = {}
+        self._output_name = {}
 
-        for node in sorted(context["nodes"], key=lambda n: n.name()):
-            self._output_list.add(node)
+    @property
+    def output_paths(self):
+        """Return mapping regrouping name generated for each output node."""
+        return self._output_path
+
+    @property
+    def output_names(self):
+        """Return mapping regrouping new name for each output node."""
+        return self._output_name
+
+    def set_values(self, context):
+        """Initialize values."""
+        self._file_path_form.set_values(context)
+        self._file_name_form.set_values(context)
+        self._output_list.set_values(context.outputs)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -61,12 +72,19 @@ class FilePathForm(QtWidgets.QWidget):
         super(FilePathForm, self).__init__(parent)
         self._setup_ui()
 
-    def set_values(self, config):
+    def set_values(self, context):
         """Initialize values."""
         self._create_subfolders.blockSignals(True)
-        state = QtCore.Qt.Checked if config.create_subfolders else QtCore.Qt.Unchecked
+        state = QtCore.Qt.Checked if context.create_subfolders else QtCore.Qt.Unchecked
         self._create_subfolders.setCheckState(state)
         self._create_subfolders.blockSignals(False)
+
+        self._append_passname.blockSignals(True)
+        state = _compute_check_state({
+            output.append_passname_to_subfolder for output in context.outputs
+        })
+        self._append_passname.setCheckState(state)
+        self._append_passname.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -114,8 +132,32 @@ class FileNameForm(QtWidgets.QWidget):
     def set_values(self, context):
         """Initialize values."""
         self._padding.blockSignals(True)
-        self._padding.addItems(context["paddings"])
+        self._padding.addItems(context.paddings)
+        index = self._padding.findText(context.padding)
+        if index >= 0:
+            self._padding.setCurrentIndex(index)
         self._padding.blockSignals(False)
+
+        self._append_passname.blockSignals(True)
+        state = _compute_check_state({
+            output.append_passname_to_name for output in context.outputs
+        })
+        self._append_passname.setCheckState(state)
+        self._append_passname.blockSignals(False)
+
+        self._append_colorspace.blockSignals(True)
+        state = _compute_check_state({
+            output.append_colorspace_to_name for output in context.outputs
+        })
+        self._append_colorspace.setCheckState(state)
+        self._append_colorspace.blockSignals(False)
+
+        self._append_username.blockSignals(True)
+        state = _compute_check_state({
+            output.append_username_to_name for output in context.outputs
+        })
+        self._append_username.setCheckState(state)
+        self._append_username.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -144,3 +186,13 @@ class FileNameForm(QtWidgets.QWidget):
             "Append username to each output", self
         )
         main_layout.addWidget(self._append_username, 3, 0, 1, 2)
+
+
+def _compute_check_state(values_set):
+    """Compute checkbox state from values set."""
+    if values_set == {True}:
+        return QtCore.Qt.Checked
+    elif values_set == {False}:
+        return QtCore.Qt.Unchecked
+
+    return QtCore.Qt.PartiallyChecked
