@@ -14,6 +14,7 @@ class LocationWidget(QtWidgets.QFrame):
 
     def set_items(self, recent_locations):
         """Initialize items."""
+        self._location.clear()
         self._location.addItems(recent_locations)
         self._location.setEditText("")
 
