@@ -4,17 +4,24 @@ import pytest
 
 
 @pytest.fixture()
+def mocked_fetch_next_version(mocker):
+    """Return mocked 'nomenclator.utilities.fetch_next_version' function."""
+    import nomenclator.utilities
+    return mocker.patch.object(nomenclator.utilities, "fetch_next_version", )
+
+
+@pytest.fixture()
+def mocked_fetch_template_config(mocker):
+    """Return mocked 'nomenclator.utilities.fetch_template_config' function."""
+    import nomenclator.utilities
+    return mocker.patch.object(nomenclator.utilities, "fetch_template_config", )
+
+
+@pytest.fixture()
 def mocked_fetch_nodes(mocker):
     """Return mocked 'nomenclator.utilities.fetch_nodes' function."""
     import nomenclator.utilities
     return mocker.patch.object(nomenclator.utilities, "fetch_nodes", )
-
-
-@pytest.fixture()
-def mocked_fetch_outputs(mocker):
-    """Return mocked 'nomenclator.context.fetch_outputs' function."""
-    import nomenclator.context
-    return mocker.patch.object(nomenclator.context, "fetch_outputs")
 
 
 @pytest.fixture()
@@ -32,12 +39,27 @@ def mocked_fetch_recent_comp_paths(mocker):
 
 
 @pytest.fixture()
+def mocked_fetch_outputs(mocker):
+    """Return mocked 'nomenclator.context.fetch_outputs' function."""
+    import nomenclator.context
+    return mocker.patch.object(nomenclator.context, "fetch_outputs")
+
+
+@pytest.fixture()
+def mocked_generate_scene_name(mocker):
+    """Return mocked 'nomenclator.template.generate_scene_name' function."""
+    import nomenclator.template
+    return mocker.patch.object(nomenclator.template, "generate_scene_name")
+
+
+@pytest.fixture()
 def nodes(mocker):
     """Return mocked nodes."""
     knob_mappings = [
         {
             "file": mocker.Mock(**{"value.return_value": ""}),
             "views": mocker.Mock(**{"value.return_value": "main"}),
+            "colorspace": mocker.Mock(**{"value.return_value": "sRGB"}),
             "disable": mocker.Mock(**{"value.return_value": False}),
             "file_type": mocker.Mock(**{
                 "value.return_value": "",
@@ -47,6 +69,7 @@ def nodes(mocker):
         {
             "file": mocker.Mock(**{"value.return_value": "/path/to/file.dpx"}),
             "views": mocker.Mock(**{"value.return_value": "left right"}),
+            "colorspace": mocker.Mock(**{"value.return_value": "rec709"}),
             "disable": mocker.Mock(**{"value.return_value": False}),
             "file_type": mocker.Mock(**{
                 "value.return_value": "dpx",
@@ -57,6 +80,7 @@ def nodes(mocker):
         {
             "file": mocker.Mock(**{"value.return_value": ""}),
             "views": mocker.Mock(**{"value.return_value": "main"}),
+            "colorspace": mocker.Mock(**{"value.return_value": "linear"}),
             "disable": mocker.Mock(**{"value.return_value": True}),
             "file_type": mocker.Mock(**{
                 "value.return_value": "",
@@ -97,11 +121,8 @@ def test_fetch_comp(
 
     mocked_fetch_paddings.return_value = ("#", "##", "###")
 
-    config = mocker.Mock(
-        descriptions=("test1", "test2", "test3"),
-        max_padding=10,
-        max_locations=15
-    )
+    config = mocker.Mock(descriptions=("test1", "test2", "test3"))
+
     context = nomenclator.context.fetch(config, **options)
 
     assert context == nomenclator.context.Context(
@@ -117,13 +138,18 @@ def test_fetch_comp(
         paddings=("#", "##", "###"),
         create_subfolders=config.create_subfolders,
         tokens=config.tokens,
+        username=config.username,
         template_configs=config.comp_template_configs,
         outputs=mocked_fetch_outputs.return_value
     )
 
-    mocked_fetch_outputs.assert_called_once()
-    mocked_fetch_paddings.assert_called_once_with(max_value=10)
-    mocked_fetch_recent_comp_paths.assert_called_once_with(max_values=15)
+    mocked_fetch_outputs.assert_called_once_with(config)
+    mocked_fetch_paddings.assert_called_once_with(
+        max_value=config.max_padding
+    )
+    mocked_fetch_recent_comp_paths.assert_called_once_with(
+        max_values=config.max_locations
+    )
 
 
 def test_fetch_project(
@@ -135,11 +161,8 @@ def test_fetch_project(
 
     mocked_fetch_paddings.return_value = ("#", "##", "###")
 
-    config = mocker.Mock(
-        descriptions=("test1", "test2", "test3"),
-        max_padding=10,
-        max_locations=15,
-    )
+    config = mocker.Mock(descriptions=("test1", "test2", "test3"))
+
     context = nomenclator.context.fetch(config, is_project=True)
 
     assert context == nomenclator.context.Context(
@@ -155,16 +178,21 @@ def test_fetch_project(
         paddings=("#", "##", "###"),
         create_subfolders=config.create_subfolders,
         tokens=config.tokens,
+        username=config.username,
         template_configs=config.project_template_configs,
         outputs=tuple()
     )
 
     mocked_fetch_outputs.assert_not_called()
-    mocked_fetch_paddings.assert_called_once_with(max_value=10)
-    mocked_fetch_recent_comp_paths.assert_called_once_with(max_values=15)
+    mocked_fetch_paddings.assert_called_once_with(
+        max_value=config.max_padding
+    )
+    mocked_fetch_recent_comp_paths.assert_called_once_with(
+        max_values=config.max_locations
+    )
 
 
-def test_fetch_outputs(nodes, mocked_fetch_nodes):
+def test_fetch_outputs(mocker, nodes, mocked_fetch_nodes):
     """Return output context objects."""
     import nomenclator.context
 
@@ -172,7 +200,9 @@ def test_fetch_outputs(nodes, mocked_fetch_nodes):
         nodes, ["node1", "node2", "node3", "node4", "node5"]
     )
 
-    contexts = nomenclator.context.fetch_outputs()
+    config = mocker.Mock(colorspace_aliases=(("sRGB", "srgb"),))
+
+    contexts = nomenclator.context.fetch_outputs(config)
 
     assert contexts == (
         nomenclator.context.OutputContext(
@@ -186,6 +216,7 @@ def test_fetch_outputs(nodes, mocked_fetch_nodes):
             file_type="exr",
             file_types=("exr", "dpx", "tiff", "mov"),
             multi_views=False,
+            colorspace="srgb",
             append_username_to_name=False,
             append_colorspace_to_name=False,
             append_passname_to_name=False,
@@ -202,6 +233,7 @@ def test_fetch_outputs(nodes, mocked_fetch_nodes):
             file_type="dpx",
             file_types=("exr", "dpx", "tiff", "mov"),
             multi_views=True,
+            colorspace="rec709",
             append_username_to_name=False,
             append_colorspace_to_name=False,
             append_passname_to_name=False,
@@ -218,6 +250,7 @@ def test_fetch_outputs(nodes, mocked_fetch_nodes):
             file_type="exr",
             file_types=("exr", "abc"),
             multi_views=False,
+            colorspace="linear",
             append_username_to_name=False,
             append_colorspace_to_name=False,
             append_passname_to_name=False,

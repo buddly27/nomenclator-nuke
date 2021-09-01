@@ -5,7 +5,7 @@ import collections
 import nomenclator.utilities
 
 
-#: Configuration Structure type.
+#: Context Structure type.
 Context = collections.namedtuple(
     "Context", [
         "location_path",
@@ -20,13 +20,14 @@ Context = collections.namedtuple(
         "paddings",
         "create_subfolders",
         "tokens",
+        "username",
         "template_configs",
         "outputs"
     ]
 )
 
 
-#: Configuration Structure type.
+#: Output Context Structure type.
 OutputContext = collections.namedtuple(
     "OutputContext", [
         "name",
@@ -39,6 +40,7 @@ OutputContext = collections.namedtuple(
         "file_type",
         "file_types",
         "multi_views",
+        "colorspace",
         "append_username_to_name",
         "append_colorspace_to_name",
         "append_passname_to_name",
@@ -48,7 +50,17 @@ OutputContext = collections.namedtuple(
 
 
 def fetch(config, is_project=False):
-    """Fetch context object."""
+    """Fetch context object.
+
+    :param config: :class:`~nomenclator.config.Config` instance.
+
+    :param is_project: Indicate whether the project context is requested.
+        Default is False, which means that the composition context will be
+        returned.
+
+    :return: :class:`Context` instance.
+
+    """
     recent_locations = nomenclator.utilities.fetch_recent_comp_paths(
         max_values=config.max_locations
     )
@@ -58,7 +70,7 @@ def fetch(config, is_project=False):
 
     if not is_project:
         template_configs = config.comp_template_configs
-        outputs = fetch_outputs()
+        outputs = fetch_outputs(config)
         suffix = "nk"
 
     else:
@@ -79,22 +91,30 @@ def fetch(config, is_project=False):
         paddings=paddings,
         create_subfolders=config.create_subfolders,
         tokens=config.tokens,
+        username=config.username,
         template_configs=template_configs,
         outputs=outputs
     )
 
 
-def fetch_outputs():
-    """Fetch tuples regrouping output context objects."""
+def fetch_outputs(config):
+    """Fetch list of output context objects.
+
+    An output context is returned for each matching output node.
+
+    :param config: :class:`~nomenclator.config.Config` instance.
+
+    :return: Tuple of :class:`OutputContext` instances.
+
+    """
     nodes, node_names = nomenclator.utilities.fetch_nodes()
 
     outputs = []
 
+    colorspace_mapping = dict(config.colorspace_aliases)
+
     for node in sorted(nodes, key=lambda n: n.name()):
-        blacklisted_names = [
-            name for name in node_names
-            if name != node.name()
-        ]
+        blacklisted = tuple([n for n in node_names if n != node.name()])
 
         file_types = [
             label.split()[0].strip() for label
@@ -102,9 +122,12 @@ def fetch_outputs():
             if len(label.split())
         ]
 
+        colorspace = node["colorspace"].value()
+        colorspace = colorspace_mapping.get(colorspace, colorspace)
+
         context = OutputContext(
             name=node.name(),
-            blacklisted_names=tuple(blacklisted_names),
+            blacklisted_names=blacklisted,
             path=node["file"].value(),
             passname=node.name(),
             enabled=not node["disable"].value(),
@@ -113,6 +136,7 @@ def fetch_outputs():
             file_type=node["file_type"].value().strip() or "exr",
             file_types=tuple(file_types),
             multi_views=len(node["views"].value().split()) > 1,
+            colorspace=colorspace,
             append_username_to_name=False,
             append_colorspace_to_name=False,
             append_passname_to_name=False,
