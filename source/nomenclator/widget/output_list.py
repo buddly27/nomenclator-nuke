@@ -11,7 +11,7 @@ from .path_widget import PathWidget
 class OutputList(QtWidgets.QListWidget):
     """List of output form settings."""
 
-    #: :term:`Qt Signal` emitted when the output is updated.
+    #: :term:`Qt Signal` emitted when outputs are updated.
     updated = QtCore.Signal()
 
     def __init__(self, parent=None):
@@ -54,6 +54,8 @@ class OutputList(QtWidgets.QListWidget):
 
     def set_values(self, outputs_context):
         """Initialize values."""
+        self.clear()
+
         for context in outputs_context:
             form = SettingsForm(context, self)
             widget = SelectableItemWidget(form, context.enabled, self)

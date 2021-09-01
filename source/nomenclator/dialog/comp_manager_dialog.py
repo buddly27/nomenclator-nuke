@@ -83,6 +83,18 @@ class CompoManagerDialog(QtWidgets.QDialog):
     def _connect_signals(self):
         """Initialize signals connection."""
         self._button_box.clicked.connect(self._button_clicked)
+        self._output_settings_form.updated.connect(self._update_full_context)
+
+    def _update_full_context(self):
+        """Replace context object."""
+        self._context = self._output_settings_form.context
+        self._update_buttons_states()
+
+    def _update_context(self, key, value):
+        """Update context object from *key* and *value*."""
+        # noinspection PyProtectedMember
+        self._context = self._context._replace(**{key: value})
+        self._update_buttons_states()
 
     def _button_clicked(self, button):
         """Modify the state of the dialog depending on the button clicked."""

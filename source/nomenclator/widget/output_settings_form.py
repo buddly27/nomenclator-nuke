@@ -9,6 +9,9 @@ from .output_list import OutputList
 class OutputSettingsForm(QtWidgets.QWidget):
     """Form to manage render outputs settings."""
 
+    #: :term:`Qt Signal` emitted when input context is updated.
+    updated = QtCore.Signal()
+
     def __init__(self, parent=None):
         """Initiate the widget."""
         super(OutputSettingsForm, self).__init__(parent)
@@ -84,6 +87,8 @@ class OutputSettingsForm(QtWidgets.QWidget):
         """Update context object from *key* and *value*."""
         # noinspection PyProtectedMember
         self._context = self._context._replace(**{key: value})
+
+        self.updated.emit()
 
 
 class FilePathForm(QtWidgets.QWidget):
