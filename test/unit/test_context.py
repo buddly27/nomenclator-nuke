@@ -38,18 +38,24 @@ def test_fetch(
     """Return context object."""
     import nomenclator.context
 
-    config = mocker.Mock(max_padding=10, max_locations=15)
+    mocked_fetch_paddings.return_value = ("#", "##", "###")
+
+    config = mocker.Mock(
+        descriptions=("test1", "test2", "test3"),
+        max_padding=10,
+        max_locations=15
+    )
     context = nomenclator.context.fetch(config)
 
     assert context == nomenclator.context.Context(
         location_path=None,
         recent_locations=mocked_fetch_recent_comp_paths.return_value,
         path=None,
-        description=None,
-        descriptions=config.descriptions,
+        description="test1",
+        descriptions=("test1", "test2", "test3"),
         append_username_to_name=False,
-        padding=None,
-        paddings=mocked_fetch_paddings.return_value,
+        padding="#",
+        paddings=("#", "##", "###"),
         create_subfolders=config.create_subfolders,
         outputs=tuple()
     )
@@ -66,18 +72,24 @@ def test_fetch_with_outputs(
     """Return context object with output contexts."""
     import nomenclator.context
 
-    config = mocker.Mock(max_padding=10, max_locations=15)
+    mocked_fetch_paddings.return_value = ("#", "##", "###")
+
+    config = mocker.Mock(
+        descriptions=("test1", "test2", "test3"),
+        max_padding=10,
+        max_locations=15
+    )
     context = nomenclator.context.fetch(config, with_outputs=True)
 
     assert context == nomenclator.context.Context(
         location_path=None,
         recent_locations=mocked_fetch_recent_comp_paths.return_value,
         path=None,
-        description=None,
-        descriptions=config.descriptions,
+        description="test1",
+        descriptions=("test1", "test2", "test3"),
         append_username_to_name=False,
-        padding=None,
-        paddings=mocked_fetch_paddings.return_value,
+        padding="#",
+        paddings=("#", "##", "###"),
         create_subfolders=config.create_subfolders,
         outputs=mocked_fetch_outputs.return_value
     )

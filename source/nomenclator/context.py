@@ -60,10 +60,10 @@ def fetch(config, with_outputs=False):
         location_path=None,
         recent_locations=recent_locations,
         path=None,
-        description=None,
+        description=_fetch_item(config.descriptions, 0),
         descriptions=config.descriptions,
         append_username_to_name=False,
-        padding=None,
+        padding=_fetch_item(paddings, 0),
         paddings=paddings,
         create_subfolders=config.create_subfolders,
         outputs=outputs
@@ -106,3 +106,8 @@ def fetch_outputs():
         outputs.append(context)
 
     return tuple(outputs)
+
+
+def _fetch_item(items, index):
+    """Return item *index* from incoming list or None."""
+    return items[index] if len(items) else None
