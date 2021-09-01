@@ -33,18 +33,6 @@ def fetch_next_version(path, pattern, token_mapping):
     return next_version
 
 
-def fetch_output_context(config):
-    """Return a mapping with all data needed for output management."""
-    nodes, node_names = fetch_nodes()
-    paddings = fetch_paddings(max_value=config.max_padding)
-
-    return {
-        "nodes": nodes,
-        "node_names": node_names,
-        "paddings": paddings
-    }
-
-
 def fetch_nodes():
     """Return a tuple with a list of output nodes and a list all node names."""
     nodes = []

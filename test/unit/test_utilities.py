@@ -12,23 +12,6 @@ def mocked_listdir(mocker):
 
 
 @pytest.fixture()
-def mocked_fetch_nodes(mocker):
-    """Return mocked 'nomenclator.utilities.fetch_nodes' function."""
-    import nomenclator.utilities
-    return mocker.patch.object(
-        nomenclator.utilities, "fetch_nodes",
-        return_value=("__NODES__", "__NAMES__")
-    )
-
-
-@pytest.fixture()
-def mocked_fetch_paddings(mocker):
-    """Return mocked 'nomenclator.utilities.fetch_paddings' function."""
-    import nomenclator.utilities
-    return mocker.patch.object(nomenclator.utilities, "fetch_paddings")
-
-
-@pytest.fixture()
 def mocked_resolve(mocker):
     """Return mocked 'nomenclator.template.resolve' function."""
     import nomenclator.template
@@ -114,25 +97,6 @@ def test_fetch_next_version_empty(
         "__PATTERN__", {"key": "value", "version": r"{version:\d+}"}
     )
     mocked_fetch_resolved_tokens.assert_not_called()
-
-
-def test_fetch_output_context(mocker, mocked_fetch_nodes, mocked_fetch_paddings):
-    """Return a mapping with all data needed for output management."""
-    import nomenclator.utilities
-
-    config = mocker.Mock()
-    context = nomenclator.utilities.fetch_output_context(config)
-
-    assert context == {
-        "nodes": "__NODES__",
-        "node_names": "__NAMES__",
-        "paddings": mocked_fetch_paddings.return_value
-    }
-
-    mocked_fetch_nodes.assert_called_once()
-    mocked_fetch_paddings.assert_called_once_with(
-        max_value=config.max_padding
-    )
 
 
 def test_fetch_nodes(mocker):
