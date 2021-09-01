@@ -15,19 +15,6 @@ class OutputSettingsForm(QtWidgets.QWidget):
         self._setup_ui()
         self._connect_signals()
 
-        self._output_path = {}
-        self._output_name = {}
-
-    @property
-    def output_paths(self):
-        """Return mapping regrouping name generated for each output node."""
-        return self._output_path
-
-    @property
-    def output_names(self):
-        """Return mapping regrouping new name for each output node."""
-        return self._output_name
-
     def set_values(self, context):
         """Initialize values."""
         self._file_path_form.set_values(context)
