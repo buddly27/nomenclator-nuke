@@ -211,10 +211,10 @@ class SettingsForm(QtWidgets.QWidget):
     @property
     def destinations(self):
         """Return output destinations."""
-        return [
+        return tuple([
             self._destination.itemText(index)
             for index in range(self._destination.count())
-        ]
+        ])
 
     @property
     def file_type(self):
@@ -224,10 +224,10 @@ class SettingsForm(QtWidgets.QWidget):
     @property
     def file_types(self):
         """Return output file types."""
-        return [
+        return tuple([
             self._file_type.itemText(index)
             for index in range(self._file_type.count())
-        ]
+        ])
 
     @property
     def append_username_to_name(self):
