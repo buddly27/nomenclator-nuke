@@ -11,6 +11,14 @@ class VersionWidget(QtWidgets.QFrame):
         super(VersionWidget, self).__init__(parent)
         self._setup_ui()
 
+    def set_value(self, version):
+        """Initiate value."""
+        if version is None:
+            self._version_lbl.setText("...")
+        else:
+            version = "{0:03d}".format(version)
+            self._version_lbl.setText(version)
+
     def _setup_ui(self):
         """Initialize user interface."""
         self.setObjectName("version-box")

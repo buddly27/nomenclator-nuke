@@ -84,6 +84,7 @@ class CompoManagerDialog(QtWidgets.QDialog):
         """Initialize signals connection."""
         self._button_box.clicked.connect(self._button_clicked)
         self._output_settings_form.updated.connect(self._update_full_context)
+        self._comp_settings_form.updated.connect(self._update_context)
 
     def _update_full_context(self):
         """Replace context object."""
@@ -133,6 +134,9 @@ class CompoManagerDialog(QtWidgets.QDialog):
 class CompSettingsForm(QtWidgets.QWidget):
     """Form to manage composition settings."""
 
+    #: :term:`Qt Signal` emitted when a key of the context has changed.
+    updated = QtCore.Signal(str, object)
+
     def __init__(self, parent=None):
         """Initiate the widget."""
         super(CompSettingsForm, self).__init__(parent)
@@ -143,7 +147,15 @@ class CompSettingsForm(QtWidgets.QWidget):
         """Initialize values."""
         self._description_selector.blockSignals(True)
         self._description_selector.set_items(context.descriptions)
+        self._description_selector.set_current(context.description)
         self._description_selector.blockSignals(False)
+
+        self._append_username.blockSignals(True)
+        state = QtCore.Qt.Checked if context.append_username_to_name else QtCore.Qt.Unchecked
+        self._append_username.setCheckState(state)
+        self._append_username.blockSignals(False)
+
+        self._version_widget.set_value(context.version)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -165,3 +177,14 @@ class CompSettingsForm(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
+        self._description_selector.updated.connect(
+            lambda: self.updated.emit(
+                "description", self._description_selector.value()
+            )
+        )
+
+        self._append_username.stateChanged.connect(
+            lambda state: self.updated.emit(
+                "append_username_to_name", state == QtCore.Qt.Checked
+            )
+        )
