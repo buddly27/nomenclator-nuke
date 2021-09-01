@@ -15,11 +15,20 @@ class OutputSettingsForm(QtWidgets.QWidget):
         self._setup_ui()
         self._connect_signals()
 
+        self._context = None
+
+    @property
+    def context(self):
+        """Return updated context."""
+        return self._context
+
     def set_values(self, context):
         """Initialize values."""
         self._file_path_form.set_values(context)
         self._file_name_form.set_values(context)
         self._output_list.set_values(context.outputs)
+
+        self._context = context
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -49,15 +58,50 @@ class OutputSettingsForm(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
+        self._output_list.updated.connect(self._handle_output_update)
+
+        self._file_name_form.updated.connect(self._handle_global_update)
+        self._file_path_form.updated.connect(self._handle_global_update)
+
+    def _handle_output_update(self):
+        """Handle changes to output list"""
+        outputs = self._output_list.outputs_context()
+        self._update_context("outputs", outputs)
+
+        self._file_path_form.set_values(self._context)
+        self._file_name_form.set_values(self._context)
+
+    def _handle_global_update(self, key, value):
+        """Handle global changes to options"""
+        method_name = "set_{}".format(key)
+        setter = getattr(self._output_list, method_name)
+        setter(value)
+
+        outputs = self._output_list.outputs_context()
+        self._update_context("outputs", outputs)
+
+    def _update_context(self, key, value):
+        """Update context object from *key* and *value*."""
+        # noinspection PyProtectedMember
+        self._context = self._context._replace(**{key: value})
 
 
 class FilePathForm(QtWidgets.QWidget):
     """Form to manage output file path settings."""
 
+    #: :term:`Qt Signal` emitted when a key of the context has changed.
+    updated = QtCore.Signal(str, object)
+
     def __init__(self, parent=None):
         """Initiate the widget."""
         super(FilePathForm, self).__init__(parent)
         self._setup_ui()
+        self._connect_signals()
+
+    @property
+    def append_passname(self):
+        """Return whether passname should be appended to subfolder."""
+        return self._append_passname.isChecked()
 
     def set_values(self, context):
         """Initialize values."""
@@ -107,18 +151,57 @@ class FilePathForm(QtWidgets.QWidget):
         )
         main_layout.addItem(spacer, 3, 0, 1, 2)
 
+    def _connect_signals(self):
+        """Initialize signals connection."""
+        self._append_passname.stateChanged.connect(self._emit_signal)
+
+    def _emit_signal(self):
+        """Emit corresponding signals"""
+        knob = self.sender()
+        context_attributes = {
+            self._append_passname: "append_passname_to_subfolder",
+        }
+
+        self.updated.emit(context_attributes[knob], knob.isChecked())
+
+        # Ensure that the checkbox is not partially checked if user click on it.
+        if knob.checkState() == QtCore.Qt.PartiallyChecked:
+            knob.blockSignals(True)
+            knob.setCheckState(QtCore.Qt.Checked)
+            knob.blockSignals(False)
+
 
 class FileNameForm(QtWidgets.QWidget):
     """Form to manage output file name settings."""
+
+    #: :term:`Qt Signal` emitted when a key of the context has changed.
+    updated = QtCore.Signal(str, object)
 
     def __init__(self, parent=None):
         """Initiate the widget."""
         super(FileNameForm, self).__init__(parent)
         self._setup_ui()
+        self._connect_signals()
+
+    @property
+    def append_passname(self):
+        """Return whether passname should be appended to subfolder."""
+        return self._append_passname.isChecked()
+
+    @property
+    def append_colorspace(self):
+        """Return whether colorspace should be appended to subfolder."""
+        return self._append_colorspace.isChecked()
+
+    @property
+    def append_username(self):
+        """Return whether username should be appended to subfolder."""
+        return self._append_username.isChecked()
 
     def set_values(self, context):
         """Initialize values."""
         self._padding.blockSignals(True)
+        self._padding.clear()
         self._padding.addItems(context.paddings)
         index = self._padding.findText(context.padding)
         if index >= 0:
@@ -173,6 +256,29 @@ class FileNameForm(QtWidgets.QWidget):
             "Append username to each output", self
         )
         main_layout.addWidget(self._append_username, 3, 0, 1, 2)
+
+    def _connect_signals(self):
+        """Initialize signals connection."""
+        self._append_passname.stateChanged.connect(self._emit_signal)
+        self._append_username.stateChanged.connect(self._emit_signal)
+        self._append_colorspace.stateChanged.connect(self._emit_signal)
+
+    def _emit_signal(self):
+        """Emit corresponding signals"""
+        knob = self.sender()
+        context_attributes = {
+            self._append_passname: "append_passname_to_name",
+            self._append_username: "append_username_to_name",
+            self._append_colorspace: "append_colorspace_to_name",
+        }
+
+        self.updated.emit(context_attributes[knob], knob.isChecked())
+
+        # Ensure that the checkbox is not partially checked if user click on it.
+        if knob.checkState() == QtCore.Qt.PartiallyChecked:
+            knob.blockSignals(True)
+            knob.setCheckState(QtCore.Qt.Checked)
+            knob.blockSignals(False)
 
 
 def _compute_check_state(values_set):

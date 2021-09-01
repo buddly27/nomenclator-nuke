@@ -20,6 +20,10 @@ class PathWidget(QtWidgets.QWidget):
         # Initiate path.
         self.set_path("")
 
+    def path(self):
+        """Return path."""
+        return self._path_selectable.path()
+
     def set_path(self, path):
         """Set a path to display."""
         short_text = os.path.basename(path)
@@ -101,7 +105,7 @@ class PathWidgetDisplay(QtWidgets.QTextEdit):
 
     def add_token(self, token, position):
         """Add a *token* to display for a particular *position* of the cursor."""
-        self._tokens_from_position[position] = name
+        self._tokens_from_position[position] = token
 
     # noinspection PyPep8Naming
     def mouseMoveEvent(self, event):
@@ -145,6 +149,10 @@ class PathWidgetSelectable(QtWidgets.QLineEdit):
         """Initiate the widget."""
         super(PathWidgetSelectable, self).__init__(parent)
         self._setup_ui()
+
+    def path(self):
+        """Return path."""
+        return self.text()
 
     def _setup_ui(self):
         """Initialize user interface."""
