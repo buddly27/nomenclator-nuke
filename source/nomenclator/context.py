@@ -11,6 +11,7 @@ Context = collections.namedtuple(
         "location_path",
         "recent_locations",
         "path",
+        "suffix",
         "version",
         "description",
         "descriptions",
@@ -18,6 +19,8 @@ Context = collections.namedtuple(
         "padding",
         "paddings",
         "create_subfolders",
+        "tokens",
+        "template_configs",
         "outputs"
     ]
 )
@@ -44,7 +47,7 @@ OutputContext = collections.namedtuple(
 )
 
 
-def fetch(config, with_outputs=False):
+def fetch(config, is_project=False):
     """Fetch context object."""
     recent_locations = nomenclator.utilities.fetch_recent_comp_paths(
         max_values=config.max_locations
@@ -53,15 +56,21 @@ def fetch(config, with_outputs=False):
         max_value=config.max_padding
     )
 
-    outputs = tuple()
-
-    if with_outputs:
+    if not is_project:
+        template_configs = config.comp_template_configs
         outputs = fetch_outputs()
+        suffix = "nk"
+
+    else:
+        template_configs = config.project_template_configs
+        outputs = tuple()
+        suffix = "hrox"
 
     return Context(
         location_path="",
         recent_locations=recent_locations,
         path="",
+        suffix=suffix,
         version=None,
         description=_fetch_item(config.descriptions, 0),
         descriptions=config.descriptions,
@@ -69,6 +78,8 @@ def fetch(config, with_outputs=False):
         padding=_fetch_item(paddings, 0),
         paddings=paddings,
         create_subfolders=config.create_subfolders,
+        tokens=config.tokens,
+        template_configs=template_configs,
         outputs=outputs
     )
 
