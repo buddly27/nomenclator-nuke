@@ -122,10 +122,10 @@ class CompoManagerDialog(QtWidgets.QDialog):
 
         button = self._button_box.button(QtWidgets.QDialogButtonBox.Apply)
         button.setEnabled(
-            self._context.path is not None
+            len(self._context.path)
             and all(
-                output.enabled and output.path is not None
-                for output in self._context.outputs
+                output_context.enabled and len(output_context.path)
+                for output_context in self._context.outputs
             )
         )
 
