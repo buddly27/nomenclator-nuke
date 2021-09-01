@@ -108,6 +108,7 @@ def test_fetch_outputs(mocker, mocked_fetch_nodes):
     knob_mappings = [
         {
             "file": mocker.Mock(**{"value.return_value": ""}),
+            "views": mocker.Mock(**{"value.return_value": "main"}),
             "disable": mocker.Mock(**{"value.return_value": False}),
             "file_type": mocker.Mock(**{
                 "value.return_value": "",
@@ -116,6 +117,7 @@ def test_fetch_outputs(mocker, mocked_fetch_nodes):
         },
         {
             "file": mocker.Mock(**{"value.return_value": "/path/to/file.dpx"}),
+            "views": mocker.Mock(**{"value.return_value": "left right"}),
             "disable": mocker.Mock(**{"value.return_value": False}),
             "file_type": mocker.Mock(**{
                 "value.return_value": "dpx",
@@ -125,6 +127,7 @@ def test_fetch_outputs(mocker, mocked_fetch_nodes):
         },
         {
             "file": mocker.Mock(**{"value.return_value": ""}),
+            "views": mocker.Mock(**{"value.return_value": "main"}),
             "disable": mocker.Mock(**{"value.return_value": True}),
             "file_type": mocker.Mock(**{
                 "value.return_value": "",
@@ -165,6 +168,7 @@ def test_fetch_outputs(mocker, mocked_fetch_nodes):
             destinations=tuple(),
             file_type="exr",
             file_types=("exr", "dpx", "tiff", "mov"),
+            multi_views=False,
             append_username_to_name=False,
             append_colorspace_to_name=False,
             append_passname_to_name=False,
@@ -180,6 +184,7 @@ def test_fetch_outputs(mocker, mocked_fetch_nodes):
             destinations=tuple(),
             file_type="dpx",
             file_types=("exr", "dpx", "tiff", "mov"),
+            multi_views=True,
             append_username_to_name=False,
             append_colorspace_to_name=False,
             append_passname_to_name=False,
@@ -195,6 +200,7 @@ def test_fetch_outputs(mocker, mocked_fetch_nodes):
             destinations=tuple(),
             file_type="exr",
             file_types=("exr", "abc"),
+            multi_views=False,
             append_username_to_name=False,
             append_colorspace_to_name=False,
             append_passname_to_name=False,
