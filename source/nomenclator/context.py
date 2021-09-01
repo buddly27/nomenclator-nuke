@@ -57,9 +57,9 @@ def fetch(config, with_outputs=False):
         outputs = fetch_outputs()
 
     return Context(
-        location_path=None,
+        location_path="",
         recent_locations=recent_locations,
-        path=None,
+        path="",
         description=_fetch_item(config.descriptions, 0),
         descriptions=config.descriptions,
         append_username_to_name=False,
@@ -94,7 +94,7 @@ def fetch_outputs():
             path=node["file"].value(),
             passname=node.name(),
             enabled=not node["disable"].value(),
-            destination=None,
+            destination="",
             destinations=tuple(),
             file_type=node["file_type"].value().strip() or "exr",
             file_types=tuple(file_types),

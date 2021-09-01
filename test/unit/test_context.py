@@ -48,9 +48,9 @@ def test_fetch(
     context = nomenclator.context.fetch(config)
 
     assert context == nomenclator.context.Context(
-        location_path=None,
+        location_path="",
         recent_locations=mocked_fetch_recent_comp_paths.return_value,
-        path=None,
+        path="",
         description="test1",
         descriptions=("test1", "test2", "test3"),
         append_username_to_name=False,
@@ -82,9 +82,9 @@ def test_fetch_with_outputs(
     context = nomenclator.context.fetch(config, with_outputs=True)
 
     assert context == nomenclator.context.Context(
-        location_path=None,
+        location_path="",
         recent_locations=mocked_fetch_recent_comp_paths.return_value,
-        path=None,
+        path="",
         description="test1",
         descriptions=("test1", "test2", "test3"),
         append_username_to_name=False,
@@ -159,7 +159,7 @@ def test_fetch_outputs(mocker, mocked_fetch_nodes):
             path="",
             passname="node1",
             enabled=True,
-            destination=None,
+            destination="",
             destinations=tuple(),
             file_type="exr",
             file_types=("exr", "dpx", "tiff", "mov"),
@@ -174,7 +174,7 @@ def test_fetch_outputs(mocker, mocked_fetch_nodes):
             path="/path/to/file.dpx",
             passname="node2",
             enabled=True,
-            destination=None,
+            destination="",
             destinations=tuple(),
             file_type="dpx",
             file_types=("exr", "dpx", "tiff", "mov"),
@@ -189,7 +189,7 @@ def test_fetch_outputs(mocker, mocked_fetch_nodes):
             path="",
             passname="node3",
             enabled=False,
-            destination=None,
+            destination="",
             destinations=tuple(),
             file_type="exr",
             file_types=("exr", "abc"),
