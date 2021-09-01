@@ -15,7 +15,7 @@ def open_comp_manager_dialog():
     """Open the dialog to manage composition script and render output paths.
     """
     config = nomenclator.config.fetch()
-    context = nomenclator.context.fetch(config, with_outputs=True)
+    context = nomenclator.context.fetch(config)
 
     panel = CompoManagerDialog(context)
     panel.exec_()

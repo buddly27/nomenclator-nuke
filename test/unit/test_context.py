@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 import pytest
 
 
@@ -39,6 +41,13 @@ def mocked_fetch_recent_comp_paths(mocker):
 
 
 @pytest.fixture()
+def mocked_generate_scene_name(mocker):
+    """Return mocked 'nomenclator.template.generate_scene_name' function."""
+    import nomenclator.template
+    return mocker.patch.object(nomenclator.template, "generate_scene_name")
+
+
+@pytest.fixture()
 def mocked_fetch_outputs(mocker):
     """Return mocked 'nomenclator.context.fetch_outputs' function."""
     import nomenclator.context
@@ -46,10 +55,10 @@ def mocked_fetch_outputs(mocker):
 
 
 @pytest.fixture()
-def mocked_generate_scene_name(mocker):
-    """Return mocked 'nomenclator.template.generate_scene_name' function."""
-    import nomenclator.template
-    return mocker.patch.object(nomenclator.template, "generate_scene_name")
+def mocked_update_outputs(mocker):
+    """Return mocked 'nomenclator.context.update_outputs' function."""
+    import nomenclator.context
+    return mocker.patch.object(nomenclator.context, "update_outputs")
 
 
 @pytest.fixture()
@@ -256,4 +265,98 @@ def test_fetch_outputs(mocker, nodes, mocked_fetch_nodes):
             append_passname_to_name=False,
             append_passname_to_subfolder=False
         ),
+    )
+
+
+def test_update_empty(
+    mocker, mocked_fetch_next_version, mocked_fetch_template_config,
+    mocked_generate_scene_name, mocked_update_outputs
+):
+    """Return context with empty path."""
+    import nomenclator.context
+
+    mocked_fetch_template_config.return_value = None
+
+    context = mocker.Mock(
+        tokens=(("key1", "value1"), ("key2", "value2"), ("key3", "value3")),
+    )
+
+    result = nomenclator.context.update(context)
+    assert result == context._replace.return_value
+
+    mocked_fetch_template_config.assert_called_once_with(
+        context.location_path,
+        context.template_configs,
+        {"key1": "value1", "key2": "value2", "key3": "value3"}
+    )
+
+    mocked_fetch_next_version.assert_not_called()
+    mocked_generate_scene_name.assert_not_called()
+
+    mocked_update_outputs.assert_called_once_with(context, [], {})
+
+    context._replace.assert_called_once_with(
+        path="",
+        version=None,
+        outputs=mocked_update_outputs.return_value
+    )
+
+
+def test_update(
+    mocker, mocked_fetch_next_version, mocked_fetch_template_config,
+    mocked_generate_scene_name, mocked_update_outputs
+):
+    """Return context with generated path."""
+    import nomenclator.context
+
+    mocked_fetch_next_version.return_value = 3
+    mocked_generate_scene_name.return_value = "__NAME__"
+
+    context = mocker.Mock(
+        location_path="__PATH__",
+        tokens=(("key1", "value1"), ("key2", "value2"), ("key3", "value3")),
+    )
+
+    result = nomenclator.context.update(context)
+    assert result == context._replace.return_value
+
+    token_mapping = {
+        "version": "003",
+        "padding": context.padding,
+        "description": context.description,
+        "username": context.username,
+        "key1": "value1",
+        "key2": "value2",
+        "key3": "value3"
+    }
+
+    mocked_fetch_template_config.assert_called_once_with(
+        context.location_path,
+        context.template_configs,
+        token_mapping
+    )
+
+    mocked_fetch_next_version.assert_called_once_with(
+        context.location_path,
+        mocked_fetch_template_config.return_value.pattern_path,
+        token_mapping
+    )
+
+    mocked_generate_scene_name.assert_called_once_with(
+        mocked_fetch_template_config.return_value.pattern_base,
+        context.suffix,
+        append_username=context.append_username_to_name,
+        token_mapping=token_mapping
+    )
+
+    mocked_update_outputs.assert_called_once_with(
+        context,
+        mocked_fetch_template_config.return_value.outputs,
+        token_mapping
+    )
+
+    context._replace.assert_called_once_with(
+        path=os.path.join("__PATH__", "__NAME__"),
+        version=mocked_fetch_next_version.return_value,
+        outputs=mocked_update_outputs.return_value
     )

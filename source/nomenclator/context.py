@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import collections
+import copy
+import os
 
 import nomenclator.utilities
+import nomenclator.template
 
 
 #: Context Structure type.
@@ -122,6 +125,7 @@ def fetch_outputs(config):
             if len(label.split())
         ]
 
+        # Resolve colorspace value.
         colorspace = node["colorspace"].value()
         colorspace = colorspace_mapping.get(colorspace, colorspace)
 
@@ -150,3 +154,106 @@ def fetch_outputs(config):
 def _fetch_item(items, index):
     """Return item *index* from incoming list or None."""
     return items[index] if len(items) else None
+
+
+def update(context):
+    """Return updated context object with generated paths.
+
+    Incoming *context* will not be mutated.
+
+    :param context: :class:`Context` instance.
+
+    :return: updated :class:`Context` instance.
+
+    """
+    token_mapping = dict(context.tokens)
+
+    config = nomenclator.utilities.fetch_template_config(
+        context.location_path,
+        context.template_configs,
+        token_mapping
+    )
+    if config is None:
+        # noinspection PyProtectedMember
+        return context._replace(
+            path="",
+            version=None,
+            outputs=update_outputs(context, [], {})
+        )
+
+    version = nomenclator.utilities.fetch_next_version(
+        context.location_path, config.pattern_path, token_mapping
+    )
+
+    # Update token values.
+    token_mapping.update({
+        "version": "{0:03d}".format(version),
+        "padding": context.padding,
+        "description": context.description,
+        "username": context.username
+    })
+
+    name = nomenclator.template.generate_scene_name(
+        config.pattern_base, context.suffix,
+        append_username=context.append_username_to_name,
+        token_mapping=token_mapping
+    )
+
+    # noinspection PyProtectedMember
+    return context._replace(
+        path=os.path.join(context.location_path, name),
+        version=version,
+        outputs=update_outputs(context, config.outputs, token_mapping)
+    )
+
+
+def update_outputs(contexts, template_configs, token_mapping):
+    """Return updated output context objects with generated paths.
+
+    Incoming *contexts* will not be mutated.
+
+    :param contexts: :Tuple of :class:`OutputContext` instances.
+
+    :param template_configs: List of available
+        :class:`~nomenclator.config.TemplateConfig` instances.
+
+    :param token_mapping: Mapping regrouping resolved token values associated
+        with their name.
+
+    :return: Tuple of :class:`OutputContext` instances.
+
+    """
+    mapping = {config.id: config for config in template_configs}
+
+    _contexts = []
+
+    for _context in contexts:
+        config = mapping.get(_context.destination)
+        if config is None:
+            # noinspection PyProtectedMember
+            _contexts.append(_context._replace(path=""))
+            continue
+
+        # Update token values.
+        token_mapping = copy.deepcopy(token_mapping)
+        token_mapping.update({
+            "colorspace": _context.colorspace,
+            "passname": _context.passname,
+        })
+
+        path = nomenclator.template.resolve(config.pattern_path, token_mapping)
+        name = nomenclator.template.generate_output_name(
+            config.pattern_base,
+            _context.file_type,
+            append_passname_to_subfolder=_context.append_passname_to_subfolder,
+            append_passname=_context.append_passname_to_name,
+            append_colorspace=_context.append_colorspace_to_name,
+            append_username=_context.append_username_to_name,
+            multi_views=_context.multi_views,
+            token_mapping=token_mapping
+        )
+
+        # noinspection PyProtectedMember
+        _contexts.append(_context._replace(path=os.path.join(path, name)))
+
+    return tuple(_contexts)
