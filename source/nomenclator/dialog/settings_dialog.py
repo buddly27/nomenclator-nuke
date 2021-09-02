@@ -4,7 +4,11 @@ from nomenclator.vendor.Qt import QtWidgets, QtCore
 from nomenclator.widget import EditableList
 from nomenclator.widget import EditableTabWidget
 from nomenclator.widget import EditableTable
-from nomenclator.config import TemplateConfig, load_template_configs
+from nomenclator.config import (
+    TemplateConfig,
+    OutputTemplateConfig,
+    load_template_configs
+)
 
 from .theme import classic_style
 
@@ -363,7 +367,7 @@ class _CompTemplateForm(QtWidgets.QWidget):
         main_layout.setContentsMargins(10, 20, 10, 10)
         main_layout.setSpacing(15)
 
-        self._template_form = _TemplateForm(self)
+        self._template_form = _TemplateSceneForm(self)
         main_layout.addWidget(self._template_form)
 
         self._tab_widget = EditableTabWidget(self)
@@ -429,7 +433,7 @@ class _ProjectTemplateForm(QtWidgets.QWidget):
         main_layout.setContentsMargins(10, 20, 10, 10)
         main_layout.setSpacing(15)
 
-        self._template_form = _TemplateForm(self)
+        self._template_form = _TemplateSceneForm(self)
         main_layout.addWidget(self._template_form)
 
         spacer_v = QtWidgets.QSpacerItem(
@@ -457,14 +461,10 @@ class _OutputTemplateForm(QtWidgets.QWidget):
 
     def template(self, identifier):
         """Return template object."""
-        return TemplateConfig(
+        return OutputTemplateConfig(
             id=identifier,
             pattern_path=self._template_form.pattern_path(),
             pattern_base=self._template_form.pattern_base(),
-            default_expression=self._template_form.default_expression(),
-            match_start=self._template_form.match_start(),
-            match_end=self._template_form.match_end(),
-            outputs=None
         )
 
     def set_values(self, config):
@@ -479,7 +479,7 @@ class _OutputTemplateForm(QtWidgets.QWidget):
         main_layout.setContentsMargins(10, 20, 10, 10)
         main_layout.setSpacing(8)
 
-        self._template_form = _TemplateForm(self)
+        self._template_form = _TemplateOutputForm(self)
         main_layout.addWidget(self._template_form)
 
         spacer_v = QtWidgets.QSpacerItem(
@@ -493,15 +493,15 @@ class _OutputTemplateForm(QtWidgets.QWidget):
         self._template_form.updated.connect(self.updated.emit)
 
 
-class _TemplateForm(QtWidgets.QWidget):
-    """Form to manage template path and name."""
+class _TemplateSceneForm(QtWidgets.QWidget):
+    """Form to manage config template settings for scene."""
 
     #: :term:`Qt Signal` emitted when a key of the template has changed.
     updated = QtCore.Signal()
 
     def __init__(self, parent=None):
         """Initiate the widget."""
-        super(_TemplateForm, self).__init__(parent)
+        super(_TemplateSceneForm, self).__init__(parent)
         self._setup_ui()
         self._connect_signals()
 
@@ -564,7 +564,7 @@ class _TemplateForm(QtWidgets.QWidget):
         self._pattern_path = QtWidgets.QLineEdit(self)
         main_layout.addWidget(self._pattern_path, 0, 1, 1, 1)
 
-        pattern_base_lbl = QtWidgets.QLabel("Pattern Base", self)
+        pattern_base_lbl = QtWidgets.QLabel("Pattern Base Name", self)
         main_layout.addWidget(pattern_base_lbl, 1, 0, 1, 1)
 
         self._pattern_base = QtWidgets.QLineEdit(self)
@@ -589,6 +589,63 @@ class _TemplateForm(QtWidgets.QWidget):
         self._default_expression.textChanged.connect(lambda: self.updated.emit())
         self._match_start.stateChanged.connect(lambda: self.updated.emit())
         self._match_end.stateChanged.connect(lambda: self.updated.emit())
+
+
+class _TemplateOutputForm(QtWidgets.QWidget):
+    """Form to manage config template settings for output."""
+
+    #: :term:`Qt Signal` emitted when a key of the template has changed.
+    updated = QtCore.Signal()
+
+    def __init__(self, parent=None):
+        """Initiate the widget."""
+        super(_TemplateOutputForm, self).__init__(parent)
+        self._setup_ui()
+        self._connect_signals()
+
+        default_config = load_template_configs([{"id": "Default"}])[0]
+        self.set_values(default_config)
+
+    def pattern_path(self):
+        """Return pattern path."""
+        return self._pattern_path.text()
+
+    def pattern_base(self):
+        """Return pattern base."""
+        return self._pattern_base.text()
+
+    def set_values(self, config):
+        """Initialize values."""
+        self._pattern_path.blockSignals(True)
+        self._pattern_path.setText(config.pattern_path)
+        self._pattern_path.blockSignals(False)
+
+        self._pattern_base.blockSignals(True)
+        self._pattern_base.setText(config.pattern_base)
+        self._pattern_base.blockSignals(False)
+
+    def _setup_ui(self):
+        """Initialize user interface."""
+        main_layout = QtWidgets.QGridLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(8)
+
+        pattern_path_lbl = QtWidgets.QLabel("Pattern Path", self)
+        main_layout.addWidget(pattern_path_lbl, 0, 0, 1, 1)
+
+        self._pattern_path = QtWidgets.QLineEdit(self)
+        main_layout.addWidget(self._pattern_path, 0, 1, 1, 1)
+
+        pattern_base_lbl = QtWidgets.QLabel("Pattern Base Name", self)
+        main_layout.addWidget(pattern_base_lbl, 1, 0, 1, 1)
+
+        self._pattern_base = QtWidgets.QLineEdit(self)
+        main_layout.addWidget(self._pattern_base, 1, 1, 1, 1)
+
+    def _connect_signals(self):
+        """Initialize signals connection."""
+        self._pattern_path.textChanged.connect(lambda: self.updated.emit())
+        self._pattern_base.textChanged.connect(lambda: self.updated.emit())
 
 
 class ColorspaceSettingsForm(QtWidgets.QWidget):

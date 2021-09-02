@@ -48,10 +48,38 @@ def mocked_load(mocker, temporary_directory):
 
 
 @pytest.fixture()
+def mocked_load_template_configs(mocker, temporary_directory):
+    """Return mocked 'nomenclator.config.load_template_configs' function."""
+    import nomenclator.config
+    return mocker.patch.object(nomenclator.config, "load_template_configs")
+
+
+@pytest.fixture()
+def mocked_load_output_template_configs(mocker, temporary_directory):
+    """Return mocked 'nomenclator.config.load_output_template_configs' function."""
+    import nomenclator.config
+    return mocker.patch.object(nomenclator.config, "load_output_template_configs")
+
+
+@pytest.fixture()
 def mocked_dump(mocker, temporary_directory):
     """Return mocked 'nomenclator.config.dump' function."""
     import nomenclator.config
     return mocker.patch.object(nomenclator.config, "dump")
+
+
+@pytest.fixture()
+def mocked_dump_template_configs(mocker, temporary_directory):
+    """Return mocked 'nomenclator.config.dump_template_configs' function."""
+    import nomenclator.config
+    return mocker.patch.object(nomenclator.config, "dump_template_configs")
+
+
+@pytest.fixture()
+def mocked_dump_output_template_configs(mocker, temporary_directory):
+    """Return mocked 'nomenclator.config.dump_output_template_configs' function."""
+    import nomenclator.config
+    return mocker.patch.object(nomenclator.config, "dump_output_template_configs")
 
 
 def test_path(mocked_expanduser, monkeypatch):
@@ -305,71 +333,14 @@ def test_dump_username():
     assert data == collections.OrderedDict([("username", "john-doe")])
 
 
-def test_dump_comp_templates():
+def test_dump_comp_templates(mocked_dump_template_configs):
     """Return data mapping with updated 'comp-templates'."""
     import nomenclator.config
 
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_template_configs=(
-            nomenclator.config.TemplateConfig(
-                id="Episodic",
-                pattern_path="/path/{project}/{episode}/{shot}/scripts",
-                pattern_base="{episode}_{shot}_{description}_v{version}",
-                default_expression=r"[\w_.-]+",
-                match_start=True,
-                match_end=False,
-                outputs=(
-                    nomenclator.config.TemplateConfig(
-                        id="Comp",
-                        pattern_path="/path/{project}/{episode}/{shot}/comps",
-                        pattern_base="{episode}_{shot}_comp_v{version}",
-                        default_expression=r"\w+",
-                        match_start=True,
-                        match_end=True,
-                        outputs=None
-                    ),
-                    nomenclator.config.TemplateConfig(
-                        id="Precomp",
-                        pattern_path="/path/{project}/{episode}/{shot}/precomps",
-                        pattern_base="{episode}_{shot}_precomp_v{version}",
-                        default_expression=r"[\w_.-]+",
-                        match_start=True,
-                        match_end=True,
-                        outputs=None
-                    ),
-                )
-            ),
-            nomenclator.config.TemplateConfig(
-                id="Element",
-                pattern_path="/path/{project}/build/{element}/scripts",
-                pattern_base="{element}_{description}_v{version}",
-                default_expression=r"[\w_.-]+",
-                match_start=False,
-                match_end=True,
-                outputs=(
-                    nomenclator.config.TemplateConfig(
-                        id="Comp",
-                        pattern_path="/path/{project}/build/{element}/comps",
-                        pattern_base="{element}_comp_v{version}",
-                        default_expression=r"[\w_.-]+",
-                        match_start=True,
-                        match_end=True,
-                        outputs=None
-                    ),
-                    nomenclator.config.TemplateConfig(
-                        id="Precomp",
-                        pattern_path="/path/{project}/build/{element}/precomps",
-                        pattern_base="{element}_precomp_v{version}",
-                        default_expression=r"[\w_.-]+",
-                        match_start=True,
-                        match_end=True,
-                        outputs=None
-                    ),
-                )
-            ),
-        ),
+        comp_template_configs=("__TEMPLATE1__", "__TEMPLATE2__"),
         project_template_configs=tuple(),
         colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
         tokens=tuple(),
@@ -381,55 +352,15 @@ def test_dump_comp_templates():
 
     data = nomenclator.config.dump(config)
     assert data == collections.OrderedDict([
-        (
-            "comp-templates", [
-                collections.OrderedDict([
-                    ("id", "Episodic"),
-                    ("pattern-path", "/path/{project}/{episode}/{shot}/scripts"),
-                    ("pattern-base", "{episode}_{shot}_{description}_v{version}"),
-                    ("match-end", False),
-                    (
-                        "outputs", [
-                            collections.OrderedDict([
-                                ("id", "Comp"),
-                                ("pattern-path", "/path/{project}/{episode}/{shot}/comps"),
-                                ("pattern-base", "{episode}_{shot}_comp_v{version}"),
-                                ("default-expression", r"\w+")
-                            ]),
-                            collections.OrderedDict([
-                                ("id", "Precomp"),
-                                ("pattern-path", "/path/{project}/{episode}/{shot}/precomps"),
-                                ("pattern-base", "{episode}_{shot}_precomp_v{version}"),
-                            ])
-                        ]
-                    )
-                ]),
-                collections.OrderedDict([
-                    ("id", "Element"),
-                    ("pattern-path", "/path/{project}/build/{element}/scripts"),
-                    ("pattern-base", "{element}_{description}_v{version}"),
-                    ("match-start", False),
-                    (
-                        "outputs", [
-                            collections.OrderedDict([
-                                ("id", "Comp"),
-                                ("pattern-path", "/path/{project}/build/{element}/comps"),
-                                ("pattern-base", "{element}_comp_v{version}"),
-                            ]),
-                            collections.OrderedDict([
-                                ("id", "Precomp"),
-                                ("pattern-path", "/path/{project}/build/{element}/precomps"),
-                                ("pattern-base", "{element}_precomp_v{version}"),
-                            ])
-                        ]
-                    )
-                ])
-            ]
-        )
+        ("comp-templates", mocked_dump_template_configs.return_value)
     ])
 
+    mocked_dump_template_configs.assert_called_once_with(
+        ("__TEMPLATE1__", "__TEMPLATE2__"), include_outputs=True
+    )
 
-def test_dump_project_templates():
+
+def test_dump_project_templates(mocked_dump_template_configs):
     """Return data mapping with updated 'project-templates'."""
     import nomenclator.config
 
@@ -437,26 +368,7 @@ def test_dump_project_templates():
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
         comp_template_configs=tuple(),
-        project_template_configs=(
-            nomenclator.config.TemplateConfig(
-                id="Episodic",
-                pattern_path="/path/{project}/{episode}/{shot}/scripts",
-                pattern_base="{episode}_{shot}_{description}_v{version}",
-                default_expression=r"\w+",
-                match_start=True,
-                match_end=False,
-                outputs=None
-            ),
-            nomenclator.config.TemplateConfig(
-                id="Element",
-                pattern_path="/path/{project}/build/{element}/scripts",
-                pattern_base="{element}_{description}_v{version}",
-                default_expression=r"[\w_.-]+",
-                match_start=False,
-                match_end=True,
-                outputs=None
-            ),
-        ),
+        project_template_configs=("__TEMPLATE1__", "__TEMPLATE2__"),
         colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
         tokens=tuple(),
         max_locations=5,
@@ -467,24 +379,162 @@ def test_dump_project_templates():
 
     data = nomenclator.config.dump(config)
     assert data == collections.OrderedDict([
-        (
-            "project-templates", [
-                collections.OrderedDict([
-                    ("id", "Episodic"),
-                    ("pattern-path", "/path/{project}/{episode}/{shot}/scripts"),
-                    ("pattern-base", "{episode}_{shot}_{description}_v{version}"),
-                    ("default-expression", r"\w+"),
-                    ("match-end", False)
-                ]),
-                collections.OrderedDict([
-                    ("id", "Element"),
-                    ("pattern-path", "/path/{project}/build/{element}/scripts"),
-                    ("pattern-base", "{element}_{description}_v{version}"),
-                    ("match-start", False)
-                ])
-            ]
-        )
+        ("project-templates", mocked_dump_template_configs.return_value)
     ])
+
+    mocked_dump_template_configs.assert_called_once_with(
+        ("__TEMPLATE1__", "__TEMPLATE2__")
+    )
+
+
+def test_dump_template_configs_empty(mocked_dump_output_template_configs):
+    """Return empty list of data mapping for template configs."""
+    import nomenclator.config
+
+    data = nomenclator.config.dump_template_configs([])
+    assert data == []
+
+    mocked_dump_output_template_configs.assert_not_called()
+
+
+def test_dump_template_configs(mocked_dump_output_template_configs):
+    """Return list of data mapping for template configs."""
+    import nomenclator.config
+
+    configs = (
+        nomenclator.config.TemplateConfig(
+            id="Episodic",
+            pattern_path="/path/{project}/{episode}/{shot}/scripts",
+            pattern_base="{episode}_{shot}_{description}_v{version}",
+            default_expression=r"[\w_.-]+",
+            match_start=True,
+            match_end=False,
+            outputs=("__TEMPLATE11__", "__TEMPLATE12__")
+        ),
+        nomenclator.config.TemplateConfig(
+            id="Element",
+            pattern_path="/path/{project}/build/{element}/scripts",
+            pattern_base="{element}_{description}_v{version}",
+            default_expression=r"\w+",
+            match_start=False,
+            match_end=True,
+            outputs=("__TEMPLATE21__", "__TEMPLATE22__")
+        ),
+    )
+
+    data = nomenclator.config.dump_template_configs(configs)
+    assert data == [
+        collections.OrderedDict([
+            ("id", "Episodic"),
+            ("pattern-path", "/path/{project}/{episode}/{shot}/scripts"),
+            ("pattern-base", "{episode}_{shot}_{description}_v{version}"),
+            ("match-end", False)
+        ]),
+        collections.OrderedDict([
+            ("id", "Element"),
+            ("pattern-path", "/path/{project}/build/{element}/scripts"),
+            ("pattern-base", "{element}_{description}_v{version}"),
+            ("default-expression", r"\w+"),
+            ("match-start", False)
+        ]),
+    ]
+
+    mocked_dump_output_template_configs.assert_not_called()
+
+
+def test_dump_template_configs_with_outputs(mocked_dump_output_template_configs):
+    """Return list of data mapping for template configs with outputs included."""
+    import nomenclator.config
+
+    configs = (
+        nomenclator.config.TemplateConfig(
+            id="Episodic",
+            pattern_path="/path/{project}/{episode}/{shot}/scripts",
+            pattern_base="{episode}_{shot}_{description}_v{version}",
+            default_expression=r"[\w_.-]+",
+            match_start=True,
+            match_end=False,
+            outputs=("__TEMPLATE11__", "__TEMPLATE12__")
+        ),
+        nomenclator.config.TemplateConfig(
+            id="Element",
+            pattern_path="/path/{project}/build/{element}/scripts",
+            pattern_base="{element}_{description}_v{version}",
+            default_expression=r"\w+",
+            match_start=False,
+            match_end=True,
+            outputs=("__TEMPLATE21__", "__TEMPLATE22__")
+        ),
+    )
+
+    data = nomenclator.config.dump_template_configs(
+        configs, include_outputs=True
+    )
+    assert data == [
+        collections.OrderedDict([
+            ("id", "Episodic"),
+            ("pattern-path", "/path/{project}/{episode}/{shot}/scripts"),
+            ("pattern-base", "{episode}_{shot}_{description}_v{version}"),
+            ("match-end", False),
+            ("outputs", mocked_dump_output_template_configs.return_value)
+        ]),
+        collections.OrderedDict([
+            ("id", "Element"),
+            ("pattern-path", "/path/{project}/build/{element}/scripts"),
+            ("pattern-base", "{element}_{description}_v{version}"),
+            ("default-expression", r"\w+"),
+            ("match-start", False),
+            ("outputs", mocked_dump_output_template_configs.return_value)
+        ]),
+    ]
+
+    assert mocked_dump_output_template_configs.call_count == 2
+    mocked_dump_output_template_configs.assert_any_call(
+        ("__TEMPLATE11__", "__TEMPLATE12__")
+    )
+    mocked_dump_output_template_configs.assert_any_call(
+        ("__TEMPLATE21__", "__TEMPLATE22__")
+    )
+
+
+def test_dump_output_template_configs_empty():
+    """Return empty list of data mapping for template configs."""
+    import nomenclator.config
+
+    data = nomenclator.config.dump_output_template_configs([])
+    assert data == []
+
+
+def test_dump_output_template_configs():
+    """Return list of data mapping for template configs."""
+    import nomenclator.config
+
+    configs = [
+        nomenclator.config.OutputTemplateConfig(
+            id="Comp",
+            pattern_path="/path/{project}/{episode}/{shot}/comps",
+            pattern_base="{episode}_{shot}_comp_v{version}",
+        ),
+        nomenclator.config.OutputTemplateConfig(
+            id="Precomp",
+            pattern_path="/path/{project}/{episode}/{shot}/precomps",
+            pattern_base="{episode}_{shot}_precomp_v{version}",
+        ),
+    ]
+
+    data = nomenclator.config.dump_output_template_configs(configs)
+    assert data == [
+        collections.OrderedDict([
+            ("id", "Comp"),
+            ("pattern-path", "/path/{project}/{episode}/{shot}/comps"),
+            ("pattern-base", "{episode}_{shot}_comp_v{version}"),
+        ]),
+        collections.OrderedDict([
+            ("id", "Precomp"),
+            ("pattern-path", "/path/{project}/{episode}/{shot}/precomps"),
+            ("pattern-base", "{episode}_{shot}_precomp_v{version}"),
+        ]),
+    ]
 
 
 @pytest.mark.usefixtures("mock_getuser")
@@ -676,114 +726,19 @@ def test_load_username():
 
 
 @pytest.mark.usefixtures("mock_getuser")
-def test_load_comp_templates():
+def test_load_comp_templates(mocked_load_template_configs):
     """Return config with updated 'comp-templates'."""
     import nomenclator.config
 
     config = nomenclator.config.load({
-        "comp-templates": [
-            {
-                "id": "Episodic",
-                "pattern-path": "/path/{project}/{episode}/{shot}/scripts",
-                "pattern-base": "{episode}_{shot}_{description}_v{version}",
-                "match-end": False,
-                "outputs": [
-                    {
-                        "id": "Comp",
-                        "pattern-path": "/path/{project}/{episode}/{shot}/comps",
-                        "pattern-base": "{episode}_{shot}_comp_v{version}",
-                        "default-expression": r"\w+"
-                    },
-                    {
-                        "id": "Precomp",
-                        "pattern-path": "/path/{project}/{episode}/{shot}/precomps",
-                        "pattern-base": "{episode}_{shot}_precomp_v{version}",
-                    }
-                ]
-            },
-            {
-                "id": "Element",
-                "pattern-path": "/path/{project}/build/{element}/scripts",
-                "pattern-base": "{element}_{description}_v{version}",
-                "match-start": False,
-                "outputs": [
-                    {
-                        "id": "Comp",
-                        "pattern-path": "/path/{project}/build/{element}/comps",
-                        "pattern-base": "{element}_comp_v{version}",
-                    },
-                    {
-                        "id": "Precomp",
-                        "pattern-path": "/path/{project}/build/{element}/precomps",
-                        "pattern-base": "{element}_precomp_v{version}",
-                    }
-                ]
-            }
-        ]
+        "comp-templates": ("__TEMPLATE1__", "__TEMPLATE2__")
     })
 
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_template_configs=(
-            nomenclator.config.TemplateConfig(
-                id="Episodic",
-                pattern_path="/path/{project}/{episode}/{shot}/scripts",
-                pattern_base="{episode}_{shot}_{description}_v{version}",
-                default_expression=r"[\w_.-]+",
-                match_start=True,
-                match_end=False,
-                outputs=(
-                    nomenclator.config.TemplateConfig(
-                        id="Comp",
-                        pattern_path="/path/{project}/{episode}/{shot}/comps",
-                        pattern_base="{episode}_{shot}_comp_v{version}",
-                        default_expression=r"\w+",
-                        match_start=True,
-                        match_end=True,
-                        outputs=None
-                    ),
-                    nomenclator.config.TemplateConfig(
-                        id="Precomp",
-                        pattern_path="/path/{project}/{episode}/{shot}/precomps",
-                        pattern_base="{episode}_{shot}_precomp_v{version}",
-                        default_expression=r"[\w_.-]+",
-                        match_start=True,
-                        match_end=True,
-                        outputs=None
-                    ),
-                )
-            ),
-            nomenclator.config.TemplateConfig(
-                id="Element",
-                pattern_path="/path/{project}/build/{element}/scripts",
-                pattern_base="{element}_{description}_v{version}",
-                default_expression=r"[\w_.-]+",
-                match_start=False,
-                match_end=True,
-                outputs=(
-                    nomenclator.config.TemplateConfig(
-                        id="Comp",
-                        pattern_path="/path/{project}/build/{element}/comps",
-                        pattern_base="{element}_comp_v{version}",
-                        default_expression=r"[\w_.-]+",
-                        match_start=True,
-                        match_end=True,
-                        outputs=None
-                    ),
-                    nomenclator.config.TemplateConfig(
-                        id="Precomp",
-                        pattern_path="/path/{project}/build/{element}/precomps",
-                        pattern_base="{element}_precomp_v{version}",
-                        default_expression=r"[\w_.-]+",
-                        match_start=True,
-                        match_end=True,
-                        outputs=None
-                    ),
-                )
-            ),
-        ),
-        project_template_configs=tuple(),
+        comp_template_configs=mocked_load_template_configs.return_value,
+        project_template_configs=mocked_load_template_configs.return_value,
         colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
         tokens=tuple(),
         max_locations=5,
@@ -792,58 +747,243 @@ def test_load_comp_templates():
         username_is_default=True
     )
 
+    assert mocked_load_template_configs.call_count == 2
+    mocked_load_template_configs.assert_any_call(
+        ("__TEMPLATE1__", "__TEMPLATE2__"), include_outputs=True
+    )
+    mocked_load_template_configs.assert_any_call([])
+
 
 @pytest.mark.usefixtures("mock_getuser")
-def test_load_project_templates():
+def test_load_project_templates(mocked_load_template_configs):
     """Return config with updated 'project-templates'."""
     import nomenclator.config
 
     config = nomenclator.config.load({
-        "project-templates": [
-            {
-                "id": "Episodic",
-                "pattern-path": "/path/{project}/{episode}/{shot}/scripts",
-                "pattern-base": "{episode}_{shot}_{description}_v{version}",
-                "default-expression": r"\w+",
-                "match-end": False,
-            },
-            {
-                "id": "Element",
-                "pattern-path": "/path/{project}/build/{element}/scripts",
-                "pattern-base": "{element}_{description}_v{version}",
-                "match-start": False,
-            }
-        ]
+        "project-templates": ("__TEMPLATE1__", "__TEMPLATE2__")
     })
 
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
         create_subfolders=False,
-        comp_template_configs=tuple(),
-        project_template_configs=(
-            nomenclator.config.TemplateConfig(
-                id="Episodic",
-                pattern_path="/path/{project}/{episode}/{shot}/scripts",
-                pattern_base="{episode}_{shot}_{description}_v{version}",
-                default_expression=r"\w+",
-                match_start=True,
-                match_end=False,
-                outputs=None
-            ),
-            nomenclator.config.TemplateConfig(
-                id="Element",
-                pattern_path="/path/{project}/build/{element}/scripts",
-                pattern_base="{element}_{description}_v{version}",
-                default_expression=r"[\w_.-]+",
-                match_start=False,
-                match_end=True,
-                outputs=None
-            ),
-        ),
+        comp_template_configs=mocked_load_template_configs.return_value,
+        project_template_configs=mocked_load_template_configs.return_value,
         colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
         username="john-doe",
         username_is_default=True
+    )
+
+    assert mocked_load_template_configs.call_count == 2
+    mocked_load_template_configs.assert_any_call([], include_outputs=True)
+    mocked_load_template_configs.assert_any_call(
+        ("__TEMPLATE1__", "__TEMPLATE2__")
+    )
+
+
+def test_load_template_configs_empty(mocked_load_output_template_configs):
+    """Return empty list of configs for template configs."""
+    import nomenclator.config
+
+    data = nomenclator.config.load_template_configs([])
+    assert data == tuple()
+
+    mocked_load_output_template_configs.assert_not_called()
+
+
+def test_load_template_configs_empty_items(mocked_load_output_template_configs):
+    """Return list of configs for empty template configs."""
+    import nomenclator.config
+
+    configs = [
+        {"id": "Episodic"},
+        {"id": "Element"}
+    ]
+
+    data = nomenclator.config.load_template_configs(configs)
+    assert data == (
+        nomenclator.config.TemplateConfig(
+            id="Episodic",
+            pattern_path="",
+            pattern_base="",
+            default_expression=r"[\w_.-]+",
+            match_start=True,
+            match_end=True,
+            outputs=None
+        ),
+        nomenclator.config.TemplateConfig(
+            id="Element",
+            pattern_path="",
+            pattern_base="",
+            default_expression=r"[\w_.-]+",
+            match_start=True,
+            match_end=True,
+            outputs=None
+        )
+    )
+
+    mocked_load_output_template_configs.assert_not_called()
+
+
+def test_load_template_configs(mocked_load_output_template_configs):
+    """Return list of configs for template configs."""
+    import nomenclator.config
+
+    configs = [
+        {
+            "id": "Episodic",
+            "pattern-path": "/path/{project}/{episode}/{shot}/scripts",
+            "pattern-base": "{episode}_{shot}_{description}_v{version}",
+            "default-expression": r"\w+",
+            "match-end": False,
+            "outputs": ("__TEMPLATE1__", "__TEMPLATE2__")
+        },
+        {
+            "id": "Element",
+            "pattern-path": "/path/{project}/build/{element}/scripts",
+            "pattern-base": "{element}_{description}_v{version}",
+            "match-start": False,
+        }
+    ]
+
+    data = nomenclator.config.load_template_configs(configs)
+    assert data == (
+        nomenclator.config.TemplateConfig(
+            id="Episodic",
+            pattern_path="/path/{project}/{episode}/{shot}/scripts",
+            pattern_base="{episode}_{shot}_{description}_v{version}",
+            default_expression=r"\w+",
+            match_start=True,
+            match_end=False,
+            outputs=None
+        ),
+        nomenclator.config.TemplateConfig(
+            id="Element",
+            pattern_path="/path/{project}/build/{element}/scripts",
+            pattern_base="{element}_{description}_v{version}",
+            default_expression=r"[\w_.-]+",
+            match_start=False,
+            match_end=True,
+            outputs=None
+        )
+    )
+
+    mocked_load_output_template_configs.assert_not_called()
+
+
+def test_load_template_configs_with_outputs(mocked_load_output_template_configs):
+    """Return list of configs for template configs with outputs included."""
+    import nomenclator.config
+
+    configs = [
+        {
+            "id": "Episodic",
+            "pattern-path": "/path/{project}/{episode}/{shot}/scripts",
+            "pattern-base": "{episode}_{shot}_{description}_v{version}",
+            "default-expression": r"\w+",
+            "match-end": False,
+            "outputs": ("__TEMPLATE1__", "__TEMPLATE2__")
+        },
+        {
+            "id": "Element",
+            "pattern-path": "/path/{project}/build/{element}/scripts",
+            "pattern-base": "{element}_{description}_v{version}",
+            "match-start": False,
+        }
+    ]
+
+    data = nomenclator.config.load_template_configs(
+        configs, include_outputs=True
+    )
+    assert data == (
+        nomenclator.config.TemplateConfig(
+            id="Episodic",
+            pattern_path="/path/{project}/{episode}/{shot}/scripts",
+            pattern_base="{episode}_{shot}_{description}_v{version}",
+            default_expression=r"\w+",
+            match_start=True,
+            match_end=False,
+            outputs=mocked_load_output_template_configs.return_value
+        ),
+        nomenclator.config.TemplateConfig(
+            id="Element",
+            pattern_path="/path/{project}/build/{element}/scripts",
+            pattern_base="{element}_{description}_v{version}",
+            default_expression=r"[\w_.-]+",
+            match_start=False,
+            match_end=True,
+            outputs=mocked_load_output_template_configs.return_value
+        )
+    )
+
+    assert mocked_load_output_template_configs.call_count == 2
+    mocked_load_output_template_configs.assert_any_call(
+        ("__TEMPLATE1__", "__TEMPLATE2__")
+    )
+    mocked_load_output_template_configs.assert_any_call([])
+
+
+def test_load_output_template_configs_empty():
+    """Return empty list of configs for output template configs."""
+    import nomenclator.config
+
+    data = nomenclator.config.load_output_template_configs([])
+    assert data == tuple()
+
+
+def test_load_output_template_configs_empty_items():
+    """Return list of configs for empty output template configs."""
+    import nomenclator.config
+
+    configs = [
+        {"id": "Comp"},
+        {"id": "Precomp"},
+    ]
+
+    data = nomenclator.config.load_output_template_configs(configs)
+    assert data == (
+        nomenclator.config.OutputTemplateConfig(
+            id="Comp",
+            pattern_path="",
+            pattern_base="",
+        ),
+        nomenclator.config.OutputTemplateConfig(
+            id="Precomp",
+            pattern_path="",
+            pattern_base="",
+        ),
+    )
+
+
+def test_load_output_template_configs():
+    """Return list of configs for output template configs."""
+    import nomenclator.config
+
+    configs = [
+        {
+            "id": "Comp",
+            "pattern-path": "/path/{project}/{episode}/{shot}/comps",
+            "pattern-base": "{episode}_{shot}_comp_v{version}",
+        },
+        {
+            "id": "Precomp",
+            "pattern-path": "/path/{project}/{episode}/{shot}/precomps",
+            "pattern-base": "{episode}_{shot}_precomp_v{version}",
+        }
+    ]
+
+    data = nomenclator.config.load_output_template_configs(configs)
+    assert data == (
+        nomenclator.config.OutputTemplateConfig(
+            id="Comp",
+            pattern_path="/path/{project}/{episode}/{shot}/comps",
+            pattern_base="{episode}_{shot}_comp_v{version}",
+        ),
+        nomenclator.config.OutputTemplateConfig(
+            id="Precomp",
+            pattern_path="/path/{project}/{episode}/{shot}/precomps",
+            pattern_base="{episode}_{shot}_precomp_v{version}",
+        ),
     )

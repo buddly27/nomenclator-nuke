@@ -49,6 +49,16 @@ TemplateConfig = collections.namedtuple(
 )
 
 
+#: Output Template Structure type.
+OutputTemplateConfig = collections.namedtuple(
+    "OutputTemplateConfig", [
+        "id",
+        "pattern_path",
+        "pattern_base",
+    ]
+)
+
+
 def path():
     """Return path to configuration file.
 
@@ -142,8 +152,22 @@ def dump_template_configs(configs, include_outputs=False):
             data["match-end"] = config.match_end
 
         if include_outputs:
-            data["outputs"] = dump_template_configs(config.outputs)
+            data["outputs"] = dump_output_template_configs(config.outputs)
 
+        items.append(data)
+
+    return items
+
+
+def dump_output_template_configs(configs):
+    """Return data mapping from list of output template configs."""
+    items = []
+
+    for config in configs:
+        data = collections.OrderedDict()
+        data["id"] = config.id
+        data["pattern-path"] = config.pattern_path
+        data["pattern-base"] = config.pattern_base
         items.append(data)
 
     return items
@@ -151,17 +175,13 @@ def dump_template_configs(configs, include_outputs=False):
 
 def load(data):
     """Return config object from *data* mapping."""
-    comp_template_configs = tuple(
-        load_template_configs(
-            data.get("comp-templates", []),
-            include_outputs=True
-        )
+    comp_template_configs = load_template_configs(
+        data.get("comp-templates", []),
+        include_outputs=True
     )
 
-    project_template_configs = tuple(
-        load_template_configs(
-            data.get("project-templates", [])
-        )
+    project_template_configs = load_template_configs(
+        data.get("project-templates", [])
     )
 
     if data.get("colorspace-aliases") is not None:
@@ -189,14 +209,14 @@ def load(data):
 
 
 def load_template_configs(items, include_outputs=False):
-    """Return list of templates from *items*."""
+    """Return list of template configs from *items*."""
     templates = []
 
     for item in items:
         outputs = None
 
         if include_outputs:
-            outputs = tuple(load_template_configs(item.get("outputs", [])))
+            outputs = load_output_template_configs(item.get("outputs", []))
 
         template = TemplateConfig(
             id=item["id"],
@@ -209,4 +229,19 @@ def load_template_configs(items, include_outputs=False):
         )
         templates.append(template)
 
-    return templates
+    return tuple(templates)
+
+
+def load_output_template_configs(items):
+    """Return list of output template configs from *items*."""
+    templates = []
+
+    for item in items:
+        template = OutputTemplateConfig(
+            id=item["id"],
+            pattern_path=item.get("pattern-path", ""),
+            pattern_base=item.get("pattern-base", ""),
+        )
+        templates.append(template)
+
+    return tuple(templates)
