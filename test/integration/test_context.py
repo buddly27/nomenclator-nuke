@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 import pytest
 
 
@@ -180,10 +182,12 @@ def test_update_comp_matching():
 
     _context = nomenclator.context.update(context)
 
-    assert _context.path == (
-        "/path/my_project/ep002/sh004/scripts/my_project_ep002_sh004_v002.nk"
+    assert _context.path == os.path.join(
+        "/path/my_project/ep002/sh004/scripts",
+        "my_project_ep002_sh004_v002.nk"
     )
     assert _context.version == 2
-    assert _context.outputs[0].path == (
-        "/path/my_project/ep002/sh004/comps/my_project_ep002_sh004_v002.#.dpx"
+    assert _context.outputs[0].path == os.path.join(
+        "/path/my_project/ep002/sh004/comps",
+        "my_project_ep002_sh004_v002.#.dpx"
     )
