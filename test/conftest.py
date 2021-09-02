@@ -46,6 +46,17 @@ def nuke_mocker(mocker):
 
 
 @pytest.fixture(autouse=True)
+def hiero_mocker(mocker):
+    """Mock the Hiero Python API."""
+    mocker.patch.dict(
+        sys.modules, {
+            "hiero": mocker.MagicMock(),
+            "hiero.core": mocker.MagicMock(),
+        }
+    )
+
+
+@pytest.fixture(autouse=True)
 def qt_mocker(mocker):
     """Mock the Qt library."""
     mocker.patch.dict(sys.modules, {"nomenclator.vendor.Qt": mocker.MagicMock()})
