@@ -45,7 +45,7 @@ class SettingsDialog(QtWidgets.QDialog):
     def _setup_ui(self):
         """Initialize user interface."""
         self.setWindowTitle("Nomenclator - Settings")
-        self.resize(QtCore.QSize(900, 600))
+        self.resize(QtCore.QSize(900, 550))
 
         self.setStyleSheet(classic_style())
 
@@ -91,7 +91,23 @@ class SettingsDialog(QtWidgets.QDialog):
         """Update config object from *key* and *value*."""
         # noinspection PyProtectedMember
         self._config = self._config._replace(**{key: value})
+
+        # If max padding has changed, check whether default padding must be updated.
+        if key == "max_padding":
+            self._update_default_padding()
+
         self._update_buttons_states()
+
+    def _update_default_padding(self):
+        """Update the default padding value if necessary."""
+        widget = self._tab_widget.widget(0)
+        success = widget.set_default_paddings(self._config)
+
+        if not success:
+            # noinspection PyProtectedMember
+            self._config = self._config._replace(
+                default_padding=widget.default_padding()
+            )
 
     def _button_clicked(self, button):
         """Modify the state of the dialog depending on the button clicked."""
@@ -135,6 +151,12 @@ class GlobalSettingsForm(QtWidgets.QWidget):
 
     def set_values(self, config):
         """Initialize values."""
+        self.set_default_paddings(config)
+
+        self._description.blockSignals(True)
+        self._description.setText(config.default_description)
+        self._description.blockSignals(False)
+
         self._descriptions.blockSignals(True)
         self._descriptions.set_values(config.descriptions)
         self._descriptions.blockSignals(False)
@@ -144,30 +166,68 @@ class GlobalSettingsForm(QtWidgets.QWidget):
         self._create_subfolders.setCheckState(state)
         self._create_subfolders.blockSignals(False)
 
+    def default_padding(self):
+        """Return default padding value."""
+        return self._padding.currentText()
+
+    def set_default_paddings(self, config):
+        """Initiate paddings and return whether padding value could be set."""
+        items = nomenclator.utilities.fetch_paddings(
+            max_value=config.max_padding
+        )
+
+        self._padding.blockSignals(True)
+        self._padding.clear()
+        self._padding.addItems(items)
+        index = self._padding.findText(config.default_padding)
+        if index >= 0:
+            self._padding.setCurrentIndex(index)
+        self._padding.blockSignals(False)
+
+        return index < 0
+
     def _setup_ui(self):
         """Initialize user interface."""
-        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout = QtWidgets.QGridLayout(self)
         main_layout.setContentsMargins(10, 20, 10, 10)
         main_layout.setSpacing(8)
 
-        descriptions_lbl = QtWidgets.QLabel("Descriptions", self)
-        main_layout.addWidget(descriptions_lbl)
+        padding_lbl = QtWidgets.QLabel("Default Padding", self)
+        main_layout.addWidget(padding_lbl, 0, 0, 1, 1)
+
+        self._padding = QtWidgets.QComboBox(self)
+        main_layout.addWidget(self._padding, 0, 1, 1, 1)
+
+        description_lbl = QtWidgets.QLabel("Default Description", self)
+        main_layout.addWidget(description_lbl, 1, 0, 1, 1)
+
+        self._description = QtWidgets.QLineEdit(self)
+        main_layout.addWidget(self._description, 1, 1, 1, 1)
+
+        descriptions_lbl = QtWidgets.QLabel("All Descriptions", self)
+        main_layout.addWidget(descriptions_lbl, 2, 0, 1, 1, QtCore.Qt.AlignTop)
 
         self._descriptions = EditableList(self)
         self._descriptions.setMaximumHeight(200)
-        main_layout.addWidget(self._descriptions)
+        main_layout.addWidget(self._descriptions, 2, 1, 1, 1)
 
         self._create_subfolders = QtWidgets.QCheckBox("Create sub-folders for outputs", self)
-        main_layout.addWidget(self._create_subfolders)
+        main_layout.addWidget(self._create_subfolders, 3, 1, 1, 1)
 
         spacer_v = QtWidgets.QSpacerItem(
             0, 0, QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding
         )
-        main_layout.addItem(spacer_v)
+        main_layout.addItem(spacer_v, 4, 0, 1, 1)
 
     def _connect_signals(self):
         """Initialize signals connection."""
+        self._padding.currentTextChanged.connect(
+            lambda value: self.updated.emit("default_padding", value)
+        )
+        self._description.textChanged.connect(
+            lambda value: self.updated.emit("default_description", value)
+        )
         self._descriptions.updated.connect(
             lambda values: self.updated.emit("descriptions", values)
         )
@@ -335,7 +395,6 @@ class _CompTemplateForm(QtWidgets.QWidget):
             default_expression=self._template_form.default_expression(),
             match_start=self._template_form.match_start(),
             match_end=self._template_form.match_end(),
-            description=self._template_form.description(),
             append_username_to_name=self._template_form.append_username_to_name(),
             outputs=self.output_templates()
         )
@@ -422,7 +481,6 @@ class _ProjectTemplateForm(QtWidgets.QWidget):
             default_expression=self._template_form.default_expression(),
             match_start=self._template_form.match_start(),
             match_end=self._template_form.match_end(),
-            description=self._template_form.description(),
             append_username_to_name=self._template_form.append_username_to_name(),
             outputs=None
         )
@@ -526,14 +584,6 @@ class _TemplateSceneForm(QtWidgets.QWidget):
         """Return pattern base."""
         return self._pattern_base.text()
 
-    def description(self):
-        """Return default description."""
-        return self._description.text()
-
-    def append_username_to_name(self):
-        """Return whether username should be added to base name by default."""
-        return self._append_username_to_name.isChecked()
-
     def default_expression(self):
         """Return default expression."""
         return self._default_expression.text()
@@ -546,6 +596,10 @@ class _TemplateSceneForm(QtWidgets.QWidget):
         """Return whether path should match exactly the end of the pattern."""
         return self._match_end.isChecked()
 
+    def append_username_to_name(self):
+        """Return whether username should be added to base name by default."""
+        return self._append_username_to_name.isChecked()
+
     def set_values(self, config):
         """Initialize values."""
         self._pattern_path.blockSignals(True)
@@ -555,15 +609,6 @@ class _TemplateSceneForm(QtWidgets.QWidget):
         self._pattern_base.blockSignals(True)
         self._pattern_base.setText(config.pattern_base)
         self._pattern_base.blockSignals(False)
-
-        self._description.blockSignals(True)
-        self._description.setText(config.description)
-        self._description.blockSignals(False)
-
-        self._append_username_to_name.blockSignals(True)
-        state = QtCore.Qt.Checked if config.append_username_to_name else QtCore.Qt.Unchecked
-        self._append_username_to_name.setCheckState(state)
-        self._append_username_to_name.blockSignals(False)
 
         self._default_expression.blockSignals(True)
         self._default_expression.setText(config.default_expression)
@@ -579,6 +624,11 @@ class _TemplateSceneForm(QtWidgets.QWidget):
         self._match_end.setCheckState(state)
         self._match_end.blockSignals(False)
 
+        self._append_username_to_name.blockSignals(True)
+        state = QtCore.Qt.Checked if config.append_username_to_name else QtCore.Qt.Unchecked
+        self._append_username_to_name.setCheckState(state)
+        self._append_username_to_name.blockSignals(False)
+
     def _setup_ui(self):
         """Initialize user interface."""
         main_layout = QtWidgets.QGridLayout(self)
@@ -591,42 +641,35 @@ class _TemplateSceneForm(QtWidgets.QWidget):
         self._pattern_path = QtWidgets.QLineEdit(self)
         main_layout.addWidget(self._pattern_path, 0, 1, 1, 1)
 
+        self._match_start = QtWidgets.QCheckBox("Match Start", self)
+        main_layout.addWidget(self._match_start, 0, 2, 1, 1)
+
+        self._match_end = QtWidgets.QCheckBox("Match End", self)
+        main_layout.addWidget(self._match_end, 0, 3, 1, 1)
+
         pattern_base_lbl = QtWidgets.QLabel("Pattern Base Name", self)
         main_layout.addWidget(pattern_base_lbl, 1, 0, 1, 1)
 
         self._pattern_base = QtWidgets.QLineEdit(self)
-        main_layout.addWidget(self._pattern_base, 1, 1, 1, 1)
-
-        description_lbl = QtWidgets.QLabel("Default Description", self)
-        main_layout.addWidget(description_lbl, 2, 0, 1, 1)
-
-        self._description = QtWidgets.QLineEdit(self)
-        main_layout.addWidget(self._description, 2, 1, 1, 1)
-
-        self._append_username_to_name = QtWidgets.QCheckBox("Append username to name", self)
-        main_layout.addWidget(self._append_username_to_name, 3, 1, 1, 1)
+        main_layout.addWidget(self._pattern_base, 1, 1, 1, 3)
 
         default_expression_lbl = QtWidgets.QLabel("Default Expression", self)
-        main_layout.addWidget(default_expression_lbl, 4, 0, 1, 1)
+        main_layout.addWidget(default_expression_lbl, 2, 0, 1, 1)
 
         self._default_expression = QtWidgets.QLineEdit(self)
-        main_layout.addWidget(self._default_expression, 4, 1, 1, 1)
+        main_layout.addWidget(self._default_expression, 2, 1, 1, 3)
 
-        self._match_start = QtWidgets.QCheckBox("Match Start Pattern Exactly", self)
-        main_layout.addWidget(self._match_start, 5, 1, 1, 1)
-
-        self._match_end = QtWidgets.QCheckBox("Match End Pattern Exactly", self)
-        main_layout.addWidget(self._match_end, 6, 1, 1, 1)
+        self._append_username_to_name = QtWidgets.QCheckBox("Append username to name", self)
+        main_layout.addWidget(self._append_username_to_name, 3, 1, 1, 3)
 
     def _connect_signals(self):
         """Initialize signals connection."""
         self._pattern_path.textChanged.connect(lambda: self.updated.emit())
         self._pattern_base.textChanged.connect(lambda: self.updated.emit())
-        self._description.textChanged.connect(lambda: self.updated.emit())
-        self._append_username_to_name.stateChanged.connect(lambda: self.updated.emit())
         self._default_expression.textChanged.connect(lambda: self.updated.emit())
         self._match_start.stateChanged.connect(lambda: self.updated.emit())
         self._match_end.stateChanged.connect(lambda: self.updated.emit())
+        self._append_username_to_name.stateChanged.connect(lambda: self.updated.emit())
 
 
 class _TemplateOutputForm(QtWidgets.QWidget):
@@ -842,8 +885,6 @@ class AdvancedSettingsForm(QtWidgets.QWidget):
         self._max_padding.setValue(config.max_padding)
         self._max_padding.blockSignals(False)
 
-        self._set_default_paddings(config.default_padding)
-
         self._username.blockSignals(True)
         self._username.setText(config.username)
         self._username.setEnabled(not config.username_is_default)
@@ -876,60 +917,27 @@ class AdvancedSettingsForm(QtWidgets.QWidget):
         self._max_padding.setMaximum(10)
         main_layout.addWidget(self._max_padding, 1, 1, 1, 1)
 
-        padding_lbl = QtWidgets.QLabel("Default Padding", self)
-        main_layout.addWidget(padding_lbl, 2, 0, 1, 1)
-
-        self._padding = QtWidgets.QComboBox(self)
-        main_layout.addWidget(self._padding, 2, 1, 1, 1)
-
         username_lbl = QtWidgets.QLabel("Username", self)
-        main_layout.addWidget(username_lbl, 3, 0, 1, 1)
+        main_layout.addWidget(username_lbl, 2, 0, 1, 1)
 
         self._username = QtWidgets.QLineEdit(self)
-        main_layout.addWidget(self._username, 3, 1, 1, 1)
+        main_layout.addWidget(self._username, 2, 1, 1, 1)
 
         self._username_is_default = QtWidgets.QCheckBox("Default username is used", self)
-        main_layout.addWidget(self._username_is_default, 4, 1, 1, 1)
+        main_layout.addWidget(self._username_is_default, 3, 1, 1, 1)
 
         spacer_v = QtWidgets.QSpacerItem(
             0, 0, QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding
         )
-        main_layout.addItem(spacer_v, 5, 1, 1, 1)
+        main_layout.addItem(spacer_v, 4, 1, 1, 1)
 
     def _connect_signals(self):
         """Initialize signals connection."""
         self._username.textChanged.connect(lambda v: self.updated.emit("username", v))
         self._max_locations.valueChanged.connect(lambda v: self.updated.emit("max_locations", v))
         self._max_padding.valueChanged.connect(lambda v: self.updated.emit("max_padding", v))
-        self._max_padding.valueChanged.connect(lambda: self._toggle_max_padding())
-        self._padding.currentTextChanged.connect(lambda v: self.updated.emit("default_padding", v))
         self._username_is_default.stateChanged.connect(self._toggle_username_default)
-
-    def _toggle_max_padding(self):
-        """Update default padding if max padding has changed."""
-        current_padding = self._padding.currentText()
-        success = self._set_default_paddings(current_padding)
-
-        # Emit new value for padding if current padding cannot be reset
-        if not success:
-            self.updated.emit("default_padding", self._padding.currentText())
-
-    def _set_default_paddings(self, current_padding):
-        """Initiate paddings and return whether current padding has been set."""
-        items = nomenclator.utilities.fetch_paddings(
-            max_value=self._max_padding.value()
-        )
-
-        self._padding.blockSignals(True)
-        self._padding.clear()
-        self._padding.addItems(items)
-        index = self._padding.findText(current_padding)
-        if index >= 0:
-            self._padding.setCurrentIndex(index)
-        self._padding.blockSignals(False)
-
-        return index >= 0
 
     def _toggle_username_default(self):
         """Indicate whether the username used is default or not."""

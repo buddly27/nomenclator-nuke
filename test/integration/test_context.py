@@ -102,7 +102,6 @@ def test_update_comp_scenario2():
                 match_start=True,
                 match_end=True,
                 append_username_to_name=True,
-                description="",
                 outputs=None,
             ),
         ),
@@ -170,7 +169,6 @@ def test_update_comp_scenario3():
                 match_start=True,
                 match_end=True,
                 append_username_to_name=True,
-                description="",
                 outputs=tuple(),
             ),
         ),
@@ -240,7 +238,6 @@ def test_update_comp_scenario4():
                 match_start=True,
                 match_end=True,
                 append_username_to_name=True,
-                description="",
                 outputs=(
                     OutputTemplateConfig(
                         id="comps",
@@ -332,7 +329,6 @@ def test_update_comp_scenario5():
                 match_start=True,
                 match_end=True,
                 append_username_to_name=True,
-                description="",
                 outputs=(
                     OutputTemplateConfig(
                         id="comps",
@@ -416,7 +412,6 @@ def test_update_comp_scenario6():
                 match_start=True,
                 match_end=True,
                 append_username_to_name=True,
-                description="",
                 outputs=(
                     OutputTemplateConfig(
                         id="comps",

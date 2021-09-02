@@ -171,7 +171,6 @@ def test_fetch_template_config_scenario1():
         match_start=True,
         match_end=True,
         append_username_to_name=True,
-        description="",
         outputs=None,
     )
 
@@ -207,7 +206,6 @@ def test_fetch_template_config_scenario2():
         match_start=True,
         match_end=True,
         append_username_to_name=True,
-        description="",
         outputs=None,
     )
 
@@ -240,7 +238,6 @@ def test_fetch_template_config_scenario3():
         match_start=True,
         match_end=True,
         append_username_to_name=True,
-        description="",
         outputs=None,
     )
 
@@ -275,7 +272,6 @@ def test_fetch_template_config_scenario4():
         match_start=True,
         match_end=False,
         append_username_to_name=True,
-        description="",
         outputs=None,
     )
 
@@ -312,7 +308,6 @@ def test_fetch_template_config_scenario5():
         match_start=True,
         match_end=True,
         append_username_to_name=True,
-        description="",
         outputs=None,
     )
 
@@ -347,7 +342,6 @@ def test_fetch_template_config_scenario6():
         match_start=False,
         match_end=True,
         append_username_to_name=True,
-        description="",
         outputs=None,
     )
 

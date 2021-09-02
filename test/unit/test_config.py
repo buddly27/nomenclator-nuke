@@ -159,6 +159,7 @@ def test_dump_empty():
 
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -181,6 +182,7 @@ def test_dump_descriptions():
 
     config = nomenclator.config.Config(
         descriptions=("test1", "test2", "test3"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -199,12 +201,38 @@ def test_dump_descriptions():
     ])
 
 
+def test_dump_default_description():
+    """Return data mapping with updated 'default-description'."""
+    import nomenclator.config
+
+    config = nomenclator.config.Config(
+        descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description="comp",
+        create_subfolders=False,
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
+        max_locations=5,
+        max_padding=5,
+        default_padding=None,
+        username="john-doe",
+        username_is_default=True
+    )
+
+    data = nomenclator.config.dump(config)
+    assert data == collections.OrderedDict([
+        ("default-description", "comp")
+    ])
+
+
 def test_dump_create_subfolders():
     """Return data mapping with updated 'create-subfolders'."""
     import nomenclator.config
 
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=True,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -229,6 +257,7 @@ def test_dump_colorspace_aliases():
 
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -255,6 +284,7 @@ def test_dump_tokens():
 
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -281,6 +311,7 @@ def test_dump_max_locations():
 
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -303,6 +334,7 @@ def test_dump_max_padding():
 
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -325,6 +357,7 @@ def test_dump_default_padding():
 
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -349,6 +382,7 @@ def test_dump_username():
 
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -371,6 +405,7 @@ def test_dump_comp_templates(mocked_dump_template_configs):
 
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=("__TEMPLATE1__", "__TEMPLATE2__"),
         project_template_configs=tuple(),
@@ -399,6 +434,7 @@ def test_dump_project_templates(mocked_dump_template_configs):
 
     config = nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=("__TEMPLATE1__", "__TEMPLATE2__"),
@@ -444,7 +480,6 @@ def test_dump_template_configs(mocked_dump_output_template_configs):
             match_start=True,
             match_end=False,
             append_username_to_name=True,
-            description="",
             outputs=("__TEMPLATE11__", "__TEMPLATE12__")
         ),
         nomenclator.config.TemplateConfig(
@@ -455,7 +490,6 @@ def test_dump_template_configs(mocked_dump_output_template_configs):
             match_start=False,
             match_end=True,
             append_username_to_name=False,
-            description="comp",
             outputs=("__TEMPLATE21__", "__TEMPLATE22__")
         ),
     )
@@ -475,7 +509,6 @@ def test_dump_template_configs(mocked_dump_output_template_configs):
             ("pattern-base", "{element}_{description}_v{version}"),
             ("default-expression", r"\w+"),
             ("match-start", False),
-            ("description", "comp")
         ]),
     ]
 
@@ -495,7 +528,6 @@ def test_dump_template_configs_with_outputs(mocked_dump_output_template_configs)
             match_start=True,
             match_end=False,
             append_username_to_name=True,
-            description="",
             outputs=("__TEMPLATE11__", "__TEMPLATE12__")
         ),
         nomenclator.config.TemplateConfig(
@@ -506,7 +538,6 @@ def test_dump_template_configs_with_outputs(mocked_dump_output_template_configs)
             match_start=False,
             match_end=True,
             append_username_to_name=False,
-            description="comp",
             outputs=("__TEMPLATE21__", "__TEMPLATE22__")
         ),
     )
@@ -529,7 +560,6 @@ def test_dump_template_configs_with_outputs(mocked_dump_output_template_configs)
             ("pattern-base", "{element}_{description}_v{version}"),
             ("default-expression", r"\w+"),
             ("match-start", False),
-            ("description", "comp"),
             ("outputs", mocked_dump_output_template_configs.return_value)
         ]),
     ]
@@ -604,6 +634,7 @@ def test_load_empty():
 
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -628,6 +659,32 @@ def test_load_descriptions():
 
     assert config == nomenclator.config.Config(
         descriptions=("test1", "test2", "test3"),
+        default_description=None,
+        create_subfolders=False,
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
+        max_locations=5,
+        max_padding=5,
+        default_padding=None,
+        username="john-doe",
+        username_is_default=True
+    )
+
+
+@pytest.mark.usefixtures("mock_getuser")
+def test_load_default_description():
+    """Return config with updated 'default-description'."""
+    import nomenclator.config
+
+    config = nomenclator.config.load({
+        "default-description": "comp"
+    })
+
+    assert config == nomenclator.config.Config(
+        descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description="comp",
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -652,6 +709,7 @@ def test_load_create_subfolders():
 
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=True,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -679,6 +737,7 @@ def test_load_colorspace_aliases():
 
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -706,6 +765,7 @@ def test_load_tokens():
 
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -730,6 +790,7 @@ def test_load_max_locations():
 
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -754,6 +815,7 @@ def test_load_max_padding():
 
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -778,6 +840,7 @@ def test_load_default_padding():
 
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -802,6 +865,7 @@ def test_load_username():
 
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=tuple(),
         project_template_configs=tuple(),
@@ -826,6 +890,7 @@ def test_load_comp_templates(mocked_load_template_configs):
 
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=mocked_load_template_configs.return_value,
         project_template_configs=mocked_load_template_configs.return_value,
@@ -856,6 +921,7 @@ def test_load_project_templates(mocked_load_template_configs):
 
     assert config == nomenclator.config.Config(
         descriptions=("comp", "precomp", "roto", "cleanup"),
+        default_description=None,
         create_subfolders=False,
         comp_template_configs=mocked_load_template_configs.return_value,
         project_template_configs=mocked_load_template_configs.return_value,
@@ -904,7 +970,6 @@ def test_load_template_configs_empty_items(mocked_load_output_template_configs):
             match_start=True,
             match_end=True,
             append_username_to_name=False,
-            description="",
             outputs=None
         ),
         nomenclator.config.TemplateConfig(
@@ -915,7 +980,6 @@ def test_load_template_configs_empty_items(mocked_load_output_template_configs):
             match_start=True,
             match_end=True,
             append_username_to_name=False,
-            description="",
             outputs=None
         )
     )
@@ -941,7 +1005,6 @@ def test_load_template_configs(mocked_load_output_template_configs):
             "id": "Element",
             "pattern-path": "/path/{project}/build/{element}/scripts",
             "pattern-base": "{element}_{description}_v{version}",
-            "description": "comp",
             "match-start": False,
         }
     ]
@@ -956,7 +1019,6 @@ def test_load_template_configs(mocked_load_output_template_configs):
             match_start=True,
             match_end=False,
             append_username_to_name=True,
-            description="",
             outputs=None
         ),
         nomenclator.config.TemplateConfig(
@@ -967,7 +1029,6 @@ def test_load_template_configs(mocked_load_output_template_configs):
             match_start=False,
             match_end=True,
             append_username_to_name=False,
-            description="comp",
             outputs=None
         )
     )
@@ -993,7 +1054,6 @@ def test_load_template_configs_with_outputs(mocked_load_output_template_configs)
             "id": "Element",
             "pattern-path": "/path/{project}/build/{element}/scripts",
             "pattern-base": "{element}_{description}_v{version}",
-            "description": "comp",
             "match-start": False,
         }
     ]
@@ -1010,7 +1070,6 @@ def test_load_template_configs_with_outputs(mocked_load_output_template_configs)
             match_start=True,
             match_end=False,
             append_username_to_name=True,
-            description="",
             outputs=mocked_load_output_template_configs.return_value
         ),
         nomenclator.config.TemplateConfig(
@@ -1021,7 +1080,6 @@ def test_load_template_configs_with_outputs(mocked_load_output_template_configs)
             match_start=False,
             match_end=True,
             append_username_to_name=False,
-            description="comp",
             outputs=mocked_load_output_template_configs.return_value
         )
     )

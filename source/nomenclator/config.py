@@ -22,6 +22,7 @@ from nomenclator.symbol import (
 Config = collections.namedtuple(
     "Config", [
         "descriptions",
+        "default_description",
         "create_subfolders",
         "comp_template_configs",
         "project_template_configs",
@@ -46,7 +47,6 @@ TemplateConfig = collections.namedtuple(
         "match_start",
         "match_end",
         "append_username_to_name",
-        "description",
         "outputs",
     ]
 )
@@ -105,6 +105,9 @@ def dump(config):
     if config.descriptions != DEFAULT_DESCRIPTIONS:
         data["descriptions"] = config.descriptions
 
+    if config.default_description is not None:
+        data["default-description"] = config.default_description
+
     if config.create_subfolders != DEFAULT_CREATE_SUBFOLDERS:
         data["create-subfolders"] = config.create_subfolders
 
@@ -160,9 +163,6 @@ def dump_template_configs(configs, include_outputs=False):
 
         if config.match_end != DEFAULT_MATCH_END:
             data["match-end"] = config.match_end
-
-        if config.description != "":
-            data["description"] = config.description
 
         if config.append_username_to_name is not False:
             data["append-username-to-name"] = config.append_username_to_name
@@ -224,6 +224,7 @@ def load(data):
 
     return Config(
         descriptions=tuple(data.get("descriptions", DEFAULT_DESCRIPTIONS)),
+        default_description=data.get("default-description"),
         create_subfolders=data.get("create-subfolders", DEFAULT_CREATE_SUBFOLDERS),
         comp_template_configs=comp_template_configs,
         project_template_configs=project_template_configs,
@@ -254,7 +255,6 @@ def load_template_configs(items, include_outputs=False):
             default_expression=item.get("default-expression", DEFAULT_EXPRESSION),
             match_start=item.get("match-start", DEFAULT_MATCH_START),
             match_end=item.get("match-end", DEFAULT_MATCH_END),
-            description=item.get("description", ""),
             append_username_to_name=item.get("append-username-to-name", False),
             outputs=outputs
         )
