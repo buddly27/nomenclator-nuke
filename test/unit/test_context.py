@@ -103,7 +103,6 @@ def nodes(mocker):
         {
             "file": mocker.Mock(**{"value.return_value": ""}),
             "views": mocker.Mock(**{"value.return_value": "main"}),
-            "colorspace": mocker.Mock(**{"value.return_value": "linear"}),
             "disable": mocker.Mock(**{"value.return_value": True}),
             "file_type": mocker.Mock(**{
                 "value.return_value": "",
@@ -115,14 +114,17 @@ def nodes(mocker):
     return [
         mocker.MagicMock(
             __getitem__=lambda _, key: knob_mappings[0][key],
+            knob=lambda key: knob_mappings[0].get(key),
             **{"name.return_value": "node1"}
         ),
         mocker.MagicMock(
             __getitem__=lambda _, key: knob_mappings[1][key],
+            knob=lambda key: knob_mappings[1].get(key),
             **{"name.return_value": "node2"}
         ),
         mocker.MagicMock(
             __getitem__=lambda _, key: knob_mappings[2][key],
+            knob=lambda key: knob_mappings[2].get(key),
             **{"name.return_value": "node3"}
         ),
     ]
@@ -273,7 +275,7 @@ def test_fetch_outputs(mocker, nodes, mocked_fetch_nodes):
             file_type="exr",
             file_types=("exr", "abc"),
             multi_views=False,
-            colorspace="linear",
+            colorspace="none",
             append_username_to_name=False,
             append_colorspace_to_name=False,
             append_passname_to_name=False,

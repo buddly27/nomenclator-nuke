@@ -125,8 +125,9 @@ def fetch_outputs(config):
             if len(label.split())
         ]
 
-        # Resolve colorspace value.
-        colorspace = node["colorspace"].value()
+        # Resolve colorspace value if node have a colorspace knob.
+        knob = node.knob("colorspace")
+        colorspace = knob.value() if knob is not None else "none"
         colorspace = colorspace_mapping.get(colorspace, colorspace)
 
         context = OutputContext(
