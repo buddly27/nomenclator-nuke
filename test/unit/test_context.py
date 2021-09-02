@@ -309,7 +309,7 @@ def test_update_empty(
     mocked_fetch_next_version.assert_not_called()
     mocked_generate_scene_name.assert_not_called()
 
-    mocked_update_outputs.assert_called_once_with(context, [], {})
+    mocked_update_outputs.assert_called_once_with(context.outputs, [], {})
 
     context._replace.assert_called_once_with(
         path="",
@@ -366,7 +366,7 @@ def test_update(
     )
 
     mocked_update_outputs.assert_called_once_with(
-        context,
+        context.outputs,
         mocked_fetch_template_config.return_value.outputs,
         token_mapping
     )

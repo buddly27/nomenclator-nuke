@@ -179,7 +179,7 @@ def update(context):
         return context._replace(
             path="",
             version=None,
-            outputs=update_outputs(context, [], {})
+            outputs=update_outputs(context.outputs, [], {})
         )
 
     version = nomenclator.utilities.fetch_next_version(
@@ -204,7 +204,7 @@ def update(context):
     return context._replace(
         path=os.path.join(context.location_path, name),
         version=version,
-        outputs=update_outputs(context, config.outputs, token_mapping)
+        outputs=update_outputs(context.outputs, config.outputs, token_mapping)
     )
 
 
