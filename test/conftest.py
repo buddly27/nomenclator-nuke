@@ -51,6 +51,7 @@ def hiero_mocker(mocker):
     mocker.patch.dict(
         sys.modules, {
             "hiero": mocker.MagicMock(),
+            "hiero.ui": mocker.MagicMock(),
             "hiero.core": mocker.MagicMock(),
         }
     )
