@@ -4,10 +4,12 @@ from nomenclator.vendor.Qt import QtWidgets, QtCore
 from nomenclator.widget import EditableList
 from nomenclator.widget import EditableTabWidget
 from nomenclator.widget import EditableTable
+import nomenclator.utilities
 from nomenclator.config import (
     TemplateConfig,
     OutputTemplateConfig,
-    load_template_configs
+    load_template_configs,
+    load_output_template_configs
 )
 
 from .theme import classic_style
@@ -43,7 +45,7 @@ class SettingsDialog(QtWidgets.QDialog):
     def _setup_ui(self):
         """Initialize user interface."""
         self.setWindowTitle("Nomenclator - Settings")
-        self.resize(QtCore.QSize(900, 500))
+        self.resize(QtCore.QSize(900, 600))
 
         self.setStyleSheet(classic_style())
 
@@ -333,6 +335,8 @@ class _CompTemplateForm(QtWidgets.QWidget):
             default_expression=self._template_form.default_expression(),
             match_start=self._template_form.match_start(),
             match_end=self._template_form.match_end(),
+            description=self._template_form.description(),
+            append_username_to_name=self._template_form.append_username_to_name(),
             outputs=self.output_templates()
         )
 
@@ -418,6 +422,8 @@ class _ProjectTemplateForm(QtWidgets.QWidget):
             default_expression=self._template_form.default_expression(),
             match_start=self._template_form.match_start(),
             match_end=self._template_form.match_end(),
+            description=self._template_form.description(),
+            append_username_to_name=self._template_form.append_username_to_name(),
             outputs=None
         )
 
@@ -465,6 +471,10 @@ class _OutputTemplateForm(QtWidgets.QWidget):
             id=identifier,
             pattern_path=self._template_form.pattern_path(),
             pattern_base=self._template_form.pattern_base(),
+            append_username_to_name=self._template_form.append_username_to_name(),
+            append_colorspace_to_name=self._template_form.append_colorspace_to_name(),
+            append_passname_to_name=self._template_form.append_passname_to_name(),
+            append_passname_to_subfolder=self._template_form.append_passname_to_subfolder(),
         )
 
     def set_values(self, config):
@@ -516,6 +526,14 @@ class _TemplateSceneForm(QtWidgets.QWidget):
         """Return pattern base."""
         return self._pattern_base.text()
 
+    def description(self):
+        """Return default description."""
+        return self._description.text()
+
+    def append_username_to_name(self):
+        """Return whether username should be added to base name by default."""
+        return self._append_username_to_name.isChecked()
+
     def default_expression(self):
         """Return default expression."""
         return self._default_expression.text()
@@ -537,6 +555,15 @@ class _TemplateSceneForm(QtWidgets.QWidget):
         self._pattern_base.blockSignals(True)
         self._pattern_base.setText(config.pattern_base)
         self._pattern_base.blockSignals(False)
+
+        self._description.blockSignals(True)
+        self._description.setText(config.description)
+        self._description.blockSignals(False)
+
+        self._append_username_to_name.blockSignals(True)
+        state = QtCore.Qt.Checked if config.append_username_to_name else QtCore.Qt.Unchecked
+        self._append_username_to_name.setCheckState(state)
+        self._append_username_to_name.blockSignals(False)
 
         self._default_expression.blockSignals(True)
         self._default_expression.setText(config.default_expression)
@@ -570,22 +597,33 @@ class _TemplateSceneForm(QtWidgets.QWidget):
         self._pattern_base = QtWidgets.QLineEdit(self)
         main_layout.addWidget(self._pattern_base, 1, 1, 1, 1)
 
+        description_lbl = QtWidgets.QLabel("Default Description", self)
+        main_layout.addWidget(description_lbl, 2, 0, 1, 1)
+
+        self._description = QtWidgets.QLineEdit(self)
+        main_layout.addWidget(self._description, 2, 1, 1, 1)
+
+        self._append_username_to_name = QtWidgets.QCheckBox("Append username to name", self)
+        main_layout.addWidget(self._append_username_to_name, 3, 1, 1, 1)
+
         default_expression_lbl = QtWidgets.QLabel("Default Expression", self)
-        main_layout.addWidget(default_expression_lbl, 2, 0, 1, 1)
+        main_layout.addWidget(default_expression_lbl, 4, 0, 1, 1)
 
         self._default_expression = QtWidgets.QLineEdit(self)
-        main_layout.addWidget(self._default_expression, 2, 1, 1, 1)
+        main_layout.addWidget(self._default_expression, 4, 1, 1, 1)
 
         self._match_start = QtWidgets.QCheckBox("Match Start Pattern Exactly", self)
-        main_layout.addWidget(self._match_start, 3, 1, 1, 1)
+        main_layout.addWidget(self._match_start, 5, 1, 1, 1)
 
         self._match_end = QtWidgets.QCheckBox("Match End Pattern Exactly", self)
-        main_layout.addWidget(self._match_end, 4, 1, 1, 1)
+        main_layout.addWidget(self._match_end, 6, 1, 1, 1)
 
     def _connect_signals(self):
         """Initialize signals connection."""
         self._pattern_path.textChanged.connect(lambda: self.updated.emit())
         self._pattern_base.textChanged.connect(lambda: self.updated.emit())
+        self._description.textChanged.connect(lambda: self.updated.emit())
+        self._append_username_to_name.stateChanged.connect(lambda: self.updated.emit())
         self._default_expression.textChanged.connect(lambda: self.updated.emit())
         self._match_start.stateChanged.connect(lambda: self.updated.emit())
         self._match_end.stateChanged.connect(lambda: self.updated.emit())
@@ -603,7 +641,7 @@ class _TemplateOutputForm(QtWidgets.QWidget):
         self._setup_ui()
         self._connect_signals()
 
-        default_config = load_template_configs([{"id": "Default"}])[0]
+        default_config = load_output_template_configs([{"id": "Default"}])[0]
         self.set_values(default_config)
 
     def pattern_path(self):
@@ -614,6 +652,22 @@ class _TemplateOutputForm(QtWidgets.QWidget):
         """Return pattern base."""
         return self._pattern_base.text()
 
+    def append_username_to_name(self):
+        """Return whether username should be added to base name by default."""
+        return self._append_username_to_name.isChecked()
+
+    def append_colorspace_to_name(self):
+        """Return whether colorspace should be added to base name by default."""
+        return self._append_colorspace_to_name.isChecked()
+
+    def append_passname_to_name(self):
+        """Return whether passname should be added to base name by default."""
+        return self._append_passname_to_name.isChecked()
+
+    def append_passname_to_subfolder(self):
+        """Return whether passname should be added to subfolder by default."""
+        return self._append_passname_to_subfolder.isChecked()
+
     def set_values(self, config):
         """Initialize values."""
         self._pattern_path.blockSignals(True)
@@ -623,6 +677,26 @@ class _TemplateOutputForm(QtWidgets.QWidget):
         self._pattern_base.blockSignals(True)
         self._pattern_base.setText(config.pattern_base)
         self._pattern_base.blockSignals(False)
+
+        self._append_username_to_name.blockSignals(True)
+        state = QtCore.Qt.Checked if config.append_username_to_name else QtCore.Qt.Unchecked
+        self._append_username_to_name.setCheckState(state)
+        self._append_username_to_name.blockSignals(False)
+
+        self._append_colorspace_to_name.blockSignals(True)
+        state = QtCore.Qt.Checked if config.append_colorspace_to_name else QtCore.Qt.Unchecked
+        self._append_colorspace_to_name.setCheckState(state)
+        self._append_colorspace_to_name.blockSignals(False)
+
+        self._append_passname_to_name.blockSignals(True)
+        state = QtCore.Qt.Checked if config.append_passname_to_name else QtCore.Qt.Unchecked
+        self._append_passname_to_name.setCheckState(state)
+        self._append_passname_to_name.blockSignals(False)
+
+        self._append_passname_to_subfolder.blockSignals(True)
+        state = QtCore.Qt.Checked if config.append_passname_to_subfolder else QtCore.Qt.Unchecked
+        self._append_passname_to_subfolder.setCheckState(state)
+        self._append_passname_to_subfolder.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -642,10 +716,34 @@ class _TemplateOutputForm(QtWidgets.QWidget):
         self._pattern_base = QtWidgets.QLineEdit(self)
         main_layout.addWidget(self._pattern_base, 1, 1, 1, 1)
 
+        self._append_username_to_name = QtWidgets.QCheckBox(
+            "Append username to name", self
+        )
+        main_layout.addWidget(self._append_username_to_name, 2, 1, 1, 1)
+
+        self._append_colorspace_to_name = QtWidgets.QCheckBox(
+            "Append colorspace to name", self
+        )
+        main_layout.addWidget(self._append_colorspace_to_name, 3, 1, 1, 1)
+
+        self._append_passname_to_name = QtWidgets.QCheckBox(
+            "Append passname to name", self
+        )
+        main_layout.addWidget(self._append_passname_to_name, 4, 1, 1, 1)
+
+        self._append_passname_to_subfolder = QtWidgets.QCheckBox(
+            "Append passname to subfolder", self
+        )
+        main_layout.addWidget(self._append_passname_to_subfolder, 5, 1, 1, 1)
+
     def _connect_signals(self):
         """Initialize signals connection."""
         self._pattern_path.textChanged.connect(lambda: self.updated.emit())
         self._pattern_base.textChanged.connect(lambda: self.updated.emit())
+        self._append_username_to_name.stateChanged.connect(lambda: self.updated.emit())
+        self._append_colorspace_to_name.stateChanged.connect(lambda: self.updated.emit())
+        self._append_passname_to_name.stateChanged.connect(lambda: self.updated.emit())
+        self._append_passname_to_subfolder.stateChanged.connect(lambda: self.updated.emit())
 
 
 class ColorspaceSettingsForm(QtWidgets.QWidget):
@@ -744,6 +842,8 @@ class AdvancedSettingsForm(QtWidgets.QWidget):
         self._max_padding.setValue(config.max_padding)
         self._max_padding.blockSignals(False)
 
+        self._set_default_paddings(config.default_padding)
+
         self._username.blockSignals(True)
         self._username.setText(config.username)
         self._username.setEnabled(not config.username_is_default)
@@ -764,35 +864,72 @@ class AdvancedSettingsForm(QtWidgets.QWidget):
         main_layout.addWidget(max_locations_lbl, 0, 0, 1, 1)
 
         self._max_locations = QtWidgets.QSpinBox(self)
+        self._max_locations.setMinimum(1)
+        self._max_locations.setMaximum(30)
         main_layout.addWidget(self._max_locations, 0, 1, 1, 1)
 
         max_padding_lbl = QtWidgets.QLabel("Max Padding", self)
         main_layout.addWidget(max_padding_lbl, 1, 0, 1, 1)
 
         self._max_padding = QtWidgets.QSpinBox(self)
+        self._max_padding.setMinimum(1)
+        self._max_padding.setMaximum(10)
         main_layout.addWidget(self._max_padding, 1, 1, 1, 1)
 
+        padding_lbl = QtWidgets.QLabel("Default Padding", self)
+        main_layout.addWidget(padding_lbl, 2, 0, 1, 1)
+
+        self._padding = QtWidgets.QComboBox(self)
+        main_layout.addWidget(self._padding, 2, 1, 1, 1)
+
         username_lbl = QtWidgets.QLabel("Username", self)
-        main_layout.addWidget(username_lbl, 2, 0, 1, 1)
+        main_layout.addWidget(username_lbl, 3, 0, 1, 1)
 
         self._username = QtWidgets.QLineEdit(self)
-        main_layout.addWidget(self._username, 2, 1, 1, 1)
+        main_layout.addWidget(self._username, 3, 1, 1, 1)
 
         self._username_is_default = QtWidgets.QCheckBox("Default username is used", self)
-        main_layout.addWidget(self._username_is_default, 3, 1, 1, 1)
+        main_layout.addWidget(self._username_is_default, 4, 1, 1, 1)
 
         spacer_v = QtWidgets.QSpacerItem(
             0, 0, QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Expanding
         )
-        main_layout.addItem(spacer_v, 4, 1, 1, 1)
+        main_layout.addItem(spacer_v, 5, 1, 1, 1)
 
     def _connect_signals(self):
         """Initialize signals connection."""
         self._username.textChanged.connect(lambda v: self.updated.emit("username", v))
         self._max_locations.valueChanged.connect(lambda v: self.updated.emit("max_locations", v))
         self._max_padding.valueChanged.connect(lambda v: self.updated.emit("max_padding", v))
+        self._max_padding.valueChanged.connect(lambda: self._toggle_max_padding())
+        self._padding.currentTextChanged.connect(lambda v: self.updated.emit("default_padding", v))
         self._username_is_default.stateChanged.connect(self._toggle_username_default)
+
+    def _toggle_max_padding(self):
+        """Update default padding if max padding has changed."""
+        current_padding = self._padding.currentText()
+        success = self._set_default_paddings(current_padding)
+
+        # Emit new value for padding if current padding cannot be reset
+        if not success:
+            self.updated.emit("default_padding", self._padding.currentText())
+
+    def _set_default_paddings(self, current_padding):
+        """Initiate paddings and return whether current padding has been set."""
+        items = nomenclator.utilities.fetch_paddings(
+            max_value=self._max_padding.value()
+        )
+
+        self._padding.blockSignals(True)
+        self._padding.clear()
+        self._padding.addItems(items)
+        index = self._padding.findText(current_padding)
+        if index >= 0:
+            self._padding.setCurrentIndex(index)
+        self._padding.blockSignals(False)
+
+        return index >= 0
 
     def _toggle_username_default(self):
         """Indicate whether the username used is default or not."""

@@ -170,6 +170,8 @@ def test_fetch_template_config_scenario1():
         default_expression=r"[\w_.-]+",
         match_start=True,
         match_end=True,
+        append_username_to_name=True,
+        description="",
         outputs=None,
     )
 
@@ -204,6 +206,8 @@ def test_fetch_template_config_scenario2():
         default_expression=r"[\w_.-]+",
         match_start=True,
         match_end=True,
+        append_username_to_name=True,
+        description="",
         outputs=None,
     )
 
@@ -235,6 +239,8 @@ def test_fetch_template_config_scenario3():
         default_expression=r"[\w_.-]+",
         match_start=True,
         match_end=True,
+        append_username_to_name=True,
+        description="",
         outputs=None,
     )
 
@@ -268,6 +274,8 @@ def test_fetch_template_config_scenario4():
         default_expression=r"[\w_.-]+",
         match_start=True,
         match_end=False,
+        append_username_to_name=True,
+        description="",
         outputs=None,
     )
 
@@ -303,6 +311,8 @@ def test_fetch_template_config_scenario5():
         default_expression=r"[\w_.-]+",
         match_start=True,
         match_end=True,
+        append_username_to_name=True,
+        description="",
         outputs=None,
     )
 
@@ -336,6 +346,8 @@ def test_fetch_template_config_scenario6():
         default_expression=r"[\w_.-]+",
         match_start=False,
         match_end=True,
+        append_username_to_name=True,
+        description="",
         outputs=None,
     )
 

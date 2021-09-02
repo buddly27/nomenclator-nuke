@@ -166,6 +166,7 @@ def test_dump_empty():
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -187,6 +188,7 @@ def test_dump_descriptions():
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -210,6 +212,7 @@ def test_dump_create_subfolders():
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -233,6 +236,7 @@ def test_dump_colorspace_aliases():
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -258,6 +262,7 @@ def test_dump_tokens():
         tokens=(("token1", "value1"), ("token2", "value2")),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -283,6 +288,7 @@ def test_dump_max_locations():
         tokens=tuple(),
         max_locations=10,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -304,12 +310,37 @@ def test_dump_max_padding():
         tokens=tuple(),
         max_locations=5,
         max_padding=3,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
 
     data = nomenclator.config.dump(config)
     assert data == collections.OrderedDict([("max-padding", 3)])
+
+
+def test_dump_default_padding():
+    """Return data mapping with updated 'default-padding'."""
+    import nomenclator.config
+
+    config = nomenclator.config.Config(
+        descriptions=("comp", "precomp", "roto", "cleanup"),
+        create_subfolders=False,
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
+        max_locations=5,
+        max_padding=5,
+        default_padding="###",
+        username="john-doe",
+        username_is_default=True
+    )
+
+    data = nomenclator.config.dump(config)
+    assert data == collections.OrderedDict([
+        ("default-padding", "###")
+    ])
 
 
 def test_dump_username():
@@ -325,6 +356,7 @@ def test_dump_username():
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=False
     )
@@ -346,6 +378,7 @@ def test_dump_comp_templates(mocked_dump_template_configs):
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -373,6 +406,7 @@ def test_dump_project_templates(mocked_dump_template_configs):
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -409,6 +443,8 @@ def test_dump_template_configs(mocked_dump_output_template_configs):
             default_expression=r"[\w_.-]+",
             match_start=True,
             match_end=False,
+            append_username_to_name=True,
+            description="",
             outputs=("__TEMPLATE11__", "__TEMPLATE12__")
         ),
         nomenclator.config.TemplateConfig(
@@ -418,6 +454,8 @@ def test_dump_template_configs(mocked_dump_output_template_configs):
             default_expression=r"\w+",
             match_start=False,
             match_end=True,
+            append_username_to_name=False,
+            description="comp",
             outputs=("__TEMPLATE21__", "__TEMPLATE22__")
         ),
     )
@@ -428,14 +466,16 @@ def test_dump_template_configs(mocked_dump_output_template_configs):
             ("id", "Episodic"),
             ("pattern-path", "/path/{project}/{episode}/{shot}/scripts"),
             ("pattern-base", "{episode}_{shot}_{description}_v{version}"),
-            ("match-end", False)
+            ("match-end", False),
+            ("append-username-to-name", True)
         ]),
         collections.OrderedDict([
             ("id", "Element"),
             ("pattern-path", "/path/{project}/build/{element}/scripts"),
             ("pattern-base", "{element}_{description}_v{version}"),
             ("default-expression", r"\w+"),
-            ("match-start", False)
+            ("match-start", False),
+            ("description", "comp")
         ]),
     ]
 
@@ -454,6 +494,8 @@ def test_dump_template_configs_with_outputs(mocked_dump_output_template_configs)
             default_expression=r"[\w_.-]+",
             match_start=True,
             match_end=False,
+            append_username_to_name=True,
+            description="",
             outputs=("__TEMPLATE11__", "__TEMPLATE12__")
         ),
         nomenclator.config.TemplateConfig(
@@ -463,6 +505,8 @@ def test_dump_template_configs_with_outputs(mocked_dump_output_template_configs)
             default_expression=r"\w+",
             match_start=False,
             match_end=True,
+            append_username_to_name=False,
+            description="comp",
             outputs=("__TEMPLATE21__", "__TEMPLATE22__")
         ),
     )
@@ -476,6 +520,7 @@ def test_dump_template_configs_with_outputs(mocked_dump_output_template_configs)
             ("pattern-path", "/path/{project}/{episode}/{shot}/scripts"),
             ("pattern-base", "{episode}_{shot}_{description}_v{version}"),
             ("match-end", False),
+            ("append-username-to-name", True),
             ("outputs", mocked_dump_output_template_configs.return_value)
         ]),
         collections.OrderedDict([
@@ -484,6 +529,7 @@ def test_dump_template_configs_with_outputs(mocked_dump_output_template_configs)
             ("pattern-base", "{element}_{description}_v{version}"),
             ("default-expression", r"\w+"),
             ("match-start", False),
+            ("description", "comp"),
             ("outputs", mocked_dump_output_template_configs.return_value)
         ]),
     ]
@@ -514,11 +560,19 @@ def test_dump_output_template_configs():
             id="Comp",
             pattern_path="/path/{project}/{episode}/{shot}/comps",
             pattern_base="{episode}_{shot}_comp_v{version}",
+            append_username_to_name=False,
+            append_colorspace_to_name=True,
+            append_passname_to_name=False,
+            append_passname_to_subfolder=True,
         ),
         nomenclator.config.OutputTemplateConfig(
             id="Precomp",
             pattern_path="/path/{project}/{episode}/{shot}/precomps",
             pattern_base="{episode}_{shot}_precomp_v{version}",
+            append_username_to_name=True,
+            append_colorspace_to_name=False,
+            append_passname_to_name=True,
+            append_passname_to_subfolder=False,
         ),
     ]
 
@@ -528,11 +582,15 @@ def test_dump_output_template_configs():
             ("id", "Comp"),
             ("pattern-path", "/path/{project}/{episode}/{shot}/comps"),
             ("pattern-base", "{episode}_{shot}_comp_v{version}"),
+            ("append-colorspace-to-name", True),
+            ("append-passname-to-subfolder", True),
         ]),
         collections.OrderedDict([
             ("id", "Precomp"),
             ("pattern-path", "/path/{project}/{episode}/{shot}/precomps"),
             ("pattern-base", "{episode}_{shot}_precomp_v{version}"),
+            ("append-username-to-name", True),
+            ("append-passname-to-name", True),
         ]),
     ]
 
@@ -553,6 +611,7 @@ def test_load_empty():
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -576,6 +635,7 @@ def test_load_descriptions():
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -599,6 +659,7 @@ def test_load_create_subfolders():
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -625,6 +686,7 @@ def test_load_colorspace_aliases():
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -651,6 +713,7 @@ def test_load_tokens():
         tokens=(("token1", "value1"), ("token2", "value2")),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -674,6 +737,7 @@ def test_load_max_locations():
         tokens=tuple(),
         max_locations=10,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -697,6 +761,31 @@ def test_load_max_padding():
         tokens=tuple(),
         max_locations=5,
         max_padding=3,
+        default_padding=None,
+        username="john-doe",
+        username_is_default=True
+    )
+
+
+@pytest.mark.usefixtures("mock_getuser")
+def test_load_default_padding():
+    """Return config with updated 'default-padding'."""
+    import nomenclator.config
+
+    config = nomenclator.config.load({
+        "default-padding": "###"
+    })
+
+    assert config == nomenclator.config.Config(
+        descriptions=("comp", "precomp", "roto", "cleanup"),
+        create_subfolders=False,
+        comp_template_configs=tuple(),
+        project_template_configs=tuple(),
+        colorspace_aliases=(("linear", "lin"), ("sRGB", "srgb")),
+        tokens=tuple(),
+        max_locations=5,
+        max_padding=5,
+        default_padding="###",
         username="john-doe",
         username_is_default=True
     )
@@ -720,6 +809,7 @@ def test_load_username():
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="steve",
         username_is_default=False
     )
@@ -743,6 +833,7 @@ def test_load_comp_templates(mocked_load_template_configs):
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -772,6 +863,7 @@ def test_load_project_templates(mocked_load_template_configs):
         tokens=tuple(),
         max_locations=5,
         max_padding=5,
+        default_padding=None,
         username="john-doe",
         username_is_default=True
     )
@@ -811,6 +903,8 @@ def test_load_template_configs_empty_items(mocked_load_output_template_configs):
             default_expression=r"[\w_.-]+",
             match_start=True,
             match_end=True,
+            append_username_to_name=False,
+            description="",
             outputs=None
         ),
         nomenclator.config.TemplateConfig(
@@ -820,6 +914,8 @@ def test_load_template_configs_empty_items(mocked_load_output_template_configs):
             default_expression=r"[\w_.-]+",
             match_start=True,
             match_end=True,
+            append_username_to_name=False,
+            description="",
             outputs=None
         )
     )
@@ -838,12 +934,14 @@ def test_load_template_configs(mocked_load_output_template_configs):
             "pattern-base": "{episode}_{shot}_{description}_v{version}",
             "default-expression": r"\w+",
             "match-end": False,
+            "append-username-to-name": True,
             "outputs": ("__TEMPLATE1__", "__TEMPLATE2__")
         },
         {
             "id": "Element",
             "pattern-path": "/path/{project}/build/{element}/scripts",
             "pattern-base": "{element}_{description}_v{version}",
+            "description": "comp",
             "match-start": False,
         }
     ]
@@ -857,6 +955,8 @@ def test_load_template_configs(mocked_load_output_template_configs):
             default_expression=r"\w+",
             match_start=True,
             match_end=False,
+            append_username_to_name=True,
+            description="",
             outputs=None
         ),
         nomenclator.config.TemplateConfig(
@@ -866,6 +966,8 @@ def test_load_template_configs(mocked_load_output_template_configs):
             default_expression=r"[\w_.-]+",
             match_start=False,
             match_end=True,
+            append_username_to_name=False,
+            description="comp",
             outputs=None
         )
     )
@@ -884,12 +986,14 @@ def test_load_template_configs_with_outputs(mocked_load_output_template_configs)
             "pattern-base": "{episode}_{shot}_{description}_v{version}",
             "default-expression": r"\w+",
             "match-end": False,
+            "append-username-to-name": True,
             "outputs": ("__TEMPLATE1__", "__TEMPLATE2__")
         },
         {
             "id": "Element",
             "pattern-path": "/path/{project}/build/{element}/scripts",
             "pattern-base": "{element}_{description}_v{version}",
+            "description": "comp",
             "match-start": False,
         }
     ]
@@ -905,6 +1009,8 @@ def test_load_template_configs_with_outputs(mocked_load_output_template_configs)
             default_expression=r"\w+",
             match_start=True,
             match_end=False,
+            append_username_to_name=True,
+            description="",
             outputs=mocked_load_output_template_configs.return_value
         ),
         nomenclator.config.TemplateConfig(
@@ -914,6 +1020,8 @@ def test_load_template_configs_with_outputs(mocked_load_output_template_configs)
             default_expression=r"[\w_.-]+",
             match_start=False,
             match_end=True,
+            append_username_to_name=False,
+            description="comp",
             outputs=mocked_load_output_template_configs.return_value
         )
     )
@@ -948,11 +1056,19 @@ def test_load_output_template_configs_empty_items():
             id="Comp",
             pattern_path="",
             pattern_base="",
+            append_username_to_name=False,
+            append_colorspace_to_name=False,
+            append_passname_to_name=False,
+            append_passname_to_subfolder=False,
         ),
         nomenclator.config.OutputTemplateConfig(
             id="Precomp",
             pattern_path="",
             pattern_base="",
+            append_username_to_name=False,
+            append_colorspace_to_name=False,
+            append_passname_to_name=False,
+            append_passname_to_subfolder=False,
         ),
     )
 
@@ -966,11 +1082,15 @@ def test_load_output_template_configs():
             "id": "Comp",
             "pattern-path": "/path/{project}/{episode}/{shot}/comps",
             "pattern-base": "{episode}_{shot}_comp_v{version}",
+            "append-colorspace-to-name": True,
+            "append-passname-to-subfolder": True,
         },
         {
             "id": "Precomp",
             "pattern-path": "/path/{project}/{episode}/{shot}/precomps",
             "pattern-base": "{episode}_{shot}_precomp_v{version}",
+            "append-username-to-name": True,
+            "append-passname-to-name": True,
         }
     ]
 
@@ -980,10 +1100,18 @@ def test_load_output_template_configs():
             id="Comp",
             pattern_path="/path/{project}/{episode}/{shot}/comps",
             pattern_base="{episode}_{shot}_comp_v{version}",
+            append_username_to_name=False,
+            append_colorspace_to_name=True,
+            append_passname_to_name=False,
+            append_passname_to_subfolder=True,
         ),
         nomenclator.config.OutputTemplateConfig(
             id="Precomp",
             pattern_path="/path/{project}/{episode}/{shot}/precomps",
             pattern_base="{episode}_{shot}_precomp_v{version}",
+            append_username_to_name=True,
+            append_colorspace_to_name=False,
+            append_passname_to_name=True,
+            append_passname_to_subfolder=False,
         ),
     )

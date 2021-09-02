@@ -29,6 +29,7 @@ Config = collections.namedtuple(
         "tokens",
         "max_locations",
         "max_padding",
+        "default_padding",
         "username",
         "username_is_default",
     ]
@@ -44,6 +45,8 @@ TemplateConfig = collections.namedtuple(
         "default_expression",
         "match_start",
         "match_end",
+        "append_username_to_name",
+        "description",
         "outputs",
     ]
 )
@@ -55,6 +58,10 @@ OutputTemplateConfig = collections.namedtuple(
         "id",
         "pattern_path",
         "pattern_base",
+        "append_username_to_name",
+        "append_colorspace_to_name",
+        "append_passname_to_name",
+        "append_passname_to_subfolder",
     ]
 )
 
@@ -115,6 +122,9 @@ def dump(config):
     if config.max_padding != DEFAULT_MAX_PADDING:
         data["max-padding"] = config.max_padding
 
+    if config.default_padding is not None:
+        data["default-padding"] = config.default_padding
+
     if config.username_is_default is False:
         data["username"] = config.username
 
@@ -151,6 +161,12 @@ def dump_template_configs(configs, include_outputs=False):
         if config.match_end != DEFAULT_MATCH_END:
             data["match-end"] = config.match_end
 
+        if config.description != "":
+            data["description"] = config.description
+
+        if config.append_username_to_name is not False:
+            data["append-username-to-name"] = config.append_username_to_name
+
         if include_outputs:
             data["outputs"] = dump_output_template_configs(config.outputs)
 
@@ -168,6 +184,18 @@ def dump_output_template_configs(configs):
         data["id"] = config.id
         data["pattern-path"] = config.pattern_path
         data["pattern-base"] = config.pattern_base
+
+        if config.append_username_to_name is not False:
+            data["append-username-to-name"] = config.append_username_to_name
+
+        if config.append_colorspace_to_name is not False:
+            data["append-colorspace-to-name"] = config.append_colorspace_to_name
+
+        if config.append_passname_to_name is not False:
+            data["append-passname-to-name"] = config.append_passname_to_name
+
+        if config.append_passname_to_subfolder is not False:
+            data["append-passname-to-subfolder"] = config.append_passname_to_subfolder
         items.append(data)
 
     return items
@@ -203,6 +231,7 @@ def load(data):
         tokens=tuple(tokens),
         max_locations=data.get("max-locations", DEFAULT_MAX_LOCATIONS),
         max_padding=data.get("max-padding", DEFAULT_MAX_PADDING),
+        default_padding=data.get("default-padding"),
         username=data.get("username", getpass.getuser()),
         username_is_default=data.get("username") is None
     )
@@ -225,6 +254,8 @@ def load_template_configs(items, include_outputs=False):
             default_expression=item.get("default-expression", DEFAULT_EXPRESSION),
             match_start=item.get("match-start", DEFAULT_MATCH_START),
             match_end=item.get("match-end", DEFAULT_MATCH_END),
+            description=item.get("description", ""),
+            append_username_to_name=item.get("append-username-to-name", False),
             outputs=outputs
         )
         templates.append(template)
@@ -241,6 +272,10 @@ def load_output_template_configs(items):
             id=item["id"],
             pattern_path=item.get("pattern-path", ""),
             pattern_base=item.get("pattern-base", ""),
+            append_username_to_name=item.get("append-username-to-name", False),
+            append_colorspace_to_name=item.get("append-colorspace-to-name", False),
+            append_passname_to_name=item.get("append-passname-to-name", False),
+            append_passname_to_subfolder=item.get("append-passname-to-subfolder", False),
         )
         templates.append(template)
 
