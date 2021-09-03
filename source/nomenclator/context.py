@@ -64,33 +64,38 @@ def fetch(config, is_project=False):
     :return: :class:`Context` instance.
 
     """
-    recent_locations = nomenclator.utilities.fetch_recent_comp_paths(
-        max_values=config.max_locations
-    )
     paddings = nomenclator.utilities.fetch_paddings(
         max_value=config.max_padding
     )
 
     if not is_project:
+        path = nomenclator.utilities.fetch_current_comp_path()
         template_configs = config.comp_template_configs
         outputs = fetch_outputs(config)
         suffix = "nk"
+        recent_locations = nomenclator.utilities.fetch_recent_comp_paths(
+            max_values=config.max_locations,
+        )
 
     else:
+        path = nomenclator.utilities.fetch_current_project_path()
         template_configs = config.project_template_configs
         outputs = tuple()
         suffix = "hrox"
+        recent_locations = nomenclator.utilities.fetch_recent_project_paths(
+            max_values=config.max_locations,
+        )
 
     return Context(
-        location_path="",
+        location_path=os.path.dirname(path),
         recent_locations=recent_locations,
-        path="",
+        path=path,
         suffix=suffix,
         version=None,
-        description=_fetch_item(config.descriptions, 0),
+        description=config.default_description,
         descriptions=config.descriptions,
         append_username_to_name=False,
-        padding=_fetch_item(paddings, 0),
+        padding=config.default_padding,
         paddings=paddings,
         create_subfolders=config.create_subfolders,
         tokens=config.tokens,
@@ -110,51 +115,58 @@ def fetch_outputs(config):
     :return: Tuple of :class:`OutputContext` instances.
 
     """
-    nodes, node_names = nomenclator.utilities.fetch_nodes()
-
     outputs = []
 
-    colorspace_mapping = dict(config.colorspace_aliases)
+    nodes, node_names = nomenclator.utilities.fetch_nodes()
+    alias_mapping = dict(config.colorspace_aliases)
+    destinations = tuple(sorted([output.id for output in config.outputs]))
 
     for node in sorted(nodes, key=lambda n: n.name()):
+        path = nomenclator.utilities.fetch_output_path(node)
         blacklisted = tuple([n for n in node_names if n != node.name()])
 
-        file_types = [
-            label.split()[0].strip() for label
-            in node["file_type"].values()
-            if len(label.split())
-        ]
+        _config = None
 
-        # Resolve colorspace value if node have a colorspace knob.
-        knob = node.knob("colorspace")
-        colorspace = knob.value() if knob is not None else "none"
-        colorspace = colorspace_mapping.get(colorspace, colorspace)
+        # Fetch matching config to initiate default values if possible
+        if len(path):
+            _config = nomenclator.utilities.fetch_output_template_config(
+                os.path.dirname(path), config.outputs
+            )
+
+        if _config is not None:
+            destination = _config.id
+            append_username_to_name = _config.append_username_to_name
+            append_colorspace_to_name = _config.append_colorspace_to_name
+            append_passname_to_name = _config.append_passname_to_name
+            append_passname_to_subfolder = _config.append_passname_to_subfolder
+
+        else:
+            destination = ""
+            append_username_to_name = False
+            append_colorspace_to_name = False
+            append_passname_to_name = False
+            append_passname_to_subfolder = False
 
         context = OutputContext(
             name=node.name(),
             blacklisted_names=blacklisted,
-            path=node["file"].value(),
+            path=path,
             passname=node.name(),
-            enabled=not node["disable"].value(),
-            destination="",
-            destinations=tuple(),
-            file_type=node["file_type"].value().strip() or "exr",
-            file_types=tuple(file_types),
-            multi_views=len(node["views"].value().split()) > 1,
-            colorspace=colorspace,
-            append_username_to_name=False,
-            append_colorspace_to_name=False,
-            append_passname_to_name=False,
-            append_passname_to_subfolder=False
+            enabled=nomenclator.utilities.is_enabled(node),
+            destination=destination,
+            destinations=destinations,
+            file_type=nomenclator.utilities.fetch_file_type(node, "exr"),
+            file_types=nomenclator.utilities.fetch_file_types(node),
+            multi_views=nomenclator.utilities.has_multiple_views(node),
+            colorspace=nomenclator.utilities.fetch_colorspace(node, alias_mapping),
+            append_username_to_name=append_username_to_name,
+            append_colorspace_to_name=append_colorspace_to_name,
+            append_passname_to_name=append_passname_to_name,
+            append_passname_to_subfolder=append_passname_to_subfolder
         )
         outputs.append(context)
 
     return tuple(outputs)
-
-
-def _fetch_item(items, index):
-    """Return item *index* from incoming list or None."""
-    return items[index] if len(items) else None
 
 
 def update(context):
