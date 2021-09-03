@@ -45,11 +45,12 @@ class ErrorManagerWidget(QtWidgets.QFrame):
             self._main_layout.addWidget(widget)
 
         self.setVisible(self._main_layout.count() > 0)
+        self._errors = errors
 
     def clear(self):
         """Clear all error displayed."""
         for index in reversed(range(self._main_layout.count())):
-            self._main_layout.takeAt(index)
+            self._main_layout.itemAt(index).widget().deleteLater()
 
     def _setup_ui(self):
         """Initialize user interface."""
