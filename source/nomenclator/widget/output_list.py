@@ -37,6 +37,7 @@ class OutputList(QtWidgets.QListWidget):
                 new_name=widget.form.new_name,
                 blacklisted_names=widget.form.blacklisted_names,
                 path=widget.form.path,
+                old_path=widget.form.old_path,
                 passname=widget.form.passname,
                 enabled=widget.is_enabled(),
                 destination=widget.form.destination,
@@ -200,6 +201,7 @@ class SettingsForm(QtWidgets.QWidget):
 
         # Save immutable values from context.
         self._name = context.name
+        self._old_path = context.old_path
         self._blacklisted_names = context.blacklisted_names
         self._multi_views = context.multi_views
         self._colorspace = context.colorspace
@@ -221,6 +223,11 @@ class SettingsForm(QtWidgets.QWidget):
     def path(self):
         """Return output path."""
         return self._output_path.path()
+
+    @property
+    def old_path(self):
+        """Return old output path."""
+        return self._old_path
 
     @property
     def blacklisted_names(self):
@@ -349,7 +356,9 @@ class SettingsForm(QtWidgets.QWidget):
         self._destination.blockSignals(False)
 
         self._output_path.blockSignals(True)
-        self._output_path.set_path(context.path)
+        self._output_path.set_path(
+            context.path if context.enabled else context.old_path
+        )
         self._output_path.blockSignals(False)
 
     def _setup_ui(self):
