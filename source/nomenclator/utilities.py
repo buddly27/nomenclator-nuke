@@ -54,7 +54,7 @@ def fetch_version(scene_path, pattern, token_mapping):
     :param token_mapping: Mapping regrouping resolved token values associated
         with their name.
 
-    :return: version integer, or zero if no version is found.
+    :return: version integer, or None if no version is found.
 
     """
     # Ignore version token when resolving base pattern
@@ -68,7 +68,8 @@ def fetch_version(scene_path, pattern, token_mapping):
         match_start=True, match_end=False
     )
 
-    return int(data.get("version", 0))
+    if data is not None:
+        return int(data.get("version", 0)) or None
 
 
 def fetch_template_config(path, template_configs, token_mapping):
