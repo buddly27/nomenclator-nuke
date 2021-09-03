@@ -641,7 +641,7 @@ def test_update(
 
     mocked_fetch_next_version.assert_called_once_with(
         context.location_path,
-        mocked_fetch_template_config.return_value.pattern_path,
+        mocked_fetch_template_config.return_value.pattern_base,
         token_mapping
     )
 

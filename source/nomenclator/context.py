@@ -217,17 +217,19 @@ def update(context):
             error=_update_error(context)
         )
 
-    version = nomenclator.utilities.fetch_next_version(
-        context.location_path, config.pattern_path, token_mapping
-    )
-
-    # Update token values.
+    # Update token values before fetching version.
     token_mapping.update({
-        "version": "{0:03d}".format(version),
         "padding": context.padding,
         "description": context.description,
         "username": context.username
     })
+
+    version = nomenclator.utilities.fetch_next_version(
+        context.location_path, config.pattern_base, token_mapping
+    )
+
+    # Update token values with version found.
+    token_mapping["version"] = "{0:03d}".format(version)
 
     try:
         name = nomenclator.template.generate_scene_name(
