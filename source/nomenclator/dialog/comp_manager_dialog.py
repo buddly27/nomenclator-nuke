@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 from nomenclator.vendor.Qt import QtWidgets, QtCore
 from nomenclator.widget import LocationWidget
 from nomenclator.widget import ErrorManagerWidget
@@ -40,7 +42,7 @@ class CompoManagerDialog(QtWidgets.QDialog):
         self._location.blockSignals(True)
         self._location.set_items(
             context.recent_locations,
-            context.path
+            os.path.dirname(context.path)
         )
         self._location.blockSignals(False)
 
