@@ -78,6 +78,14 @@ class OutputList(QtWidgets.QListWidget):
             widget = self.itemWidget(item)
             widget.form.update(context)
 
+    def set_destination(self, destination):
+        """Set destination for all outputs"""
+        for index in range(self.count()):
+            item = self.item(index)
+            widget = self.itemWidget(item)
+
+            widget.form.set_destination(destination)
+
     def set_append_username_to_name(self, value):
         """Indicate whether username should be appended to all base name."""
         for index in range(self.count()):
@@ -278,6 +286,14 @@ class SettingsForm(QtWidgets.QWidget):
         """Return output error value."""
         return self._error
 
+    def set_destination(self, destination):
+        """Set destination for all outputs"""
+        self._destination.blockSignals(True)
+        index = self._destination.findText(destination)
+        if index >= 0:
+            self._destination.setCurrentIndex(index)
+        self._destination.blockSignals(False)
+
     def set_append_username_to_name(self, value):
         """Indicate whether username should be appended to all base name."""
         self._file_name_form.set_append_username(value)
@@ -304,11 +320,6 @@ class SettingsForm(QtWidgets.QWidget):
         self._passname.setText(context.passname)
         self._passname.blockSignals(False)
 
-        self._destination.blockSignals(True)
-        self._destination.clear()
-        self._destination.addItems([t[0] for t in context.destinations])
-        self._destination.blockSignals(False)
-
         self._file_type.blockSignals(True)
         self._file_type.clear()
         self._file_type.addItems(context.file_types)
@@ -322,6 +333,14 @@ class SettingsForm(QtWidgets.QWidget):
 
     def update(self, context):
         """Update values from context list."""
+        self._destination.blockSignals(True)
+        self._destination.clear()
+        self._destination.addItems(context.destinations)
+        index = self._destination.findText(context.destination)
+        if index >= 0:
+            self._destination.setCurrentIndex(index)
+        self._destination.blockSignals(False)
+
         self._output_path.blockSignals(True)
         self._output_path.set_path(context.path)
         self._output_path.blockSignals(False)

@@ -138,8 +138,8 @@ class FilePathForm(QtWidgets.QWidget):
 
     def update(self, context):
         """Update values from context."""
-        self._destination.blockSignals(True)
-        self._destination.clear()
+        self._destinations.blockSignals(True)
+        self._destinations.clear()
 
         items = []
         if len(context.outputs):
@@ -147,16 +147,16 @@ class FilePathForm(QtWidgets.QWidget):
 
         if len(items):
             items += [self.DESTINATION_PER_OUTPUT]
-            self._destination.addItems(items)
+            self._destinations.addItems(items)
 
             targets = set([output.destination for output in context.outputs])
             value = list(targets)[0] if len(targets) == 1 else self.DESTINATION_PER_OUTPUT
 
-            index = self._destination.findText(value)
+            index = self._destinations.findText(value)
             if index >= 0:
-                self._destination.setCurrentIndex(index)
+                self._destinations.setCurrentIndex(index)
 
-        self._destination.blockSignals(False)
+        self._destinations.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -175,8 +175,8 @@ class FilePathForm(QtWidgets.QWidget):
         label.setMaximumWidth(80)
         main_layout.addWidget(label, 0, 0)
 
-        self._destination = QtWidgets.QComboBox(self)
-        main_layout.addWidget(self._destination, 0, 1)
+        self._destinations = QtWidgets.QComboBox(self)
+        main_layout.addWidget(self._destinations, 0, 1)
 
         self._append_passname = QtWidgets.QCheckBox(
             "Append passname to each sub-folder", self
@@ -195,6 +195,7 @@ class FilePathForm(QtWidgets.QWidget):
     def _connect_signals(self):
         """Initialize signals connection."""
         self._append_passname.stateChanged.connect(self._emit_output_signal)
+        self._destinations.currentIndexChanged.connect(self._emit_output_signal)
 
         self._create_subfolders.stateChanged.connect(
             lambda state: self.updated.emit(
@@ -203,13 +204,28 @@ class FilePathForm(QtWidgets.QWidget):
         )
 
     def _emit_output_signal(self):
-        """Emit corresponding signals for outputs."""
+        """Emit signal to indicate that output items must be updated."""
         knob = self.sender()
+
         context_attributes = {
             self._append_passname: "append_passname_to_subfolder",
+            self._destinations: "destination",
         }
 
-        self.output_updated.emit(context_attributes[knob], knob.isChecked())
+        # Fetch value depending on the knob type.
+        if isinstance(knob, QtWidgets.QCheckBox):
+            value = knob.isChecked()
+        else:
+            value = knob.currentText()
+
+        # Ignore if value is a placeholder for multi destinations.
+        if value == self.DESTINATION_PER_OUTPUT:
+            return
+
+        self.output_updated.emit(context_attributes[knob], value)
+
+        if not isinstance(knob, QtWidgets.QCheckBox):
+            return
 
         # Ensure that the checkbox is not partially checked if user click on it.
         if knob.checkState() == QtCore.Qt.PartiallyChecked:
