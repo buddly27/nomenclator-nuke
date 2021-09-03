@@ -56,6 +56,8 @@ class CompoManagerDialog(QtWidgets.QDialog):
         self._comp_settings_form.update(context)
         self._output_settings_form.update(context)
 
+        self._update_buttons_states()
+
     def _setup_ui(self):
         """Initialize user interface."""
         self.setWindowTitle("Nomenclator - Composition Manager")
@@ -122,8 +124,6 @@ class CompoManagerDialog(QtWidgets.QDialog):
         self._context = nomenclator.context.update(self._context)
         self.update(self._context)
 
-        self._update_buttons_states()
-
     def _update_context(self, key, value):
         """Update context object from *key* and *value*."""
         # noinspection PyProtectedMember
@@ -132,8 +132,6 @@ class CompoManagerDialog(QtWidgets.QDialog):
         # Check if names can be generated.
         self._context = nomenclator.context.update(self._context)
         self.update(self._context)
-
-        self._update_buttons_states()
 
     def _button_clicked(self, button):
         """Modify the state of the dialog depending on the button clicked."""
@@ -153,7 +151,6 @@ class CompoManagerDialog(QtWidgets.QDialog):
             self._context = self._initial_context
             self.set_values(self._context)
             self.update(self._context)
-            self._update_buttons_states()
 
     def _update_buttons_states(self):
         """Modify the state of the buttons depending on the config state."""
