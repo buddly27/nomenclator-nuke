@@ -144,5 +144,25 @@ def classic_style():
             padding: 40px;
             font-size: 12px;
         }
+        QFrame#error-widget {
+            background: #b77;
+            color: #222;
+        }
+        QFrame#error-widget QLabel {
+            color: #222;
+        }
+        QFrame#error-widget QToolButton {
+            background: #955556;
+            border:0px;
+            border-radius: 5px;
+            padding: 3px;
+        }
+        QFrame#error-widget QToolButton:hover {
+            background: #854748;
+        }
+        QFrame#error-header-widget {
+            background: #a66;
+            color: #222;
+        }
         """
     )

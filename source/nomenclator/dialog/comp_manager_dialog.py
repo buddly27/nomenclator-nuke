@@ -2,6 +2,7 @@
 
 from nomenclator.vendor.Qt import QtWidgets, QtCore
 from nomenclator.widget import LocationWidget
+from nomenclator.widget import ErrorManagerWidget
 from nomenclator.widget import GroupWidget
 from nomenclator.widget import DescriptionSelector
 from nomenclator.widget import PathWidget
@@ -25,6 +26,8 @@ class CompoManagerDialog(QtWidgets.QDialog):
         self._context = context
 
         self.set_values(context)
+        self.update(context)
+
         self._location.setFocus()
 
     def set_values(self, context):
@@ -42,6 +45,7 @@ class CompoManagerDialog(QtWidgets.QDialog):
 
     def update(self, context):
         """Update values from context."""
+        self._error_manager_widget.set_values(context)
         self._comp_settings_form.update(context)
 
     def _setup_ui(self):
@@ -57,6 +61,9 @@ class CompoManagerDialog(QtWidgets.QDialog):
 
         self._location = LocationWidget(self)
         main_layout.addWidget(self._location)
+
+        self._error_manager_widget = ErrorManagerWidget(self)
+        main_layout.addWidget(self._error_manager_widget)
 
         body_layout = QtWidgets.QVBoxLayout()
         body_layout.setContentsMargins(10, 10, 10, 10)
