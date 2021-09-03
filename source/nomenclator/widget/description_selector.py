@@ -33,7 +33,11 @@ class DescriptionSelector(QtWidgets.QWidget):
 
     def set_current(self, description):
         """Set current description value."""
-        index = self._description.findText(description)
+        if description is not None:
+            index = self._description.findText(description)
+        else:
+            index = 0
+
         if index >= 0:
             self._description.setCurrentIndex(index)
 
