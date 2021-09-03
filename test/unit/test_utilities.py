@@ -12,6 +12,12 @@ def mocked_listdir(mocker):
 
 
 @pytest.fixture()
+def mocked_isfile(mocker):
+    """Return mocked 'os.path.isfile' function."""
+    return mocker.patch.object(os.path, "isfile")
+
+
+@pytest.fixture()
 def mocked_resolve(mocker):
     """Return mocked 'nomenclator.template.resolve' function."""
     import nomenclator.template
@@ -100,7 +106,7 @@ def test_fetch_next_version_empty(
 
 
 def test_fetch_template_config_empty(mocked_fetch_resolved_tokens):
-    """Fail to return template configuration when config list is empty."""
+    """Fail to return template config when config list is empty."""
     import nomenclator.utilities
 
     config = nomenclator.utilities.fetch_template_config("/path", [], {})
@@ -110,7 +116,7 @@ def test_fetch_template_config_empty(mocked_fetch_resolved_tokens):
 
 
 def test_fetch_template_config_unmatched(mocker, mocked_fetch_resolved_tokens):
-    """Fail to return template configuration when config list do not matched."""
+    """Fail to return template config when config list do not matched."""
     import nomenclator.utilities
 
     mocked_fetch_resolved_tokens.return_value = None
@@ -134,7 +140,7 @@ def test_fetch_template_config_unmatched(mocker, mocked_fetch_resolved_tokens):
 
 
 def test_fetch_template_config(mocker, mocked_fetch_resolved_tokens):
-    """Return matching template configuration."""
+    """Return matching template config."""
     import nomenclator.utilities
 
     mocked_fetch_resolved_tokens.side_effect = [None, None, {"key": "value"}]
@@ -154,6 +160,60 @@ def test_fetch_template_config(mocker, mocked_fetch_resolved_tokens):
             default_expression=template_configs[index].default_expression,
             match_start=template_configs[index].match_start,
             match_end=template_configs[index].match_end,
+        )
+
+
+def test_fetch_output_template_config_empty(mocked_fetch_resolved_tokens):
+    """Fail to return output template config when config list is empty."""
+    import nomenclator.utilities
+
+    config = nomenclator.utilities.fetch_output_template_config("/path", [])
+    assert config is None
+
+    mocked_fetch_resolved_tokens.assert_not_called()
+
+
+def test_fetch_output_template_config_unmatched(mocker, mocked_fetch_resolved_tokens):
+    """Fail to return output template config when config list do not matched."""
+    import nomenclator.utilities
+
+    mocked_fetch_resolved_tokens.return_value = None
+
+    template_configs = [mocker.Mock(), mocker.Mock(), mocker.Mock()]
+    config = nomenclator.utilities.fetch_output_template_config(
+        "/path", template_configs
+    )
+    assert config is None
+
+    assert mocked_fetch_resolved_tokens.call_count == 3
+    for index in range(3):
+        mocked_fetch_resolved_tokens.assert_any_call(
+            "/path", template_configs[index].pattern_path,
+            default_expression=r"[\w_.-]+",
+            match_start=True,
+            match_end=True,
+        )
+
+
+def test_fetch_output_template_config(mocker, mocked_fetch_resolved_tokens):
+    """Return matching output template config."""
+    import nomenclator.utilities
+
+    mocked_fetch_resolved_tokens.side_effect = [None, None, {"key": "value"}]
+
+    template_configs = [mocker.Mock(), mocker.Mock(), mocker.Mock()]
+    config = nomenclator.utilities.fetch_output_template_config(
+        "/path", template_configs
+    )
+    assert config == template_configs[2]
+
+    assert mocked_fetch_resolved_tokens.call_count == 3
+    for index in range(3):
+        mocked_fetch_resolved_tokens.assert_any_call(
+            "/path", template_configs[index].pattern_path,
+            default_expression=r"[\w_.-]+",
+            match_start=True,
+            match_end=True,
         )
 
 
@@ -189,18 +249,18 @@ def test_fetch_nodes(mocker):
     assert node_names == ["Output1", "Output2", "Output3", "Node"]
 
 
-def test_fetch_recent_locations():
-    """Return list of path recently used."""
+def test_fetch_recent_comp_paths():
+    """Return list of comp path recently used."""
     import nuke
     import nomenclator.utilities
 
     nuke.recentFile.side_effect = [
-        "/path1/comp1.nk",
-        "/path1/comp1.nk",
-        "/path2/comp2.nk",
-        "/path3/comp3.nk",
-        "/path3/comp3.nk",
-        "/path4/comp4.nk",
+        "/path1/comp11.nk",
+        "/path1/comp12.nk",
+        "/path2/comp21.nk",
+        "/path3/comp31.nk",
+        "/path3/comp32.nk",
+        "/path4/comp41.nk",
         RuntimeError("no recent file has been found")
     ]
 
@@ -217,18 +277,18 @@ def test_fetch_recent_locations():
     nuke.recentFile.assert_any_call(7)
 
 
-def test_fetch_recent_locations_with_max_value():
-    """Return a maximum number of list of path recently used."""
+def test_fetch_recent_comp_paths_with_max_value():
+    """Return a maximum number of list of comp paths recently used."""
     import nuke
     import nomenclator.utilities
 
     nuke.recentFile.side_effect = [
-        "/path1/comp1.nk",
-        "/path1/comp1.nk",
-        "/path2/comp2.nk",
-        "/path3/comp3.nk",
-        "/path3/comp3.nk",
-        "/path4/comp4.nk",
+        "/path1/comp11.nk",
+        "/path1/comp12.nk",
+        "/path2/comp21.nk",
+        "/path3/comp31.nk",
+        "/path3/comp32.nk",
+        "/path4/comp41.nk",
         RuntimeError("no recent file has been found")
     ]
 
@@ -239,6 +299,109 @@ def test_fetch_recent_locations_with_max_value():
     nuke.recentFile.assert_any_call(1)
     nuke.recentFile.assert_any_call(2)
     nuke.recentFile.assert_any_call(3)
+
+
+def test_fetch_recent_project_paths(mocker, mocked_isfile):
+    """Return list of project path recently used."""
+    import hiero.ui
+    import nomenclator.utilities
+
+    items = [
+        mocker.Mock(**{"text.return_value": "/path1/project11.hrox"}),
+        mocker.Mock(**{"text.return_value": "/path1/project12.hrox"}),
+        mocker.Mock(**{"text.return_value": "/path2/project21.hrox"}),
+        mocker.Mock(**{"text.return_value": "/path3/project31.hrox"}),
+        mocker.Mock(**{"text.return_value": "/path3/project32.hrox"}),
+        mocker.Mock(**{"text.return_value": "/path4/project41.hrox"}),
+        mocker.Mock(**{"text.return_value": "1"}),
+        mocker.Mock(**{"text.return_value": "2"}),
+    ]
+
+    mocked_action = hiero.ui.findMenuAction.return_value
+    mocked_action_menu = mocked_action.menu.return_value
+    mocked_action_menu.actions.return_value = items
+    mocked_isfile.side_effect = [True, True, True, True, True, True, False, False]
+
+    paths = nomenclator.utilities.fetch_recent_project_paths()
+    assert paths == ("/path1", "/path2", "/path3", "/path4")
+
+    hiero.ui.findMenuAction.assert_called_once_with("foundry.project.recentprojects")
+    mocked_action.menu.assert_called_once()
+    mocked_action_menu.actions.assert_called_once()
+
+    assert mocked_isfile.call_count == 8
+    mocked_isfile.assert_any_call("/path1/project11.hrox")
+    mocked_isfile.assert_any_call("/path1/project12.hrox")
+    mocked_isfile.assert_any_call("/path2/project21.hrox")
+    mocked_isfile.assert_any_call("/path3/project31.hrox")
+    mocked_isfile.assert_any_call("/path3/project32.hrox")
+    mocked_isfile.assert_any_call("/path4/project41.hrox")
+    mocked_isfile.assert_any_call("1")
+    mocked_isfile.assert_any_call("2")
+
+
+def test_fetch_recent_project_paths_with_max_value(mocker, mocked_isfile):
+    """Return a maximum number of list of project paths recently used."""
+    import hiero.ui
+    import nomenclator.utilities
+
+    items = [
+        mocker.Mock(**{"text.return_value": "/path1/project11.hrox"}),
+        mocker.Mock(**{"text.return_value": "/path1/project12.hrox"}),
+        mocker.Mock(**{"text.return_value": "/path2/project21.hrox"}),
+        mocker.Mock(**{"text.return_value": "/path3/project31.hrox"}),
+        mocker.Mock(**{"text.return_value": "/path3/project32.hrox"}),
+        mocker.Mock(**{"text.return_value": "/path4/project41.hrox"}),
+        mocker.Mock(**{"text.return_value": "1"}),
+        mocker.Mock(**{"text.return_value": "2"}),
+    ]
+
+    mocked_action = hiero.ui.findMenuAction.return_value
+    mocked_action_menu = mocked_action.menu.return_value
+    mocked_action_menu.actions.return_value = items
+    mocked_isfile.side_effect = [True, True, True]
+
+    paths = nomenclator.utilities.fetch_recent_project_paths(max_values=3)
+    assert paths == ("/path1", "/path2")
+
+    hiero.ui.findMenuAction.assert_called_once_with("foundry.project.recentprojects")
+    mocked_action.menu.assert_called_once()
+    mocked_action_menu.actions.assert_called_once()
+
+    assert mocked_isfile.call_count == 3
+    mocked_isfile.assert_any_call("/path1/project11.hrox")
+    mocked_isfile.assert_any_call("/path1/project12.hrox")
+    mocked_isfile.assert_any_call("/path2/project21.hrox")
+
+
+def test_fetch_recent_project_paths_error_action(mocked_isfile):
+    """Fail to return list of project paths recently used if action is None."""
+    import hiero.ui
+    import nomenclator.utilities
+
+    hiero.ui.findMenuAction.return_value = None
+
+    paths = nomenclator.utilities.fetch_recent_project_paths()
+    assert paths == tuple()
+
+    hiero.ui.findMenuAction.assert_called_once_with("foundry.project.recentprojects")
+    mocked_isfile.assert_not_called()
+
+
+def test_fetch_recent_project_paths_error_action_menu(mocked_isfile):
+    """Fail to return list of project paths recently used if action menu is None."""
+    import hiero.ui
+    import nomenclator.utilities
+
+    mocked_action = hiero.ui.findMenuAction.return_value
+    mocked_action.menu.return_value = None
+
+    paths = nomenclator.utilities.fetch_recent_project_paths()
+    assert paths == tuple()
+
+    hiero.ui.findMenuAction.assert_called_once_with("foundry.project.recentprojects")
+    mocked_action.menu.assert_called_once()
+    mocked_isfile.assert_not_called()
 
 
 def test_fetch_paddings_hashes_notation(mocker):
@@ -344,3 +507,173 @@ def test_fetch_paddings_default_preferences_knob_value_error(mocker):
 
     nuke.toNode.assert_called_once_with("preferences")
     mocked_knob.value.assert_called_once()
+
+
+def test_fetch_current_comp_path():
+    """Return current composition path."""
+    import nuke
+    import nomenclator.utilities
+
+    path = nomenclator.utilities.fetch_current_comp_path()
+    assert path == nuke.scriptName.return_value
+
+
+def test_fetch_current_comp_path_error():
+    """Fail to return current composition path."""
+    import nuke
+    import nomenclator.utilities
+
+    nuke.scriptName.side_effect = RuntimeError("no filename available, have you saved?")
+
+    path = nomenclator.utilities.fetch_current_comp_path()
+    assert path == ""
+
+
+def test_fetch_current_project_path(mocker):
+    """Return current project path."""
+    import hiero.core
+    import nomenclator.utilities
+
+    projects = [mocker.Mock(), mocker.Mock(), mocker.Mock()]
+    hiero.core.projects.return_value = projects
+
+    path = nomenclator.utilities.fetch_current_project_path()
+    assert path == projects[2].path.return_value
+
+
+def test_fetch_current_project_path_empty():
+    """Fail to current project path when project list is empty."""
+    import hiero.core
+    import nomenclator.utilities
+
+    hiero.core.projects.return_value = []
+
+    path = nomenclator.utilities.fetch_current_project_path()
+    assert path == ""
+
+
+def test_fetch_output_path(mocker):
+    """Fetch output path from node."""
+    import nomenclator.utilities
+
+    knob = mocker.Mock()
+    knob_mapping = {"file": knob}
+    node = mocker.MagicMock(__getitem__=lambda _, key: knob_mapping[key])
+
+    path = nomenclator.utilities.fetch_output_path(node)
+    assert path == knob.value.return_value
+
+
+def test_fetch_colorspace(mocker):
+    """Fetch colorspace from node."""
+    import nomenclator.utilities
+
+    knob = mocker.Mock()
+    knob_mapping = {"colorspace": knob}
+    node = mocker.MagicMock(knob=lambda key: knob_mapping.get(key))
+
+    value = nomenclator.utilities.fetch_colorspace(node, {})
+    assert value == knob.value.return_value
+
+
+def test_fetch_colorspace_default(mocker):
+    """Fetch default colorspace value from node when knob does not exist."""
+    import nomenclator.utilities
+
+    knob_mapping = {}
+    node = mocker.MagicMock(knob=lambda key: knob_mapping.get(key))
+
+    value = nomenclator.utilities.fetch_colorspace(node, {})
+    assert value == "none"
+
+
+def test_fetch_colorspace_alias(mocker):
+    """Fetch colorspace from node with alias."""
+    import nomenclator.utilities
+
+    knob = mocker.Mock(**{"value.return_value": "sRGB"})
+    knob_mapping = {"colorspace": knob}
+    node = mocker.MagicMock(knob=lambda key: knob_mapping.get(key))
+
+    value = nomenclator.utilities.fetch_colorspace(node, {"sRGB": "srgb"})
+    assert value == "srgb"
+
+
+def test_fetch_file_type(mocker):
+    """Return file type from node."""
+    import nomenclator.utilities
+
+    knob = mocker.Mock(**{"value.return_value": " exr "})
+    knob_mapping = {"file_type": knob}
+    node = mocker.MagicMock(__getitem__=lambda _, key: knob_mapping[key])
+
+    value = nomenclator.utilities.fetch_file_type(node, "__DEFAULT__")
+    assert value == "exr"
+
+
+def test_fetch_file_type_default(mocker):
+    """Return default file type from node."""
+    import nomenclator.utilities
+
+    knob = mocker.Mock(**{"value.return_value": "  "})
+    knob_mapping = {"file_type": knob}
+    node = mocker.MagicMock(__getitem__=lambda _, key: knob_mapping[key])
+
+    value = nomenclator.utilities.fetch_file_type(node, "__DEFAULT__")
+    assert value == "__DEFAULT__"
+
+
+def test_fetch_file_types(mocker):
+    """Return file types from node."""
+    import nomenclator.utilities
+
+    knob = mocker.Mock(**{"values.return_value": ["", "exr", "dpx", "mov\t\t\tffmpeg"]})
+    knob_mapping = {"file_type": knob}
+    node = mocker.MagicMock(__getitem__=lambda _, key: knob_mapping[key])
+
+    values = nomenclator.utilities.fetch_file_types(node)
+    assert values == ("exr", "dpx", "mov")
+
+
+def test_has_multiple_views_true(mocker):
+    """Indicate that a node is configured with multiple views."""
+    import nomenclator.utilities
+
+    knob = mocker.Mock(**{"value.return_value": "left right"})
+    knob_mapping = {"views": knob}
+    node = mocker.MagicMock(__getitem__=lambda _, key: knob_mapping[key])
+
+    assert nomenclator.utilities.has_multiple_views(node) is True
+
+
+def test_has_multiple_views_false(mocker):
+    """Indicate that a node is not configured with multiple views."""
+    import nomenclator.utilities
+
+    knob = mocker.Mock(**{"value.return_value": "main"})
+    knob_mapping = {"views": knob}
+    node = mocker.MagicMock(__getitem__=lambda _, key: knob_mapping[key])
+
+    assert nomenclator.utilities.has_multiple_views(node) is False
+
+
+def test_is_enabled_true(mocker):
+    """Indicate that a node is enabled."""
+    import nomenclator.utilities
+
+    knob = mocker.Mock(**{"value.return_value": False})
+    knob_mapping = {"disable": knob}
+    node = mocker.MagicMock(__getitem__=lambda _, key: knob_mapping[key])
+
+    assert nomenclator.utilities.is_enabled(node) is True
+
+
+def test_is_enabled_false(mocker):
+    """Indicate that a node is not enabled."""
+    import nomenclator.utilities
+
+    knob = mocker.Mock(**{"value.return_value": True})
+    knob_mapping = {"disable": knob}
+    node = mocker.MagicMock(__getitem__=lambda _, key: knob_mapping[key])
+
+    assert nomenclator.utilities.is_enabled(node) is False

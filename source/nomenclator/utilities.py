@@ -5,7 +5,7 @@ import os
 
 import nuke
 
-from nomenclator.symbol import OUTPUT_CLASSES
+from nomenclator.symbol import OUTPUT_CLASSES, DEFAULT_EXPRESSION
 import nomenclator.template
 
 
@@ -76,6 +76,35 @@ def fetch_template_config(path, template_configs, token_mapping):
     return None
 
 
+def fetch_output_template_config(path, template_configs):
+    """Return output template configuration compatible with *path*.
+
+    Incoming token mapping will be mutated with new token values
+    extracted from matching template configuration.
+
+    :param path: Path to extract template configuration from.
+
+    :param template_configs: List of available
+        :class:`~nomenclator.config.OutputTemplateConfig` instances
+
+    :return: :class:`~nomenclator.config.OutputTemplateConfig`
+        Instance or None.
+
+    """
+    for config in template_configs:
+        data = nomenclator.template.fetch_resolved_tokens(
+            path, config.pattern_path,
+            default_expression=DEFAULT_EXPRESSION,
+            match_start=True,
+            match_end=True,
+        )
+
+        if data is not None:
+            return config
+
+    return None
+
+
 def fetch_nodes():
     """Fetch all available output nodes in the graph with all node names.
 
@@ -117,6 +146,41 @@ def fetch_recent_comp_paths(max_values=10):
     return tuple(paths)
 
 
+def fetch_recent_project_paths(max_values=10):
+    """Return list of paths recently used to save a project.
+
+    :param max_values: Maximum number of recent composition paths to
+        return
+
+    :return: List of recent composition paths.
+
+    """
+    import hiero.ui
+
+    paths = []
+
+    action_name = "foundry.project.recentprojects"
+    action = hiero.ui.findMenuAction(action_name)
+    if action is not None:
+        action_menu = action.menu()
+
+        if action_menu is not None:
+            items = action_menu.actions()
+            for index, item in enumerate(items, 1):
+                if index > max_values:
+                    break
+
+                path = item.text()
+                if not os.path.isfile(path):
+                    continue
+
+                path = os.path.dirname(path)
+                if path not in paths:
+                    paths.append(path)
+
+    return tuple(paths)
+
+
 def fetch_paddings(max_value=5):
     """Return all available paddings if notation requested.
 
@@ -143,3 +207,117 @@ def fetch_paddings(max_value=5):
 
     except (TypeError, NameError, KeyError):
         return available["Hashes (#)"]
+
+
+def fetch_current_comp_path():
+    """Return current composition path.
+
+    :return: Path to current 'nk' file or empty string.
+
+    """
+    try:
+        return nuke.scriptName()
+    except RuntimeError:
+        return ""
+
+
+def fetch_current_project_path():
+    """Return current project path.
+
+    :return: Path to current 'hrox' file or empty string.
+
+    """
+    import hiero.core
+
+    projects = hiero.core.projects()
+    if not len(projects):
+        return ""
+
+    return projects[-1].path()
+
+
+def fetch_output_path(node):
+    """Return output path from *node*.
+
+    :param node: :class:`nuke.Node` instance.
+
+    :return: Output path.
+
+    """
+    return node["file"].value()
+
+
+def fetch_colorspace(node, alias_mapping):
+    """Return colorspace value from *node*.
+
+    :param node: :class:`nuke.Node` instance.
+
+    :param alias_mapping: Mapping containing alias to replace
+        some values.
+
+    :return: Colorspace value, or "none" if *node* does not have
+        a 'colorspace' knob.
+
+    """
+    knob = node.knob("colorspace")
+    if knob is None:
+        return "none"
+
+    value = knob.value()
+    return alias_mapping.get(value) or value
+
+
+def fetch_file_type(node, default_value):
+    """Return file type from *node*.
+
+    :param node: :class:`nuke.Node` instance.
+
+    :param default_value: Default value to return if no file type
+        is set.
+
+    :return: File type value.
+
+    """
+    value = node["file_type"].value()
+    return value.strip() or default_value
+
+
+def fetch_file_types(node):
+    """Return list of available file types for *node*.
+
+    :param node: :class:`nuke.Node` instance.
+
+    :return: Tuple containing all available file types.
+
+    """
+    values = node["file_type"].values()
+
+    # Strip spaces before and after each value.
+    values = (value.strip() for value in values)
+
+    # Keep only first part of value and exclude null values.
+    values = (value.split()[0] for value in values if len(value))
+
+    return tuple(values)
+
+
+def has_multiple_views(node):
+    """Indicate whether *node* is configured with multiple views.
+
+    :param node: :class:`nuke.Node` instance.
+
+    :return: Boolean value.
+
+    """
+    return len(node["views"].value().split()) > 1
+
+
+def is_enabled(node):
+    """Indicate whether *node* is enabled in the graph.
+
+    :param node: :class:`nuke.Node` instance.
+
+    :return: Boolean value.
+
+    """
+    return not node["disable"].value()
