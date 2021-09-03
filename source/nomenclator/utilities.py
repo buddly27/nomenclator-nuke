@@ -338,10 +338,11 @@ def update_nodes(context):
         if not _context.enabled:
             continue
 
-        node = nuke.toNode(_context.name)
-        node.setName(_context.new_name)
-        node["file"].setValue(_context.path)
-        node["file_type"].setValue(_context.file_type)
+        node = nuke.toNode(str(_context.name))
+        node.setName(str(_context.new_name))
+        node["file"].setValue(str(_context.path))
+        node["file_type"].setValue(str(_context.file_type))
+        node["disable"].setValue(not _context.enabled)
 
         if context.create_subfolders:
             path = os.path.dirname(_context.path)
