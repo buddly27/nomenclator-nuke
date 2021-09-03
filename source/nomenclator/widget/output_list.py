@@ -42,6 +42,8 @@ class OutputList(QtWidgets.QListWidget):
                 destinations=widget.form.destinations,
                 file_type=widget.form.file_type,
                 file_types=widget.form.file_types,
+                multi_views=widget.form.multi_views,
+                colorspace=widget.form.colorspace,
                 append_username_to_name=widget.form.append_username_to_name,
                 append_colorspace_to_name=widget.form.append_colorspace_to_name,
                 append_passname_to_name=widget.form.append_passname_to_name,
@@ -179,7 +181,10 @@ class SettingsForm(QtWidgets.QWidget):
         self._setup_ui()
         self._connect_signals()
 
+        # Save immutable values from context.
         self._blacklisted_names = context.blacklisted_names
+        self._multi_views = context.multi_views
+        self._colorspace = context.colorspace
 
         self.set_values(context)
 
@@ -228,6 +233,16 @@ class SettingsForm(QtWidgets.QWidget):
             self._file_type.itemText(index)
             for index in range(self._file_type.count())
         ])
+
+    @property
+    def multi_views(self):
+        """Return whether output has multiple views."""
+        return self._multi_views
+
+    @property
+    def colorspace(self):
+        """Return colorspace value."""
+        return self._colorspace
 
     @property
     def append_username_to_name(self):

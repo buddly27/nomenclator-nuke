@@ -23,6 +23,7 @@ class CompoManagerDialog(QtWidgets.QDialog):
         self._context = context
 
         self.set_values(context)
+        self._location.setFocus()
 
     def set_values(self, context):
         """Initialize values."""
