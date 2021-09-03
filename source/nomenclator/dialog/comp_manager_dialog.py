@@ -7,6 +7,7 @@ from nomenclator.widget import DescriptionSelector
 from nomenclator.widget import PathWidget
 from nomenclator.widget import VersionWidget
 from nomenclator.widget import OutputSettingsForm
+import nomenclator.utilities
 
 from .theme import classic_style
 
@@ -28,7 +29,10 @@ class CompoManagerDialog(QtWidgets.QDialog):
     def set_values(self, context):
         """Initialize values."""
         self._location.blockSignals(True)
-        self._location.set_items(context.recent_locations)
+        self._location.set_items(
+            context.recent_locations,
+            context.path
+        )
         self._location.blockSignals(False)
 
         self._comp_settings_form.set_values(context)
@@ -86,6 +90,9 @@ class CompoManagerDialog(QtWidgets.QDialog):
         self._button_box.clicked.connect(self._button_clicked)
         self._output_settings_form.updated.connect(self._update_full_context)
         self._comp_settings_form.updated.connect(self._update_context)
+        self._location.updated.connect(
+            lambda: self._update_context("location_path", self._location.value)
+        )
 
     def _update_full_context(self):
         """Replace context object."""

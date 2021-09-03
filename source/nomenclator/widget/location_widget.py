@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 from nomenclator.vendor.Qt import QtWidgets, QtCore
 
 
 class LocationWidget(QtWidgets.QFrame):
     """Widget used to manage location path."""
+
+    #: :term:`Qt Signal` emitted when location has been updated.
+    updated = QtCore.Signal()
 
     def __init__(self, parent=None):
         """Initiate the widget."""
@@ -12,11 +17,19 @@ class LocationWidget(QtWidgets.QFrame):
         self._setup_ui()
         self._connect_signals()
 
-    def set_items(self, recent_locations):
+    @property
+    def value(self):
+        """Return current location."""
+        return self._location.currentText()
+
+    def set_items(self, recent_locations, current_path):
         """Initialize items."""
+        if os.path.isfile(current_path):
+            current_path = os.path.dirname(current_path)
+
         self._location.clear()
         self._location.addItems(recent_locations)
-        self._location.setEditText("")
+        self._location.setEditText(current_path)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -55,12 +68,22 @@ class LocationWidget(QtWidgets.QFrame):
     def _connect_signals(self):
         """Initialize signals connection."""
         self._browse_btn.clicked.connect(self.browse)
+        self._location.currentIndexChanged.connect(lambda: self.updated.emit())
+        self._location.editTextChanged.connect(lambda: self.updated.emit())
 
     def browse(self):
         """Open a browsing panel to choose the script location."""
         import nuke
 
-        nuke.getFilename(
+        path = nuke.getFilename(
             "Please select a destination folder to save the script",
             default=self._location.currentText()
         )
+
+        if path is not None:
+            if os.path.isfile(path):
+                path = os.path.dirname(path)
+
+            self._location.setEditText(path)
+
+
