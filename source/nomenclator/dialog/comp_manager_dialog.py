@@ -157,7 +157,7 @@ class CompoManagerDialog(QtWidgets.QDialog):
         button.setEnabled(
             len(self._context.path)
             and all(
-                output_context.enabled and len(output_context.path)
+                len(output_context.path)
                 for output_context in self._context.outputs
             )
         )
