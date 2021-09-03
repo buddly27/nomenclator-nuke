@@ -41,6 +41,7 @@ def test_update_comp_scenario1():
         outputs=(
             nomenclator.context.OutputContext(
                 name="Write1",
+                new_name="Write1",
                 blacklisted_names=tuple(),
                 path="/path/to/test.dpx",
                 passname="beauty",
@@ -113,6 +114,7 @@ def test_update_comp_scenario2():
         outputs=(
             nomenclator.context.OutputContext(
                 name="Write1",
+                new_name="Write1",
                 blacklisted_names=tuple(),
                 path="/path/to/test.dpx",
                 passname="beauty",
@@ -184,6 +186,7 @@ def test_update_comp_scenario3():
         outputs=(
             nomenclator.context.OutputContext(
                 name="Write1",
+                new_name="Write1",
                 blacklisted_names=tuple(),
                 path="/path/to/test.dpx",
                 passname="beauty",
@@ -268,6 +271,7 @@ def test_update_comp_scenario4():
         outputs=(
             nomenclator.context.OutputContext(
                 name="Write1",
+                new_name="Write1",
                 blacklisted_names=tuple(),
                 path="/path/to/test.dpx",
                 passname="beauty",
@@ -365,6 +369,7 @@ def test_update_comp_scenario5():
         outputs=(
             nomenclator.context.OutputContext(
                 name="Write1",
+                new_name="Write1",
                 blacklisted_names=tuple(),
                 path="/path/to/test.dpx",
                 passname="beauty",
@@ -457,6 +462,7 @@ def test_update_comp_scenario6():
         outputs=(
             nomenclator.context.OutputContext(
                 name="Write1",
+                new_name="Write1",
                 blacklisted_names=tuple(),
                 path="/path/to/test.dpx",
                 passname="beauty",
@@ -534,6 +540,7 @@ def test_update_comp_scenario7():
         outputs=(
             nomenclator.context.OutputContext(
                 name="Write1",
+                new_name="Write1",
                 blacklisted_names=tuple(),
                 path="/path/to/test.dpx",
                 passname="beauty",
@@ -604,6 +611,7 @@ def test_update_comp_scenario8():
         outputs=(
             nomenclator.context.OutputContext(
                 name="Write1",
+                new_name="Write1",
                 blacklisted_names=tuple(),
                 path="/path/to/test.dpx",
                 passname="beauty",
@@ -687,6 +695,7 @@ def test_update_comp_scenario9():
         outputs=(
             nomenclator.context.OutputContext(
                 name="Write1",
+                new_name="Write1",
                 blacklisted_names=tuple(),
                 path="/path/to/test.dpx",
                 passname="beauty",
@@ -772,6 +781,7 @@ def test_update_comp_scenario10():
         outputs=(
             nomenclator.context.OutputContext(
                 name="Write1",
+                new_name="Write1",
                 blacklisted_names=tuple(),
                 path="/path/to/test.dpx",
                 passname="beauty",

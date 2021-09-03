@@ -35,6 +35,7 @@ Context = collections.namedtuple(
 OutputContext = collections.namedtuple(
     "OutputContext", [
         "name",
+        "new_name",
         "blacklisted_names",
         "path",
         "passname",
@@ -170,6 +171,7 @@ def fetch_outputs(config, template_configs):
 
         context = OutputContext(
             name=node.name(),
+            new_name=node.name(),
             blacklisted_names=blacklisted,
             path=path,
             passname=node.name(),

@@ -23,12 +23,8 @@ def open_comp_manager_dialog():
         return
 
     context = panel.context
-
-    try:
-        nuke.scriptSaveAs(context.path)
-    except RuntimeError:
-        # thrown if operation is cancelled by user.
-        return
+    nomenclator.utilities.save_comp(context)
+    nomenclator.utilities.update_nodes(context)
 
 
 def open_project_manager_dialog():

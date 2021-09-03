@@ -321,3 +321,29 @@ def is_enabled(node):
 
     """
     return not node["disable"].value()
+
+
+def save_comp(context):
+    """Save comp with path from *context*."""
+    try:
+        nuke.scriptSaveAs(context.path)
+    except RuntimeError:
+        # thrown if operation is cancelled by user.
+        return
+
+
+def update_nodes(context):
+    """Update nodes in graph from *context*."""
+    for _context in context.outputs:
+        if not _context.enabled:
+            continue
+
+        node = nuke.toNode(_context.name)
+        node.setName(_context.new_name)
+        node["file"].setValue(_context.path)
+        node["file_type"].setValue(_context.file_type)
+
+        if context.create_subfolders:
+            path = os.path.dirname(_context.path)
+            if not os.path.isdir(path):
+                os.makedirs(path)

@@ -34,6 +34,7 @@ class OutputList(QtWidgets.QListWidget):
 
             context = nomenclator.context.OutputContext(
                 name=widget.form.name,
+                new_name=widget.form.new_name,
                 blacklisted_names=widget.form.blacklisted_names,
                 path=widget.form.path,
                 passname=widget.form.passname,
@@ -198,6 +199,7 @@ class SettingsForm(QtWidgets.QWidget):
         self._connect_signals()
 
         # Save immutable values from context.
+        self._name = context.name
         self._blacklisted_names = context.blacklisted_names
         self._multi_views = context.multi_views
         self._colorspace = context.colorspace
@@ -207,6 +209,11 @@ class SettingsForm(QtWidgets.QWidget):
 
     @property
     def name(self):
+        """Return output name."""
+        return self._name
+
+    @property
+    def new_name(self):
         """Return output name."""
         return self._node_name.text()
 

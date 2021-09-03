@@ -364,6 +364,7 @@ def test_fetch_outputs_without_templates(
     assert contexts == (
         nomenclator.context.OutputContext(
             name="node1",
+            new_name="node1",
             blacklisted_names=("node2", "node3"),
             path="/path/to/output1.dpx",
             passname="node1",
@@ -420,6 +421,7 @@ def test_fetch_outputs_empty_path(
     assert contexts == (
         nomenclator.context.OutputContext(
             name="node1",
+            new_name="node1",
             blacklisted_names=("node2", "node3"),
             path="",
             passname="node1",
@@ -477,6 +479,7 @@ def test_fetch_outputs(
     assert contexts == (
         nomenclator.context.OutputContext(
             name="node1",
+            new_name="node1",
             blacklisted_names=("node2", "node3"),
             path="/path/to/output1.dpx",
             passname="node1",
@@ -536,6 +539,7 @@ def test_fetch_outputs_matching_config(
     assert contexts == (
         nomenclator.context.OutputContext(
             name="node1",
+            new_name="node1",
             blacklisted_names=("node2", "node3"),
             path="/path/to/output1.dpx",
             passname="node1",
