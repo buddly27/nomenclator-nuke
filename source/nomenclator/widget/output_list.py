@@ -36,7 +36,7 @@ class OutputList(QtWidgets.QListWidget):
                 name=widget.form.name,
                 blacklisted_names=widget.form.blacklisted_names,
                 path=widget.form.path,
-                passname=widget.form.name,
+                passname=widget.form.passname,
                 enabled=widget.is_enabled(),
                 destination=widget.form.destination,
                 destinations=widget.form.destinations,
@@ -47,7 +47,8 @@ class OutputList(QtWidgets.QListWidget):
                 append_username_to_name=widget.form.append_username_to_name,
                 append_colorspace_to_name=widget.form.append_colorspace_to_name,
                 append_passname_to_name=widget.form.append_passname_to_name,
-                append_passname_to_subfolder=widget.form.append_passname_to_subfolder
+                append_passname_to_subfolder=widget.form.append_passname_to_subfolder,
+                error=widget.form.error
             )
 
             outputs.append(context)
@@ -69,6 +70,13 @@ class OutputList(QtWidgets.QListWidget):
             item.setSizeHint(widget.sizeHint())
             self.addItem(item)
             self.setItemWidget(item, widget)
+
+    def update(self, outputs_context):
+        """Update values from context list."""
+        for index, context in zip(range(self.count()), outputs_context):
+            item = self.item(index)
+            widget = self.itemWidget(item)
+            widget.form.update(context)
 
     def set_append_username_to_name(self, value):
         """Indicate whether username should be appended to all base name."""
@@ -185,6 +193,7 @@ class SettingsForm(QtWidgets.QWidget):
         self._blacklisted_names = context.blacklisted_names
         self._multi_views = context.multi_views
         self._colorspace = context.colorspace
+        self._error = context.error
 
         self.set_values(context)
 
@@ -264,6 +273,11 @@ class SettingsForm(QtWidgets.QWidget):
         """Return whether passname should be appended to subfolder."""
         return self._sub_folder_form.append_passname
 
+    @property
+    def error(self):
+        """Return output error value."""
+        return self._error
+
     def set_append_username_to_name(self, value):
         """Indicate whether username should be appended to all base name."""
         self._file_name_form.set_append_username(value)
@@ -306,6 +320,8 @@ class SettingsForm(QtWidgets.QWidget):
         self._sub_folder_form.set_values(context)
         self._file_name_form.set_values(context)
 
+    def update(self, context):
+        """Update values from context list."""
         self._output_path.blockSignals(True)
         self._output_path.set_path(context.path)
         self._output_path.blockSignals(False)

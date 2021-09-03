@@ -47,6 +47,7 @@ class CompoManagerDialog(QtWidgets.QDialog):
         """Update values from context."""
         self._error_manager_widget.set_values(context)
         self._comp_settings_form.update(context)
+        self._output_settings_form.update(context)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -109,6 +110,11 @@ class CompoManagerDialog(QtWidgets.QDialog):
     def _update_full_context(self):
         """Replace context object."""
         self._context = self._output_settings_form.context
+
+        # Check if names can be generated.
+        self._context = nomenclator.context.update(self._context)
+        self.update(self._context)
+
         self._update_buttons_states()
 
     def _update_context(self, key, value):
@@ -139,6 +145,7 @@ class CompoManagerDialog(QtWidgets.QDialog):
         elif button == mapping["Reset"]:
             self._context = self._initial_context
             self.set_values(self._context)
+            self.update(self._context)
             self._update_buttons_states()
 
     def _update_buttons_states(self):
@@ -179,8 +186,6 @@ class CompSettingsForm(QtWidgets.QWidget):
         state = QtCore.Qt.Checked if context.append_username_to_name else QtCore.Qt.Unchecked
         self._append_username.setCheckState(state)
         self._append_username.blockSignals(False)
-
-        self._version_widget.set_value(context.version)
 
     def update(self, context):
         """Update values from context."""

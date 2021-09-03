@@ -33,6 +33,13 @@ class OutputSettingsForm(QtWidgets.QWidget):
 
         self._context = context
 
+    def update(self, context):
+        """Update values from context."""
+        self._file_path_form.update(context)
+        self._output_list.update(context.outputs)
+
+        self._context = context
+
     def _setup_ui(self):
         """Initialize user interface."""
         self.setObjectName("output-form")
@@ -101,6 +108,9 @@ class FilePathForm(QtWidgets.QWidget):
     #: :term:`Qt Signal` emitted when an global output key of the context has changed.
     output_updated = QtCore.Signal(str, object)
 
+    #: Label to indicate that destinations are set per output.
+    DESTINATION_PER_OUTPUT = "-- per output --"
+
     def __init__(self, parent=None):
         """Initiate the widget."""
         super(FilePathForm, self).__init__(parent)
@@ -125,6 +135,28 @@ class FilePathForm(QtWidgets.QWidget):
         })
         self._append_passname.setCheckState(state)
         self._append_passname.blockSignals(False)
+
+    def update(self, context):
+        """Update values from context."""
+        self._destination.blockSignals(True)
+        self._destination.clear()
+
+        items = []
+        if len(context.outputs):
+            items = list(context.outputs[0].destinations)
+
+        if len(items):
+            items += [self.DESTINATION_PER_OUTPUT]
+            self._destination.addItems(items)
+
+            targets = set([output.destination for output in context.outputs])
+            value = list(targets)[0] if len(targets) == 1 else self.DESTINATION_PER_OUTPUT
+
+            index = self._destination.findText(value)
+            if index >= 0:
+                self._destination.setCurrentIndex(index)
+
+        self._destination.blockSignals(False)
 
     def _setup_ui(self):
         """Initialize user interface."""
