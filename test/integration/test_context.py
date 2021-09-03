@@ -68,7 +68,7 @@ def test_update_comp_scenario1():
     assert _context.outputs[0].path == ""
     assert _context.outputs[0].destination == ""
     assert _context.outputs[0].destinations == tuple()
-    assert _context.outputs[0].error["message"] == "No output template configurations found."
+    assert _context.outputs[0].error is None
 
 
 def test_update_comp_scenario2():
@@ -140,7 +140,7 @@ def test_update_comp_scenario2():
     assert _context.outputs[0].path == ""
     assert _context.outputs[0].destination == ""
     assert _context.outputs[0].destinations == tuple()
-    assert _context.outputs[0].error["message"] == "No output template configurations found."
+    assert _context.outputs[0].error is None
 
 
 def test_update_comp_scenario3():

@@ -213,7 +213,7 @@ def update(context):
         return context._replace(
             path="",
             version=None,
-            outputs=update_outputs(context.outputs, [], {}),
+            outputs=update_outputs(context.outputs, [], {}, ignore_errors=True),
             error=_update_error(context)
         )
 
@@ -256,7 +256,9 @@ def update(context):
         )
 
 
-def update_outputs(contexts, template_configs, token_mapping):
+def update_outputs(
+    contexts, template_configs, token_mapping, ignore_errors=False
+):
     """Return updated output context objects with generated paths.
 
     Incoming *contexts* will not be mutated.
@@ -268,6 +270,8 @@ def update_outputs(contexts, template_configs, token_mapping):
 
     :param token_mapping: Mapping regrouping resolved token values associated
         with their name.
+
+    :param ignore_errors: Indicate whether errors should be ignored.
 
     :return: Tuple of :class:`OutputContext` instances.
 
@@ -284,7 +288,7 @@ def update_outputs(contexts, template_configs, token_mapping):
                 path="",
                 destination="",
                 destinations=tuple(),
-                error=_update_output_error()
+                error=_update_output_error() if not ignore_errors else None
             )
             _contexts.append(_context)
             continue
@@ -355,7 +359,7 @@ def _update_error(context, error=None):
     if not len(context.template_configs):
         return {
             "message": "No template configurations found.",
-            "detail": (
+            "details": (
                 "You must set at least one template configuration "
                 "to generate names.\n"
                 "Please read the documentation at "
@@ -392,7 +396,7 @@ def _update_output_error(error=None):
 
     return {
         "message": "No output template configurations found.",
-        "detail": (
+        "details": (
             "You must set at least one output template "
             "configuration to generate names.\n"
             "Please read the documentation at "

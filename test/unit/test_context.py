@@ -593,7 +593,9 @@ def test_update_empty(
     mocked_fetch_next_version.assert_not_called()
     mocked_generate_scene_name.assert_not_called()
 
-    mocked_update_outputs.assert_called_once_with(context.outputs, [], {})
+    mocked_update_outputs.assert_called_once_with(
+        context.outputs, [], {}, ignore_errors=True
+    )
 
     context._replace.assert_called_once_with(
         path="",
@@ -831,7 +833,7 @@ def test_update_outputs_without_templates(mocker, mocked_generate_output_name, m
         destinations=tuple(),
         error={
             "message": "No output template configurations found.",
-            "detail": (
+            "details": (
                 "You must set at least one output template "
                 "configuration to generate names.\n"
                 "Please read the documentation at "
@@ -845,7 +847,7 @@ def test_update_outputs_without_templates(mocker, mocked_generate_output_name, m
         destinations=tuple(),
         error={
             "message": "No output template configurations found.",
-            "detail": (
+            "details": (
                 "You must set at least one output template "
                 "configuration to generate names.\n"
                 "Please read the documentation at "
@@ -859,7 +861,7 @@ def test_update_outputs_without_templates(mocker, mocked_generate_output_name, m
         destinations=tuple(),
         error={
             "message": "No output template configurations found.",
-            "detail": (
+            "details": (
                 "You must set at least one output template "
                 "configuration to generate names.\n"
                 "Please read the documentation at "
