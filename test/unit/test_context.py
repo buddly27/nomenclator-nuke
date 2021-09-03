@@ -183,7 +183,8 @@ def test_fetch_comp(
         tokens=config.tokens,
         username=config.username,
         template_configs=config.comp_template_configs,
-        outputs=mocked_fetch_outputs.return_value
+        outputs=mocked_fetch_outputs.return_value,
+        error=None,
     )
 
     mocked_fetch_template_config.assert_called_once_with(
@@ -238,7 +239,8 @@ def test_fetch_comp_empty_path(
         tokens=config.tokens,
         username=config.username,
         template_configs=config.comp_template_configs,
-        outputs=mocked_fetch_outputs.return_value
+        outputs=mocked_fetch_outputs.return_value,
+        error=None,
     )
 
     mocked_fetch_template_config.assert_not_called()
@@ -281,7 +283,8 @@ def test_fetch_project(
         tokens=config.tokens,
         username=config.username,
         template_configs=config.project_template_configs,
-        outputs=tuple()
+        outputs=tuple(),
+        error=None,
     )
 
     mocked_fetch_outputs.assert_not_called()
@@ -323,7 +326,8 @@ def test_fetch_project_empty_path(
         tokens=config.tokens,
         username=config.username,
         template_configs=config.project_template_configs,
-        outputs=tuple()
+        outputs=tuple(),
+        error=None,
     )
 
     mocked_fetch_outputs.assert_not_called()
@@ -373,7 +377,8 @@ def test_fetch_outputs_without_templates(
             append_username_to_name=False,
             append_colorspace_to_name=False,
             append_passname_to_name=False,
-            append_passname_to_subfolder=False
+            append_passname_to_subfolder=False,
+            error=None,
         ),
     )
 
@@ -428,7 +433,8 @@ def test_fetch_outputs_empty_path(
             append_username_to_name=template_configs[0].append_username_to_name,
             append_colorspace_to_name=template_configs[0].append_colorspace_to_name,
             append_passname_to_name=template_configs[0].append_passname_to_name,
-            append_passname_to_subfolder=template_configs[0].append_passname_to_subfolder
+            append_passname_to_subfolder=template_configs[0].append_passname_to_subfolder,
+            error=None,
         ),
     )
 
@@ -484,7 +490,8 @@ def test_fetch_outputs(
             append_username_to_name=template_configs[0].append_username_to_name,
             append_colorspace_to_name=template_configs[0].append_colorspace_to_name,
             append_passname_to_name=template_configs[0].append_passname_to_name,
-            append_passname_to_subfolder=template_configs[0].append_passname_to_subfolder
+            append_passname_to_subfolder=template_configs[0].append_passname_to_subfolder,
+            error=None,
         ),
     )
 
@@ -542,7 +549,8 @@ def test_fetch_outputs_matching_config(
             append_username_to_name=template_configs[2].append_username_to_name,
             append_colorspace_to_name=template_configs[2].append_colorspace_to_name,
             append_passname_to_name=template_configs[2].append_passname_to_name,
-            append_passname_to_subfolder=template_configs[2].append_passname_to_subfolder
+            append_passname_to_subfolder=template_configs[2].append_passname_to_subfolder,
+            error=None,
         ),
     )
 
@@ -569,6 +577,8 @@ def test_update_empty(
 
     context = mocker.Mock(
         tokens=(("key1", "value1"), ("key2", "value2"), ("key3", "value3")),
+        template_configs=("__CONFIG1__", "__CONFIG2__"),
+        location_path=""
     )
 
     result = nomenclator.context.update(context)
@@ -588,7 +598,8 @@ def test_update_empty(
     context._replace.assert_called_once_with(
         path="",
         version=None,
-        outputs=mocked_update_outputs.return_value
+        outputs=mocked_update_outputs.return_value,
+        error=None
     )
 
 
@@ -648,7 +659,8 @@ def test_update(
     context._replace.assert_called_once_with(
         path=os.path.join("__PATH__", "__NAME__"),
         version=mocked_fetch_next_version.return_value,
-        outputs=mocked_update_outputs.return_value
+        outputs=mocked_update_outputs.return_value,
+        error=None,
     )
 
 
@@ -767,17 +779,20 @@ def test_update_outputs(mocker, mocked_generate_output_name, mocked_resolve):
     contexts[0]._replace.assert_called_once_with(
         path=os.path.join("__PATH1__", "__NAME1__"),
         destination="Target1",
-        destinations=("Target1", "Target2")
+        destinations=("Target1", "Target2"),
+        error=None
     )
     contexts[1]._replace.assert_called_once_with(
         path=os.path.join("__PATH2__", "__NAME2__"),
         destination="Target2",
-        destinations=("Target1", "Target2")
+        destinations=("Target1", "Target2"),
+        error=None
     )
     contexts[2]._replace.assert_called_once_with(
         path=os.path.join("__PATH3__", "__NAME3__"),
         destination="Target1",
-        destinations=("Target1", "Target2")
+        destinations=("Target1", "Target2"),
+        error=None
     )
 
 
@@ -813,15 +828,42 @@ def test_update_outputs_without_templates(mocker, mocked_generate_output_name, m
     contexts[0]._replace.assert_called_once_with(
         path="",
         destination="",
-        destinations=tuple()
+        destinations=tuple(),
+        error={
+            "message": "No output template configurations found.",
+            "detail": (
+                "You must set at least one output template "
+                "configuration to generate names.\n"
+                "Please read the documentation at "
+                "http://nomenclator-nuke.readthedocs.io/en/stable/\n"
+            )
+        }
     )
     contexts[1]._replace.assert_called_once_with(
         path="",
         destination="",
-        destinations=tuple()
+        destinations=tuple(),
+        error={
+            "message": "No output template configurations found.",
+            "detail": (
+                "You must set at least one output template "
+                "configuration to generate names.\n"
+                "Please read the documentation at "
+                "http://nomenclator-nuke.readthedocs.io/en/stable/\n"
+            )
+        }
     )
     contexts[2]._replace.assert_called_once_with(
         path="",
         destination="",
-        destinations=tuple()
+        destinations=tuple(),
+        error={
+            "message": "No output template configurations found.",
+            "detail": (
+                "You must set at least one output template "
+                "configuration to generate names.\n"
+                "Please read the documentation at "
+                "http://nomenclator-nuke.readthedocs.io/en/stable/\n"
+            )
+        }
     )

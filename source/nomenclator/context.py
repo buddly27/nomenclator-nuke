@@ -25,7 +25,8 @@ Context = collections.namedtuple(
         "tokens",
         "username",
         "template_configs",
-        "outputs"
+        "outputs",
+        "error",
     ]
 )
 
@@ -48,6 +49,7 @@ OutputContext = collections.namedtuple(
         "append_colorspace_to_name",
         "append_passname_to_name",
         "append_passname_to_subfolder",
+        "error",
     ]
 )
 
@@ -110,7 +112,8 @@ def fetch(config, is_project=False):
         tokens=config.tokens,
         username=config.username,
         template_configs=template_configs,
-        outputs=outputs
+        outputs=outputs,
+        error=None
     )
 
 
@@ -180,7 +183,8 @@ def fetch_outputs(config, template_configs):
             append_username_to_name=append_username_to_name,
             append_colorspace_to_name=append_colorspace_to_name,
             append_passname_to_name=append_passname_to_name,
-            append_passname_to_subfolder=append_passname_to_subfolder
+            append_passname_to_subfolder=append_passname_to_subfolder,
+            error=None
         )
         outputs.append(context)
 
@@ -209,7 +213,8 @@ def update(context):
         return context._replace(
             path="",
             version=None,
-            outputs=update_outputs(context.outputs, [], {})
+            outputs=update_outputs(context.outputs, [], {}),
+            error=_update_error(context)
         )
 
     version = nomenclator.utilities.fetch_next_version(
@@ -224,18 +229,31 @@ def update(context):
         "username": context.username
     })
 
-    name = nomenclator.template.generate_scene_name(
-        config.pattern_base, context.suffix,
-        append_username=context.append_username_to_name,
-        token_mapping=token_mapping
-    )
+    try:
+        name = nomenclator.template.generate_scene_name(
+            config.pattern_base, context.suffix,
+            append_username=context.append_username_to_name,
+            token_mapping=token_mapping
+        )
+    except Exception as exception:
+        # noinspection PyProtectedMember
+        return context._replace(
+            path="",
+            version=None,
+            outputs=update_outputs(context.outputs, [], {}),
+            error=_update_error(context, error=(config, exception))
+        )
 
-    # noinspection PyProtectedMember
-    return context._replace(
-        path=os.path.join(context.location_path, name),
-        version=version,
-        outputs=update_outputs(context.outputs, config.outputs, token_mapping)
-    )
+    else:
+        # noinspection PyProtectedMember
+        return context._replace(
+            path=os.path.join(context.location_path, name),
+            version=version,
+            outputs=update_outputs(
+                context.outputs, config.outputs, token_mapping
+            ),
+            error=None
+        )
 
 
 def update_outputs(contexts, template_configs, token_mapping):
@@ -265,7 +283,8 @@ def update_outputs(contexts, template_configs, token_mapping):
             _context = _context._replace(
                 path="",
                 destination="",
-                destinations=tuple()
+                destinations=tuple(),
+                error=_update_output_error()
             )
             _contexts.append(_context)
             continue
@@ -284,24 +303,99 @@ def update_outputs(contexts, template_configs, token_mapping):
             "passname": _context.passname,
         })
 
-        path = nomenclator.template.resolve(config.pattern_path, _token_mapping)
-        name = nomenclator.template.generate_output_name(
-            config.pattern_base,
-            _context.file_type,
-            append_passname_to_subfolder=_context.append_passname_to_subfolder,
-            append_passname=_context.append_passname_to_name,
-            append_colorspace=_context.append_colorspace_to_name,
-            append_username=_context.append_username_to_name,
-            multi_views=_context.multi_views,
-            token_mapping=_token_mapping
-        )
+        try:
+            path = nomenclator.template.resolve(config.pattern_path, _token_mapping)
+            name = nomenclator.template.generate_output_name(
+                config.pattern_base,
+                _context.file_type,
+                append_passname_to_subfolder=_context.append_passname_to_subfolder,
+                append_passname=_context.append_passname_to_name,
+                append_colorspace=_context.append_colorspace_to_name,
+                append_username=_context.append_username_to_name,
+                multi_views=_context.multi_views,
+                token_mapping=_token_mapping
+            )
 
-        # noinspection PyProtectedMember
-        _context = _context._replace(
-            path=os.path.join(path, name),
-            destination=destination,
-            destinations=destinations,
-        )
-        _contexts.append(_context)
+        except Exception as exception:
+            # noinspection PyProtectedMember
+            _context = _context._replace(
+                path="",
+                destination=destination,
+                destinations=destinations,
+                error=_update_output_error(error=(config, exception))
+            )
+            _contexts.append(_context)
+
+        else:
+            # noinspection PyProtectedMember
+            _context = _context._replace(
+                path=os.path.join(path, name),
+                destination=destination,
+                destinations=destinations,
+                error=None
+            )
+            _contexts.append(_context)
 
     return tuple(_contexts)
+
+
+def _update_error(context, error=None):
+    """Return error mapping for *context*."""
+    if error is not None:
+        config, exception = error
+        message = "Template configuration contains an error [{}]".format(config.id)
+        return {
+            "message": message,
+            "details": (
+                "Impossible to generate a scene name due to the following "
+                "error: {}".format(exception)
+            )
+        }
+
+    if not len(context.template_configs):
+        return {
+            "message": "No template configurations found.",
+            "detail": (
+                "You must set at least one template configuration "
+                "to generate names.\n"
+                "Please read the documentation at "
+                "http://nomenclator-nuke.readthedocs.io/en/stable/\n"
+            )
+        }
+
+    # If no path is set, do not return any error mapping.
+    if not len(context.location_path):
+        return None
+
+    path = [config.pattern_path for config in context.template_configs]
+    return {
+        "message": "No matching template configuration found.",
+        "details": (
+            "Available template paths are:\n"
+            "* {}\n".format("\n* ".join(path))
+        )
+    }
+
+
+def _update_output_error(error=None):
+    """Return error mapping for output *context*."""
+    if error is not None:
+        config, exception = error
+        message = "Output Template configuration contains an error [{}]".format(config.id)
+        return {
+            "message": message,
+            "details": (
+                "Impossible to generate an output name due to the following "
+                "error: {}".format(exception)
+            )
+        }
+
+    return {
+        "message": "No output template configurations found.",
+        "detail": (
+            "You must set at least one output template "
+            "configuration to generate names.\n"
+            "Please read the documentation at "
+            "http://nomenclator-nuke.readthedocs.io/en/stable/\n"
+        )
+    }
