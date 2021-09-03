@@ -16,6 +16,10 @@ Nomenclator Nuke
 
 Nuke plugin to name script and render outputs
 
+.. image:: ./doc/image/sat-demo.gif
+    :alt: Demonstration
+
+
 *************
 Documentation
 *************
