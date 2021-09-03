@@ -11,4 +11,5 @@ from .output_list import OutputList
 from .output_settings_form import OutputSettingsForm
 from .overlay_message import OverlayMessage
 from .path_widget import PathWidget
+from .token_editor import TokenEditor
 from .version_widget import VersionWidget

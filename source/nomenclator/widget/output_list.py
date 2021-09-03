@@ -6,6 +6,7 @@ import nomenclator.context
 
 from .group_widget import GroupWidget
 from .path_widget import PathWidget
+from .token_editor import TokenEditor
 
 
 class OutputList(QtWidgets.QListWidget):
@@ -196,8 +197,6 @@ class SettingsForm(QtWidgets.QWidget):
     def __init__(self, context, parent=None):
         """Initiate the widget."""
         super(SettingsForm, self).__init__(parent)
-        self._setup_ui()
-        self._connect_signals()
 
         # Save immutable values from context.
         self._name = context.name
@@ -206,6 +205,9 @@ class SettingsForm(QtWidgets.QWidget):
         self._multi_views = context.multi_views
         self._colorspace = context.colorspace
         self._error = context.error
+
+        self._setup_ui()
+        self._connect_signals()
 
         self.set_values(context)
 
@@ -371,14 +373,14 @@ class SettingsForm(QtWidgets.QWidget):
         node_name_label.setMaximumWidth(80)
         main_layout.addWidget(node_name_label, 0, 0, 1, 1)
 
-        self._node_name = QtWidgets.QLineEdit(self)
+        self._node_name = TokenEditor(self._blacklisted_names, self)
         main_layout.addWidget(self._node_name, 0, 1, 1, 1)
 
         passname_label = QtWidgets.QLabel("Passname", self)
         passname_label.setMaximumWidth(60)
         main_layout.addWidget(passname_label, 0, 2, 1, 1)
 
-        self._passname = QtWidgets.QLineEdit(self)
+        self._passname = TokenEditor([], self)
         main_layout.addWidget(self._passname, 0, 3, 1, 1)
 
         destination_label = QtWidgets.QLabel("Destination", self)
@@ -413,8 +415,8 @@ class SettingsForm(QtWidgets.QWidget):
 
     def _connect_signals(self):
         """Initialize signals connection."""
-        self._node_name.textChanged.connect(lambda: self.updated.emit())
-        self._passname.textChanged.connect(lambda: self.updated.emit())
+        self._node_name.updated.connect(lambda: self.updated.emit())
+        self._passname.updated.connect(lambda: self.updated.emit())
         self._destination.currentIndexChanged.connect(lambda: self.updated.emit())
         self._file_type.currentIndexChanged.connect(lambda: self.updated.emit())
         self._sub_folder_form.updated.connect(lambda: self.updated.emit())
