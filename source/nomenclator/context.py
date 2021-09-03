@@ -195,12 +195,16 @@ def fetch_outputs(config, template_configs):
     return tuple(outputs)
 
 
-def update(context):
+def update(context, discover_next_version=True):
     """Return updated context object with generated paths.
 
     Incoming *context* will not be mutated.
 
     :param context: :class:`Context` instance.
+
+    :param discover_next_version: Indicate whether the next version of the
+        scene should be discovered and added to the context. Default is True.
+        Otherwise, the version of the current scene is added to the context.
 
     :return: updated :class:`Context` instance.
 
@@ -228,9 +232,15 @@ def update(context):
         "username": context.username
     })
 
-    version = nomenclator.utilities.fetch_next_version(
-        context.location_path, config.pattern_base, token_mapping
-    )
+    if discover_next_version:
+        version = nomenclator.utilities.fetch_next_version(
+            context.location_path, config.pattern_base, token_mapping
+        )
+
+    else:
+        version = nomenclator.utilities.fetch_version(
+            context.path, config.pattern_base, token_mapping
+        )
 
     # Update token values with version found.
     token_mapping["version"] = "{0:03d}".format(version)

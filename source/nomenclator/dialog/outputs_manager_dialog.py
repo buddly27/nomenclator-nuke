@@ -17,7 +17,9 @@ class OutputsManagerDialog(QtWidgets.QDialog):
         self._setup_ui()
         self._connect_signals()
 
-        context = nomenclator.context.update(context)
+        context = nomenclator.context.update(
+            context, discover_next_version=False
+        )
         self._initial_context = context
         self._context = context
 
@@ -86,7 +88,9 @@ class OutputsManagerDialog(QtWidgets.QDialog):
         self._context = self._output_settings_form.context
 
         # Check if names can be generated.
-        self._context = nomenclator.context.update(self._context)
+        self._context = nomenclator.context.update(
+            self._context, discover_next_version=False
+        )
         self.update(self._context)
 
     def _button_clicked(self, button):

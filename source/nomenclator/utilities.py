@@ -44,6 +44,33 @@ def fetch_next_version(path, pattern, token_mapping):
     return next_version
 
 
+def fetch_version(scene_path, pattern, token_mapping):
+    """Fetch version from scene path.
+
+    :param scene_path: Path to the scene file to analyze.
+
+    :param pattern: Pattern to compare scene file with.
+
+    :param token_mapping: Mapping regrouping resolved token values associated
+        with their name.
+
+    :return: version integer, or zero if no version is found.
+
+    """
+    # Ignore version token when resolving base pattern
+    mapping = copy.deepcopy(token_mapping)
+    mapping["version"] = r"{version:\d+}"
+
+    # Generate expected base name pattern from resolved tokens.
+    pattern = nomenclator.template.resolve(pattern, mapping)
+    data = nomenclator.template.fetch_resolved_tokens(
+        os.path.basename(scene_path), pattern,
+        match_start=True, match_end=False
+    )
+
+    return int(data.get("version", 0))
+
+
 def fetch_template_config(path, template_configs, token_mapping):
     """Return template configuration compatible with *path*.
 
