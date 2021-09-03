@@ -18,7 +18,17 @@ def open_comp_manager_dialog():
     context = nomenclator.context.fetch(config)
 
     panel = CompoManagerDialog(context)
-    panel.exec_()
+
+    if not panel.exec_():
+        return
+
+    context = panel.context
+
+    try:
+        nuke.scriptSaveAs(context.path)
+    except RuntimeError:
+        # thrown if operation is cancelled by user.
+        return
 
 
 def open_project_manager_dialog():

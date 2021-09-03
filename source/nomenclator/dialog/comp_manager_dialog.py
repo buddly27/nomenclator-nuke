@@ -30,6 +30,11 @@ class CompoManagerDialog(QtWidgets.QDialog):
 
         self._location.setFocus()
 
+    @property
+    def context(self):
+        """Return updated context."""
+        return self._context
+
     def set_values(self, context):
         """Initialize values."""
         self._location.blockSignals(True)
