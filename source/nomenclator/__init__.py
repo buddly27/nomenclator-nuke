@@ -6,6 +6,7 @@ import nomenclator.config
 import nomenclator.context
 import nomenclator.utilities
 from nomenclator.dialog import CompoManagerDialog
+from nomenclator.dialog import OutputsManagerDialog
 from nomenclator.dialog import SettingsDialog
 
 from ._version import __version__
@@ -36,7 +37,16 @@ def open_project_manager_dialog():
 def open_output_manager_dialog():
     """Open the dialog to manage render output paths.
     """
-    pass
+    config = nomenclator.config.fetch()
+    context = nomenclator.context.fetch(config)
+
+    panel = OutputsManagerDialog(context)
+
+    if not panel.exec_():
+        return
+
+    context = panel.context
+    nomenclator.utilities.update_nodes(context)
 
 
 def open_settings_dialog():

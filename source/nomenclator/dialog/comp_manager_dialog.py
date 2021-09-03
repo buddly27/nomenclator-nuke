@@ -61,7 +61,7 @@ class CompoManagerDialog(QtWidgets.QDialog):
     def _setup_ui(self):
         """Initialize user interface."""
         self.setWindowTitle("Nomenclator - Composition Manager")
-        self.setMinimumWidth(1100)
+        self.resize(QtCore.QSize(1100, 600))
 
         self.setStyleSheet(classic_style())
 
