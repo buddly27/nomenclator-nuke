@@ -7,7 +7,7 @@ from nomenclator.widget import DescriptionSelector
 from nomenclator.widget import PathWidget
 from nomenclator.widget import VersionWidget
 from nomenclator.widget import OutputSettingsForm
-import nomenclator.utilities
+import nomenclator.context
 
 from .theme import classic_style
 
@@ -20,6 +20,7 @@ class CompoManagerDialog(QtWidgets.QDialog):
         self._setup_ui()
         self._connect_signals()
 
+        context = nomenclator.context.update(context)
         self._initial_context = context
         self._context = context
 
@@ -38,6 +39,10 @@ class CompoManagerDialog(QtWidgets.QDialog):
         self._comp_settings_form.set_values(context)
         self._outputs_settings_group.setEnabled(len(context.outputs) > 0)
         self._output_settings_form.set_values(context)
+
+    def update(self, context):
+        """Update values from context."""
+        self._comp_settings_form.update(context)
 
     def _setup_ui(self):
         """Initialize user interface."""
@@ -103,6 +108,11 @@ class CompoManagerDialog(QtWidgets.QDialog):
         """Update context object from *key* and *value*."""
         # noinspection PyProtectedMember
         self._context = self._context._replace(**{key: value})
+
+        # Check if names can be generated.
+        self._context = nomenclator.context.update(self._context)
+        self.update(self._context)
+
         self._update_buttons_states()
 
     def _button_clicked(self, button):
@@ -163,6 +173,11 @@ class CompSettingsForm(QtWidgets.QWidget):
         self._append_username.setCheckState(state)
         self._append_username.blockSignals(False)
 
+        self._version_widget.set_value(context.version)
+
+    def update(self, context):
+        """Update values from context."""
+        self._script_path.set_path(context.path)
         self._version_widget.set_value(context.version)
 
     def _setup_ui(self):
