@@ -145,61 +145,6 @@ def mocked_update_outputs(mocker):
     return mocker.patch.object(nomenclator.context, "update_outputs")
 
 
-@pytest.fixture()
-def nodes(mocker):
-    """Return mocked nodes."""
-    knob_mappings = [
-        {
-            "file": mocker.Mock(**{"value.return_value": ""}),
-            "views": mocker.Mock(**{"value.return_value": "main"}),
-            "colorspace": mocker.Mock(**{"value.return_value": "sRGB"}),
-            "disable": mocker.Mock(**{"value.return_value": False}),
-            "file_type": mocker.Mock(**{
-                "value.return_value": "",
-                "values.return_value": ["exr", "dpx", "tiff", "mov\t\t\tffmpeg"]
-            }),
-        },
-        {
-            "file": mocker.Mock(**{"value.return_value": "/path/to/file.dpx"}),
-            "views": mocker.Mock(**{"value.return_value": "left right"}),
-            "colorspace": mocker.Mock(**{"value.return_value": "rec709"}),
-            "disable": mocker.Mock(**{"value.return_value": False}),
-            "file_type": mocker.Mock(**{
-                "value.return_value": "dpx",
-                "values.return_value": ["exr", "dpx", "tiff", "mov\t\t\tffmpeg"],
-
-            }),
-        },
-        {
-            "file": mocker.Mock(**{"value.return_value": ""}),
-            "views": mocker.Mock(**{"value.return_value": "main"}),
-            "disable": mocker.Mock(**{"value.return_value": True}),
-            "file_type": mocker.Mock(**{
-                "value.return_value": "",
-                "values.return_value": ["exr", "abc"]
-            }),
-        }
-    ]
-
-    return [
-        mocker.MagicMock(
-            __getitem__=lambda _, key: knob_mappings[0][key],
-            knob=lambda key: knob_mappings[0].get(key),
-            **{"name.return_value": "node1"}
-        ),
-        mocker.MagicMock(
-            __getitem__=lambda _, key: knob_mappings[1][key],
-            knob=lambda key: knob_mappings[1].get(key),
-            **{"name.return_value": "node2"}
-        ),
-        mocker.MagicMock(
-            __getitem__=lambda _, key: knob_mappings[2][key],
-            knob=lambda key: knob_mappings[2].get(key),
-            **{"name.return_value": "node3"}
-        ),
-    ]
-
-
 @pytest.mark.parametrize("options", [
     {},
     {"is_project": False},
@@ -211,13 +156,16 @@ def test_fetch_comp(
     mocker, mocked_fetch_outputs, mocked_fetch_paddings,
     mocked_fetch_recent_comp_paths, mocked_fetch_recent_project_paths,
     mocked_fetch_current_comp_path, mocked_fetch_current_project_path,
-    options
+    mocked_fetch_template_config, options
 ):
     """Return comp context object."""
     import nomenclator.context
 
+    template_config = mocker.Mock()
+
     config = mocker.Mock()
     mocked_fetch_current_comp_path.return_value = "/path/to/comp.nk"
+    mocked_fetch_template_config.return_value = template_config
     context = nomenclator.context.fetch(config, **options)
 
     assert context == nomenclator.context.Context(
@@ -238,7 +186,12 @@ def test_fetch_comp(
         outputs=mocked_fetch_outputs.return_value
     )
 
-    mocked_fetch_outputs.assert_called_once_with(config)
+    mocked_fetch_template_config.assert_called_once_with(
+        "/path/to", config.comp_template_configs, {}
+    )
+    mocked_fetch_outputs.assert_called_once_with(
+        config, template_config.outputs
+    )
     mocked_fetch_paddings.assert_called_once_with(
         max_value=config.max_padding
     )
@@ -261,7 +214,7 @@ def test_fetch_comp_empty_path(
     mocker, mocked_fetch_outputs, mocked_fetch_paddings,
     mocked_fetch_recent_comp_paths, mocked_fetch_recent_project_paths,
     mocked_fetch_current_comp_path, mocked_fetch_current_project_path,
-    options
+    mocked_fetch_template_config, options
 ):
     """Return comp context object when current path is empty."""
     import nomenclator.context
@@ -288,7 +241,8 @@ def test_fetch_comp_empty_path(
         outputs=mocked_fetch_outputs.return_value
     )
 
-    mocked_fetch_outputs.assert_called_once_with(config)
+    mocked_fetch_template_config.assert_not_called()
+    mocked_fetch_outputs.assert_called_once_with(config, [])
     mocked_fetch_paddings.assert_called_once_with(
         max_value=config.max_padding
     )
@@ -384,30 +338,24 @@ def test_fetch_project_empty_path(
     mocked_fetch_current_comp_path.assert_not_called()
 
 
-def test_fetch_outputs(
+def test_fetch_outputs_without_templates(
     mocker, mocked_fetch_nodes, mocked_fetch_output_path,
     mocked_fetch_output_template_config, mocked_is_enabled,
     mocked_fetch_file_type, mocked_fetch_file_types, mocked_fetch_colorspace,
     mocked_has_multiple_views,
 ):
-    """Return output context objects."""
+    """Return output context objects with no incoming template configs."""
     import nomenclator.context
+
+    config = mocker.Mock(
+        colorspace_aliases=(("sRGB", "srgb"),),
+    )
 
     nodes = [mocker.MagicMock(**{"name.return_value": "node1"})]
     mocked_fetch_output_path.side_effect = ["/path/to/output1.dpx"]
     mocked_fetch_nodes.return_value = (nodes, ["node1", "node2", "node3"])
-    mocked_fetch_output_template_config.return_value = None
 
-    config = mocker.Mock(
-        colorspace_aliases=(("sRGB", "srgb"),),
-        outputs=(
-            mocker.Mock(id="comps"),
-            mocker.Mock(id="precomps"),
-            mocker.Mock(id="roto"),
-        )
-    )
-
-    contexts = nomenclator.context.fetch_outputs(config)
+    contexts = nomenclator.context.fetch_outputs(config, [])
 
     assert contexts == (
         nomenclator.context.OutputContext(
@@ -417,64 +365,7 @@ def test_fetch_outputs(
             passname="node1",
             enabled=mocked_is_enabled.return_value,
             destination="",
-            destinations=("comps", "precomps", "roto"),
-            file_type=mocked_fetch_file_type.return_value,
-            file_types=mocked_fetch_file_types.return_value,
-            multi_views=mocked_has_multiple_views.return_value,
-            colorspace=mocked_fetch_colorspace.return_value,
-            append_username_to_name=False,
-            append_colorspace_to_name=False,
-            append_passname_to_name=False,
-            append_passname_to_subfolder=False
-        ),
-    )
-
-    mocked_fetch_nodes.assert_called_once()
-    mocked_fetch_output_path.assert_called_once_with(nodes[0])
-    mocked_fetch_output_template_config.assert_called_once_with(
-        "/path/to", config.outputs
-    )
-    mocked_is_enabled.assert_called_once_with(nodes[0])
-    mocked_fetch_file_type.assert_called_once_with(nodes[0], "exr")
-    mocked_fetch_file_types.assert_called_once_with(nodes[0])
-    mocked_fetch_colorspace.assert_called_once_with(nodes[0], {"sRGB": "srgb"})
-    mocked_has_multiple_views.assert_called_once_with(nodes[0])
-
-
-def test_fetch_outputs_empty_path(
-    mocker, mocked_fetch_nodes, mocked_fetch_output_path,
-    mocked_fetch_output_template_config, mocked_is_enabled,
-    mocked_fetch_file_type, mocked_fetch_file_types, mocked_fetch_colorspace,
-    mocked_has_multiple_views,
-):
-    """Return output context objects when node path is empty."""
-    import nomenclator.context
-
-    nodes = [mocker.MagicMock(**{"name.return_value": "node1"})]
-    mocked_fetch_output_path.side_effect = [""]
-    mocked_fetch_nodes.return_value = (nodes, ["node1", "node2", "node3"])
-    mocked_fetch_output_template_config.return_value = None
-
-    config = mocker.Mock(
-        colorspace_aliases=(("sRGB", "srgb"),),
-        outputs=(
-            mocker.Mock(id="comps"),
-            mocker.Mock(id="precomps"),
-            mocker.Mock(id="roto"),
-        )
-    )
-
-    contexts = nomenclator.context.fetch_outputs(config)
-
-    assert contexts == (
-        nomenclator.context.OutputContext(
-            name="node1",
-            blacklisted_names=("node2", "node3"),
-            path="",
-            passname="node1",
-            enabled=mocked_is_enabled.return_value,
-            destination="",
-            destinations=("comps", "precomps", "roto"),
+            destinations=tuple(),
             file_type=mocked_fetch_file_type.return_value,
             file_types=mocked_fetch_file_types.return_value,
             multi_views=mocked_has_multiple_views.return_value,
@@ -496,6 +387,119 @@ def test_fetch_outputs_empty_path(
     mocked_has_multiple_views.assert_called_once_with(nodes[0])
 
 
+def test_fetch_outputs_empty_path(
+    mocker, mocked_fetch_nodes, mocked_fetch_output_path,
+    mocked_fetch_output_template_config, mocked_is_enabled,
+    mocked_fetch_file_type, mocked_fetch_file_types, mocked_fetch_colorspace,
+    mocked_has_multiple_views,
+):
+    """Return output context objects when node path is empty."""
+    import nomenclator.context
+
+    config = mocker.Mock(
+        colorspace_aliases=(("sRGB", "srgb"),),
+    )
+
+    template_configs = (
+        mocker.Mock(id="comps"),
+        mocker.Mock(id="precomps"),
+        mocker.Mock(id="roto"),
+    )
+
+    nodes = [mocker.MagicMock(**{"name.return_value": "node1"})]
+    mocked_fetch_output_path.side_effect = [""]
+    mocked_fetch_nodes.return_value = (nodes, ["node1", "node2", "node3"])
+
+    contexts = nomenclator.context.fetch_outputs(config, template_configs)
+
+    assert contexts == (
+        nomenclator.context.OutputContext(
+            name="node1",
+            blacklisted_names=("node2", "node3"),
+            path="",
+            passname="node1",
+            enabled=mocked_is_enabled.return_value,
+            destination="comps",
+            destinations=("comps", "precomps", "roto"),
+            file_type=mocked_fetch_file_type.return_value,
+            file_types=mocked_fetch_file_types.return_value,
+            multi_views=mocked_has_multiple_views.return_value,
+            colorspace=mocked_fetch_colorspace.return_value,
+            append_username_to_name=template_configs[0].append_username_to_name,
+            append_colorspace_to_name=template_configs[0].append_colorspace_to_name,
+            append_passname_to_name=template_configs[0].append_passname_to_name,
+            append_passname_to_subfolder=template_configs[0].append_passname_to_subfolder
+        ),
+    )
+
+    mocked_fetch_nodes.assert_called_once()
+    mocked_fetch_output_path.assert_called_once_with(nodes[0])
+    mocked_fetch_output_template_config.assert_not_called()
+    mocked_is_enabled.assert_called_once_with(nodes[0])
+    mocked_fetch_file_type.assert_called_once_with(nodes[0], "exr")
+    mocked_fetch_file_types.assert_called_once_with(nodes[0])
+    mocked_fetch_colorspace.assert_called_once_with(nodes[0], {"sRGB": "srgb"})
+    mocked_has_multiple_views.assert_called_once_with(nodes[0])
+
+
+def test_fetch_outputs(
+    mocker, mocked_fetch_nodes, mocked_fetch_output_path,
+    mocked_fetch_output_template_config, mocked_is_enabled,
+    mocked_fetch_file_type, mocked_fetch_file_types, mocked_fetch_colorspace,
+    mocked_has_multiple_views,
+):
+    """Return output context objects."""
+    import nomenclator.context
+
+    config = mocker.Mock(
+        colorspace_aliases=(("sRGB", "srgb"),),
+    )
+
+    template_configs = (
+        mocker.Mock(id="comps"),
+        mocker.Mock(id="precomps"),
+        mocker.Mock(id="roto"),
+    )
+
+    nodes = [mocker.MagicMock(**{"name.return_value": "node1"})]
+    mocked_fetch_output_path.side_effect = ["/path/to/output1.dpx"]
+    mocked_fetch_nodes.return_value = (nodes, ["node1", "node2", "node3"])
+    mocked_fetch_output_template_config.return_value = None
+
+    contexts = nomenclator.context.fetch_outputs(config, template_configs)
+
+    assert contexts == (
+        nomenclator.context.OutputContext(
+            name="node1",
+            blacklisted_names=("node2", "node3"),
+            path="/path/to/output1.dpx",
+            passname="node1",
+            enabled=mocked_is_enabled.return_value,
+            destination="comps",
+            destinations=("comps", "precomps", "roto"),
+            file_type=mocked_fetch_file_type.return_value,
+            file_types=mocked_fetch_file_types.return_value,
+            multi_views=mocked_has_multiple_views.return_value,
+            colorspace=mocked_fetch_colorspace.return_value,
+            append_username_to_name=template_configs[0].append_username_to_name,
+            append_colorspace_to_name=template_configs[0].append_colorspace_to_name,
+            append_passname_to_name=template_configs[0].append_passname_to_name,
+            append_passname_to_subfolder=template_configs[0].append_passname_to_subfolder
+        ),
+    )
+
+    mocked_fetch_nodes.assert_called_once()
+    mocked_fetch_output_path.assert_called_once_with(nodes[0])
+    mocked_fetch_output_template_config.assert_called_once_with(
+        "/path/to", template_configs
+    )
+    mocked_is_enabled.assert_called_once_with(nodes[0])
+    mocked_fetch_file_type.assert_called_once_with(nodes[0], "exr")
+    mocked_fetch_file_types.assert_called_once_with(nodes[0])
+    mocked_fetch_colorspace.assert_called_once_with(nodes[0], {"sRGB": "srgb"})
+    mocked_has_multiple_views.assert_called_once_with(nodes[0])
+
+
 def test_fetch_outputs_matching_config(
     mocker, mocked_fetch_nodes, mocked_fetch_output_path,
     mocked_fetch_output_template_config, mocked_is_enabled,
@@ -505,21 +509,22 @@ def test_fetch_outputs_matching_config(
     """Return output context objects with one matching config."""
     import nomenclator.context
 
+    config = mocker.Mock(
+        colorspace_aliases=(("sRGB", "srgb"),),
+    )
+
+    template_configs = (
+        mocker.Mock(id="comps"),
+        mocker.Mock(id="precomps"),
+        mocker.Mock(id="roto"),
+    )
+
     nodes = [mocker.MagicMock(**{"name.return_value": "node1"})]
     mocked_fetch_output_path.side_effect = ["/path/to/output1.dpx"]
     mocked_fetch_nodes.return_value = (nodes, ["node1", "node2", "node3"])
-    mocked_config = mocked_fetch_output_template_config.return_value
+    mocked_fetch_output_template_config.return_value = template_configs[2]
 
-    config = mocker.Mock(
-        colorspace_aliases=(("sRGB", "srgb"),),
-        outputs=(
-            mocker.Mock(id="comps"),
-            mocker.Mock(id="precomps"),
-            mocker.Mock(id="roto"),
-        )
-    )
-
-    contexts = nomenclator.context.fetch_outputs(config)
+    contexts = nomenclator.context.fetch_outputs(config, template_configs)
 
     assert contexts == (
         nomenclator.context.OutputContext(
@@ -528,23 +533,23 @@ def test_fetch_outputs_matching_config(
             path="/path/to/output1.dpx",
             passname="node1",
             enabled=mocked_is_enabled.return_value,
-            destination=mocked_config.id,
+            destination="roto",
             destinations=("comps", "precomps", "roto"),
             file_type=mocked_fetch_file_type.return_value,
             file_types=mocked_fetch_file_types.return_value,
             multi_views=mocked_has_multiple_views.return_value,
             colorspace=mocked_fetch_colorspace.return_value,
-            append_username_to_name=mocked_config.append_username_to_name,
-            append_colorspace_to_name=mocked_config.append_colorspace_to_name,
-            append_passname_to_name=mocked_config.append_passname_to_name,
-            append_passname_to_subfolder=mocked_config.append_passname_to_subfolder
+            append_username_to_name=template_configs[2].append_username_to_name,
+            append_colorspace_to_name=template_configs[2].append_colorspace_to_name,
+            append_passname_to_name=template_configs[2].append_passname_to_name,
+            append_passname_to_subfolder=template_configs[2].append_passname_to_subfolder
         ),
     )
 
     mocked_fetch_nodes.assert_called_once()
     mocked_fetch_output_path.assert_called_once_with(nodes[0])
     mocked_fetch_output_template_config.assert_called_once_with(
-        "/path/to", config.outputs
+        "/path/to", template_configs
     )
     mocked_is_enabled.assert_called_once_with(nodes[0])
     mocked_fetch_file_type.assert_called_once_with(nodes[0], "exr")
@@ -662,8 +667,10 @@ def test_update_outputs(mocker, mocked_generate_output_name, mocked_resolve):
     """Return output contexts."""
     import nomenclator.context
 
-    mocked_resolve.side_effect = ["__PATH1__", "__PATH2__"]
-    mocked_generate_output_name.side_effect = ["__NAME1__", "__NAME2__"]
+    mocked_resolve.side_effect = ["__PATH1__", "__PATH2__", "__PATH3__"]
+    mocked_generate_output_name.side_effect = [
+        "__NAME1__", "__NAME2__", "__NAME3__"
+    ]
 
     contexts = [
         mocker.Mock(destination="Target1"),
@@ -687,7 +694,7 @@ def test_update_outputs(mocker, mocked_generate_output_name, mocked_resolve):
         contexts[2]._replace.return_value,
     )
 
-    assert mocked_resolve.call_count == 2
+    assert mocked_resolve.call_count == 3
     mocked_resolve.assert_any_call(
         template_configs[0].pattern_path,
         {
@@ -704,8 +711,16 @@ def test_update_outputs(mocker, mocked_generate_output_name, mocked_resolve):
             "passname": contexts[1].passname,
         }
     )
+    mocked_resolve.assert_any_call(
+        template_configs[0].pattern_path,
+        {
+            "key": "value",
+            "colorspace": contexts[2].colorspace,
+            "passname": contexts[2].passname,
+        }
+    )
 
-    assert mocked_generate_output_name.call_count == 2
+    assert mocked_generate_output_name.call_count == 3
     mocked_generate_output_name.assert_any_call(
         template_configs[0].pattern_base,
         contexts[0].file_type,
@@ -734,11 +749,79 @@ def test_update_outputs(mocker, mocked_generate_output_name, mocked_resolve):
             "passname": contexts[1].passname,
         }
     )
+    mocked_generate_output_name.assert_any_call(
+        template_configs[0].pattern_base,
+        contexts[2].file_type,
+        append_passname_to_subfolder=contexts[2].append_passname_to_subfolder,
+        append_passname=contexts[2].append_passname_to_name,
+        append_colorspace=contexts[2].append_colorspace_to_name,
+        append_username=contexts[2].append_username_to_name,
+        multi_views=contexts[2].multi_views,
+        token_mapping={
+            "key": "value",
+            "colorspace": contexts[2].colorspace,
+            "passname": contexts[2].passname,
+        }
+    )
 
     contexts[0]._replace.assert_called_once_with(
-        path=os.path.join("__PATH1__", "__NAME1__")
+        path=os.path.join("__PATH1__", "__NAME1__"),
+        destination="Target1",
+        destinations=("Target1", "Target2")
     )
     contexts[1]._replace.assert_called_once_with(
-        path=os.path.join("__PATH2__", "__NAME2__")
+        path=os.path.join("__PATH2__", "__NAME2__"),
+        destination="Target2",
+        destinations=("Target1", "Target2")
     )
-    contexts[2]._replace.assert_called_once_with(path="")
+    contexts[2]._replace.assert_called_once_with(
+        path=os.path.join("__PATH3__", "__NAME3__"),
+        destination="Target1",
+        destinations=("Target1", "Target2")
+    )
+
+
+def test_update_outputs_without_templates(mocker, mocked_generate_output_name, mocked_resolve):
+    """Return output contexts with no incoming template configs."""
+    import nomenclator.context
+
+    mocked_resolve.side_effect = ["__PATH1__", "__PATH2__", "__PATH3__"]
+    mocked_generate_output_name.side_effect = [
+        "__NAME1__", "__NAME2__", "__NAME3__"
+    ]
+
+    contexts = [
+        mocker.Mock(destination="Target1"),
+        mocker.Mock(destination="Target2"),
+        mocker.Mock(destination="Unknown"),
+    ]
+
+    token_mapping = {"key": "value"}
+
+    results = nomenclator.context.update_outputs(
+        contexts, [], token_mapping
+    )
+    assert results == (
+        contexts[0]._replace.return_value,
+        contexts[1]._replace.return_value,
+        contexts[2]._replace.return_value,
+    )
+
+    mocked_resolve.assert_not_called()
+    mocked_generate_output_name.assert_not_called()
+
+    contexts[0]._replace.assert_called_once_with(
+        path="",
+        destination="",
+        destinations=tuple()
+    )
+    contexts[1]._replace.assert_called_once_with(
+        path="",
+        destination="",
+        destinations=tuple()
+    )
+    contexts[2]._replace.assert_called_once_with(
+        path="",
+        destination="",
+        destinations=tuple()
+    )

@@ -71,20 +71,29 @@ def fetch(config, is_project=False):
     if not is_project:
         path = nomenclator.utilities.fetch_current_comp_path()
         template_configs = config.comp_template_configs
-        outputs = fetch_outputs(config)
         suffix = "nk"
         recent_locations = nomenclator.utilities.fetch_recent_comp_paths(
             max_values=config.max_locations,
         )
 
+        # Fetch matching output template configs if possible.
+        if len(path):
+            template_config = nomenclator.utilities.fetch_template_config(
+                os.path.dirname(path), template_configs, {}
+            )
+            outputs = fetch_outputs(config, getattr(template_config, "outputs", []))
+        else:
+            outputs = fetch_outputs(config, [])
+
     else:
         path = nomenclator.utilities.fetch_current_project_path()
         template_configs = config.project_template_configs
-        outputs = tuple()
         suffix = "hrox"
         recent_locations = nomenclator.utilities.fetch_recent_project_paths(
             max_values=config.max_locations,
         )
+
+        outputs = tuple()
 
     return Context(
         location_path=os.path.dirname(path),
@@ -105,12 +114,15 @@ def fetch(config, is_project=False):
     )
 
 
-def fetch_outputs(config):
+def fetch_outputs(config, template_configs):
     """Fetch list of output context objects.
 
     An output context is returned for each matching output node.
 
     :param config: :class:`~nomenclator.config.Config` instance.
+
+    :param template_configs: List of
+        :class:`~nomenclator.config.OutputTemplateConfig` instances.
 
     :return: Tuple of :class:`OutputContext` instances.
 
@@ -119,7 +131,9 @@ def fetch_outputs(config):
 
     nodes, node_names = nomenclator.utilities.fetch_nodes()
     alias_mapping = dict(config.colorspace_aliases)
-    destinations = tuple(sorted([output.id for output in config.outputs]))
+
+    mapping = {config.id: config for config in template_configs}
+    destinations = tuple(sorted(mapping.keys()))
 
     for node in sorted(nodes, key=lambda n: n.name()):
         path = nomenclator.utilities.fetch_output_path(node)
@@ -128,10 +142,14 @@ def fetch_outputs(config):
         _config = None
 
         # Fetch matching config to initiate default values if possible
-        if len(path):
+        if len(template_configs) and len(path):
             _config = nomenclator.utilities.fetch_output_template_config(
-                os.path.dirname(path), config.outputs
+                os.path.dirname(path), template_configs
             )
+
+        # Initiate first destination if possible
+        if _config is None and len(destinations):
+            _config = mapping.get(destinations[0])
 
         if _config is not None:
             destination = _config.id
@@ -228,7 +246,7 @@ def update_outputs(contexts, template_configs, token_mapping):
     :param contexts: :Tuple of :class:`OutputContext` instances.
 
     :param template_configs: List of available
-        :class:`~nomenclator.config.TemplateConfig` instances.
+        :class:`~nomenclator.config.OutputTemplateConfig` instances.
 
     :param token_mapping: Mapping regrouping resolved token values associated
         with their name.
@@ -237,15 +255,27 @@ def update_outputs(contexts, template_configs, token_mapping):
 
     """
     mapping = {config.id: config for config in template_configs}
+    destinations = tuple(sorted(mapping.keys()))
 
     _contexts = []
 
     for _context in contexts:
-        config = mapping.get(_context.destination)
-        if config is None:
+        if not len(destinations):
             # noinspection PyProtectedMember
-            _contexts.append(_context._replace(path=""))
+            _context = _context._replace(
+                path="",
+                destination="",
+                destinations=tuple()
+            )
+            _contexts.append(_context)
             continue
+
+        destination = _context.destination
+        config = mapping.get(destination)
+
+        if config is None:
+            destination = destinations[0]
+            config = mapping.get(destination)
 
         # Update token values.
         _token_mapping = copy.deepcopy(token_mapping)
@@ -267,6 +297,11 @@ def update_outputs(contexts, template_configs, token_mapping):
         )
 
         # noinspection PyProtectedMember
-        _contexts.append(_context._replace(path=os.path.join(path, name)))
+        _context = _context._replace(
+            path=os.path.join(path, name),
+            destination=destination,
+            destinations=destinations,
+        )
+        _contexts.append(_context)
 
     return tuple(_contexts)

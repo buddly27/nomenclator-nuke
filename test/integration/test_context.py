@@ -64,6 +64,8 @@ def test_update_comp_scenario1():
     assert _context.path == ""
     assert _context.version is None
     assert _context.outputs[0].path == ""
+    assert _context.outputs[0].destination == ""
+    assert _context.outputs[0].destinations == tuple()
 
 
 def test_update_comp_scenario2():
@@ -131,6 +133,8 @@ def test_update_comp_scenario2():
     assert _context.path == ""
     assert _context.version is None
     assert _context.outputs[0].path == ""
+    assert _context.outputs[0].destination == ""
+    assert _context.outputs[0].destinations == tuple()
 
 
 def test_update_comp_scenario3():
@@ -201,6 +205,8 @@ def test_update_comp_scenario3():
     )
     assert _context.version == 2
     assert _context.outputs[0].path == ""
+    assert _context.outputs[0].destination == ""
+    assert _context.outputs[0].destinations == tuple()
 
 
 def test_update_comp_scenario4():
@@ -283,6 +289,8 @@ def test_update_comp_scenario4():
         "/path/my_project/ep002/sh004/comps",
         "my_project_ep002_sh004_v002.#.dpx"
     )
+    assert _context.outputs[0].destination == "comps"
+    assert _context.outputs[0].destinations == ("comps",)
 
 
 def test_update_comp_scenario5():
@@ -374,6 +382,8 @@ def test_update_comp_scenario5():
         "/path/my_project/ep002/sh004/comps",
         "my_project_ep002_sh004_v002_rec709_steve_beauty_%V.#.dpx"
     )
+    assert _context.outputs[0].destination == "comps"
+    assert _context.outputs[0].destinations == ("comps",)
 
 
 def test_update_comp_scenario6():
@@ -461,3 +471,5 @@ def test_update_comp_scenario6():
         "my_project_ep002_beauty",
         "my_project_ep002_sh004_v002_rec709_steve_beauty_%V.#.dpx"
     )
+    assert _context.outputs[0].destination == "comps"
+    assert _context.outputs[0].destinations == ("comps",)
