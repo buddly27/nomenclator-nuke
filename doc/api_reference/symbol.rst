@@ -1,12 +1,5 @@
 ******************
-nomenclator.dialog
+nomenclator.symbol
 ******************
 
-.. automodule:: nomenclator.dialog
-
-.. toctree::
-    :maxdepth: 1
-    :glob:
-
-    */index
-    *
+.. automodule:: nomenclator.symbol
