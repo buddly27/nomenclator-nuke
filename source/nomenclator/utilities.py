@@ -360,6 +360,19 @@ def save_comp(context):
         return
 
 
+def save_project(context):
+    """Save project with path from *context*."""
+    import hiero.core
+
+    project = hiero.core.newProject()
+
+    try:
+        project.saveAs(context.path)
+    except RuntimeError:
+        # thrown if operation is cancelled by user.
+        return
+
+
 def update_nodes(context):
     """Update nodes in graph from *context*."""
     for _context in context.outputs:

@@ -19,9 +19,9 @@ Nuke plugin to name script and render outputs
 .. image:: ./doc/image/demo.gif
     :alt: Demonstration
 
-**********
-Installing
-**********
+*******************
+Installing for Nuke
+*******************
 
 Copy the Python module ``./source/nomenclator`` into your personal ``~/.nuke`` folder
 (or update your NUKE_PATH environment variable) and add the following menu.py file:
@@ -41,6 +41,46 @@ Copy the Python module ``./source/nomenclator`` into your personal ``~/.nuke`` f
 
 see also: `Defining the Nuke Plug-in Path
 <https://learn.foundry.com/nuke/content/comp_environment/configuring_nuke/defining_nuke_plugin_path.html>`_
+
+*****************************
+Installing for Hiero / Studio
+*****************************
+
+Copy the Python module ``./source/nomenclator`` into a ``~/.nuke/Python/StartupUI`` folder
+(or update your HIERO_PLUGIN_PATH environment variable) and add the following menu.py file:
+
+.. code-block:: python
+
+    import hiero.ui
+
+    import nomenclator
+    from nomenclator.vendor.Qt import QtWidgets
+
+
+    class ProjectManagerAction(QtWidgets.QAction):
+
+        def __init__(self, parent=hiero.ui.mainWindow()):
+            super(ProjectManagerAction, self).__init__("Nomenclator - Manage Project...", parent)
+            self.triggered.connect(nomenclator.open_project_manager_dialog)
+
+
+    class SettingsAction(QtWidgets.QAction):
+
+        def __init__(self, parent=hiero.ui.mainWindow()):
+            super(SettingsAction, self).__init__("Nomenclator - Settings...", parent)
+            self.triggered.connect(nomenclator.open_settings_dialog)
+
+
+    action = hiero.ui.findMenuAction("foundry.menu.file")
+    menu = action.menu()
+
+    separator = menu.insertSeparator(menu.actions()[0])
+    menu.insertAction(separator, ProjectManagerAction())
+    menu.insertAction(separator, SettingsAction())
+
+
+see also: `Hiero Environment Setup
+<https://learn.foundry.com/hiero/developers/latest/HieroPythonDevGuide/setup.html>`_
 
 *************
 Documentation

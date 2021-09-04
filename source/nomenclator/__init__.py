@@ -7,6 +7,7 @@ import nomenclator.context
 import nomenclator.utilities
 from nomenclator.dialog import CompoManagerDialog
 from nomenclator.dialog import OutputsManagerDialog
+from nomenclator.dialog import ProjectManagerDialog
 from nomenclator.dialog import SettingsDialog
 
 from ._version import __version__
@@ -31,7 +32,15 @@ def open_comp_manager_dialog():
 def open_project_manager_dialog():
     """Open the dialog to manage project.
     """
-    pass
+    config = nomenclator.config.fetch()
+    context = nomenclator.context.fetch(config, is_project=True)
+
+    panel = ProjectManagerDialog(context)
+
+    if not panel.exec_():
+        return
+
+    nomenclator.utilities.save_project(context)
 
 
 def open_output_manager_dialog():
