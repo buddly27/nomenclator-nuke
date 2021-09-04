@@ -23,7 +23,7 @@ Nuke plugin to name script and render outputs
 Installing
 **********
 
-Copy the Python module :file:`./source/nomenclator` into your personal :file:`~/.nuke` folder
+Copy the Python module ``./source/nomenclator`` into your personal ``~/.nuke`` folder
 (or update your NUKE_PATH environment variable) and add the following menu.py file:
 
 .. code-block:: python
@@ -38,6 +38,9 @@ Copy the Python module :file:`./source/nomenclator` into your personal :file:`~/
     menu.addCommand("Nomenclator - Manage Outputs...", nomenclator.open_output_manager_dialog, index=1)
     menu.addCommand("Nomenclator - Settings...", nomenclator.open_settings_dialog, index=2)
     menu.addSeparator(index=3)
+
+see also: `Defining the Nuke Plug-in Path
+<https://learn.foundry.com/nuke/content/comp_environment/configuring_nuke/defining_nuke_plugin_path.html>`_
 
 *************
 Documentation
