@@ -86,3 +86,96 @@ View the generated report at::
 
     file:///path/to/nomenclator-nuke/htmlcov/index.html
 
+
+.. _installing/nuke:
+
+Installing for Nuke
+====================
+
+Copy the Python module :file`./source/nomenclator` into your personal :file:`~/.nuke` folder
+(or update your :envvar:`NUKE_PATH` environment variable) and add the following
+`menu.py` file:
+
+.. code-block:: python
+
+    import nuke
+
+    import nomenclator
+
+    menu_bar = nuke.menu("Nuke")
+    menu = menu_bar.addMenu("&File")
+    menu.addCommand("Nomenclator - Manage Comp...", nomenclator.open_comp_manager_dialog, index=0)
+    menu.addCommand("Nomenclator - Manage Outputs...", nomenclator.open_output_manager_dialog, index=1)
+    menu.addCommand("Nomenclator - Settings...", nomenclator.open_settings_dialog, index=2)
+    menu.addSeparator(index=3)
+
+.. note::
+
+    see also: `Defining the Nuke Plug-in Path
+    <https://learn.foundry.com/nuke/content/comp_environment/
+    configuring_nuke/defining_nuke_plugin_path.html>`_
+
+.. _installing/hiero:
+
+Installing for Hiero / Studio
+=============================
+
+Copy the Python module :file:`./source/nomenclator` into a :file:`~/.nuke/Python/StartupUI` folder
+(or update your :envvar:`HIERO_PLUGIN_PATH` environment variable) and add the following
+`menu.py` file:
+
+.. code-block:: python
+
+    import hiero.ui
+
+    import nomenclator
+    from nomenclator.vendor.Qt import QtWidgets
+
+
+    class ProjectManagerAction(QtWidgets.QAction):
+
+        def __init__(self, parent=hiero.ui.mainWindow()):
+            super(ProjectManagerAction, self).__init__("Nomenclator - Manage Project...", parent)
+            self.triggered.connect(nomenclator.open_project_manager_dialog)
+
+
+    class SettingsAction(QtWidgets.QAction):
+
+        def __init__(self, parent=hiero.ui.mainWindow()):
+            super(SettingsAction, self).__init__("Nomenclator - Settings...", parent)
+            self.triggered.connect(nomenclator.open_settings_dialog)
+
+
+    action = hiero.ui.findMenuAction("foundry.menu.file")
+    menu = action.menu()
+
+    separator = menu.insertSeparator(menu.actions()[0])
+    menu.insertAction(separator, ProjectManagerAction())
+    menu.insertAction(separator, SettingsAction())
+
+.. note::
+
+    see also: `Hiero Environment Setup
+    <https://learn.foundry.com/hiero/developers/latest/HieroPythonDevGuide/setup.html>`_
+
+.. _installing/external:
+
+External dependencies
+=====================
+
+The plugin rely on two external dependencies:
+
+* `toml <https://pypi.org/project/toml/>`_ to read :term:`Toml` configuration files.
+* `Qt.py <https://pypi.org/project/Qt.py/>`_ to preserve compatibility between
+  :term:`PySide` (used in Nuke 11 and earlier) and :term:`PySide2` (used in Nuke 12 and later).
+
+For convenience, specific versions of these libraries are embedded in the plugin using
+the `vendoring <https://pypi.org/project/vendoring/>`_ CLI tool. These versions are defined in
+the :file:`source/nomenclator/vendor/vendor.txt` file:
+
+.. include:: ../source/nomenclator/vendor/vendor.txt
+   :code: ini
+
+To update the versions, modify this file and run the following command::
+
+    vendoring update .

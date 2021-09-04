@@ -4,6 +4,18 @@ Glossary
 
 .. glossary::
 
+    PySide
+        PySide is the Python :term:`Qt` bindings project providing access to the
+        complete Qt 4.8 framework.
+
+        .. seealso:: https://pypi.org/project/PySide/
+
+    PySide2
+        PySide2 is the Python :term:`Qt` bindings project providing access to
+        the complete Qt 5.12+ framework.
+
+        .. seealso:: https://pypi.org/project/PySide2/
+
     Qt
         A Cross-platform application framework that is used for developing
         application software and graphical user interfaces.
@@ -21,3 +33,8 @@ Glossary
         A tool to create isolated Python environments.
 
         .. seealso:: https://virtualenv.pypa.io/en/latest/
+
+    Toml
+        File format for minimal configuration files.
+
+        .. seealso:: https://toml.io/en/
