@@ -56,6 +56,7 @@ modindex_common_prefix = [
     "nomenclator."
 ]
 
+
 # -- HTML output --------------------------------------------------------------
 
 html_theme = "sphinx_rtd_theme"
@@ -64,6 +65,7 @@ html_static_path = ["_static"]
 
 # If True, copy source rst files to output for reference.
 html_copy_source = True
+
 
 # -- Autodoc ------------------------------------------------------------------
 
@@ -75,7 +77,7 @@ autodoc_default_options = {
 }
 
 autodoc_member_order = "bysource"
-autodoc_mock_imports = []
+autodoc_mock_imports = ["nuke", "hiero.core", "hiero.ui", "nomenclator.vendor.Qt"]
 
 
 def autodoc_skip(app, what, name, obj, skip, options):
@@ -85,11 +87,13 @@ def autodoc_skip(app, what, name, obj, skip, options):
 
     return skip
 
+
 # -- Intersphinx --------------------------------------------------------------
 
 intersphinx_mapping = {
     "python": ("http://docs.python.org/", None),
 }
+
 
 # -- Setup --------------------------------------------------------------------
 
