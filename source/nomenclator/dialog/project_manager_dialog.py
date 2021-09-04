@@ -81,6 +81,12 @@ class ProjectManagerDialog(QtWidgets.QDialog):
         comp_settings_group.setTitle("Project")
         body_layout.addWidget(comp_settings_group)
 
+        spacer = QtWidgets.QSpacerItem(
+            0, 0, QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Expanding
+        )
+        body_layout.addItem(spacer)
+
         self._button_box = QtWidgets.QDialogButtonBox(self)
         self._button_box.setOrientation(QtCore.Qt.Horizontal)
         self._button_box.addButton(QtWidgets.QDialogButtonBox.Reset)
