@@ -92,7 +92,7 @@ View the generated report at::
 Installing for Nuke
 ====================
 
-Copy the Python module :file`./source/nomenclator` into your personal :file:`~/.nuke` folder
+Copy the Python module :file:`./source/nomenclator` into your personal :file:`~/.nuke` folder
 (or update your :envvar:`NUKE_PATH` environment variable) and add the following
 `menu.py` file:
 
@@ -108,6 +108,11 @@ Copy the Python module :file`./source/nomenclator` into your personal :file:`~/.
     menu.addCommand("Nomenclator - Manage Outputs...", nomenclator.open_output_manager_dialog, index=1)
     menu.addCommand("Nomenclator - Settings...", nomenclator.open_settings_dialog, index=2)
     menu.addSeparator(index=3)
+
+This is how the menu should look like within Nuke:
+
+.. image:: ./image/nuke-menu.png
+    :alt: Nuke Menu
 
 .. note::
 
@@ -152,6 +157,11 @@ Copy the Python module :file:`./source/nomenclator` into a :file:`~/.nuke/Python
     separator = menu.insertSeparator(menu.actions()[0])
     menu.insertAction(separator, ProjectManagerAction())
     menu.insertAction(separator, SettingsAction())
+
+This is how the menu should look like within Hiero or Nuke Studio:
+
+.. image:: ./image/studio-menu.png
+    :alt: Nuke Menu
 
 .. note::
 
