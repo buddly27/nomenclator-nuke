@@ -78,6 +78,8 @@ def fetch(config, is_project=False):
     if description is None and len(config.descriptions):
         description = config.descriptions[0]
 
+    outputs = tuple()
+
     if not is_project:
         path = nomenclator.utilities.fetch_current_comp_path()
         template_configs = config.comp_template_configs
@@ -85,15 +87,6 @@ def fetch(config, is_project=False):
         recent_locations = nomenclator.utilities.fetch_recent_comp_paths(
             max_values=config.max_locations,
         )
-
-        # Fetch matching output template configs if possible.
-        if len(path):
-            template_config = nomenclator.utilities.fetch_template_config(
-                os.path.dirname(path), template_configs, {}
-            )
-            outputs = fetch_outputs(config, getattr(template_config, "outputs", []))
-        else:
-            outputs = fetch_outputs(config, [])
 
     else:
         path = nomenclator.utilities.fetch_current_project_path()
@@ -103,7 +96,26 @@ def fetch(config, is_project=False):
             max_values=config.max_locations,
         )
 
-        outputs = tuple()
+    # Fetch matching template configuration if possible.
+    _config = None
+
+    if len(path):
+        _config = nomenclator.utilities.fetch_template_config(
+            os.path.dirname(path), template_configs, {}
+        )
+
+    # Extract relevant data from matching config.
+    if _config is not None:
+        append_username_to_name = _config.append_username_to_name
+
+        if not is_project:
+            outputs = fetch_outputs(config, _config.outputs)
+
+    else:
+        append_username_to_name = False
+
+        if not is_project:
+            outputs = fetch_outputs(config, [])
 
     return Context(
         location_path=os.path.dirname(path),
@@ -113,7 +125,7 @@ def fetch(config, is_project=False):
         version=None,
         description=description,
         descriptions=config.descriptions,
-        append_username_to_name=False,
+        append_username_to_name=append_username_to_name,
         padding=padding,
         paddings=paddings,
         create_subfolders=config.create_subfolders,
@@ -238,15 +250,8 @@ def update(context, discover_next_version=True):
         "username": context.username
     })
 
-    if discover_next_version:
-        version = nomenclator.utilities.fetch_next_version(
-            context.location_path, config.pattern_base, token_mapping
-        )
-
-    else:
-        version = nomenclator.utilities.fetch_version(
-            context.path, config.pattern_base, token_mapping
-        )
+    # Discover version.
+    version = _fetch_version(context, config, token_mapping, discover_next_version)
 
     # Update token values with version found.
     token_mapping["version"] = "{0:03d}".format(version)
@@ -275,6 +280,34 @@ def update(context, discover_next_version=True):
                 context.outputs, config.outputs, token_mapping
             ),
             error=None
+        )
+
+
+def _fetch_version(context, config, token_mapping, discover_next_version):
+    """Return version for context.
+
+    :param context: :class:`Context` instance.
+
+    :param config: :class:`~nomenclator.config.TemplateConfig` instance.
+
+    :param token_mapping: Mapping regrouping resolved token values associated
+        with their name.
+
+    :param discover_next_version: Indicate whether the next version of the
+        scene should be returned. Otherwise, the version of the current scene is
+        returned.
+
+    :return: Version integer.
+
+    """
+    if discover_next_version:
+        return nomenclator.utilities.fetch_next_version(
+            context.location_path, config.pattern_base, token_mapping
+        )
+
+    else:
+        return nomenclator.utilities.fetch_version(
+            context.path, config.pattern_base, token_mapping
         )
 
 

@@ -176,7 +176,7 @@ def test_fetch_comp(
         version=None,
         description=config.default_description,
         descriptions=config.descriptions,
-        append_username_to_name=False,
+        append_username_to_name=template_config.append_username_to_name,
         padding=config.default_padding,
         paddings=mocked_fetch_paddings.return_value,
         create_subfolders=config.create_subfolders,
@@ -260,12 +260,16 @@ def test_fetch_project(
     mocker, mocked_fetch_outputs, mocked_fetch_paddings,
     mocked_fetch_recent_comp_paths, mocked_fetch_recent_project_paths,
     mocked_fetch_current_comp_path, mocked_fetch_current_project_path,
+    mocked_fetch_template_config
 ):
     """Return project context object."""
     import nomenclator.context
 
+    template_config = mocker.Mock()
+
     config = mocker.Mock()
     mocked_fetch_current_project_path.return_value = "/path/to/project.hrox"
+    mocked_fetch_template_config.return_value = template_config
     context = nomenclator.context.fetch(config, is_project=True)
 
     assert context == nomenclator.context.Context(
@@ -276,7 +280,7 @@ def test_fetch_project(
         version=None,
         description=config.default_description,
         descriptions=config.descriptions,
-        append_username_to_name=False,
+        append_username_to_name=template_config.append_username_to_name,
         padding=config.default_padding,
         paddings=mocked_fetch_paddings.return_value,
         create_subfolders=config.create_subfolders,
@@ -287,6 +291,9 @@ def test_fetch_project(
         error=None,
     )
 
+    mocked_fetch_template_config.assert_called_once_with(
+        "/path/to", config.project_template_configs, {}
+    )
     mocked_fetch_outputs.assert_not_called()
     mocked_fetch_paddings.assert_called_once_with(
         max_value=config.max_padding
@@ -303,6 +310,7 @@ def test_fetch_project_empty_path(
     mocker, mocked_fetch_outputs, mocked_fetch_paddings,
     mocked_fetch_recent_comp_paths, mocked_fetch_recent_project_paths,
     mocked_fetch_current_comp_path, mocked_fetch_current_project_path,
+    mocked_fetch_template_config
 ):
     """Return project context object when current path is empty."""
     import nomenclator.context
@@ -330,6 +338,7 @@ def test_fetch_project_empty_path(
         error=None,
     )
 
+    mocked_fetch_template_config.assert_not_called()
     mocked_fetch_outputs.assert_not_called()
     mocked_fetch_paddings.assert_called_once_with(
         max_value=config.max_padding
