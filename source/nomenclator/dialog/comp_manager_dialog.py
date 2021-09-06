@@ -112,9 +112,17 @@ class CompoManagerDialog(QtWidgets.QDialog):
         self._button_box.clicked.connect(self._button_clicked)
         self._output_settings_form.updated.connect(self._update_full_context)
         self._comp_settings_form.updated.connect(self._update_context)
-        self._location.updated.connect(
-            lambda: self._update_context("location_path", self._location.value)
-        )
+        self._location.updated.connect(self._update_location)
+
+    def _update_location(self):
+        """Update location path in context."""
+        path = self._location.value
+
+        # Ignore last separator if necessary.
+        if len(path) > 1 and path.endswith(os.sep):
+            path = path[:-1]
+
+        self._update_context("location_path", path)
 
     def _update_full_context(self):
         """Replace context object."""
