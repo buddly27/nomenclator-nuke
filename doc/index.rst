@@ -12,6 +12,7 @@ Nuke plugin to name script and render outputs
     introduction
     installing
     tutorial
+    environment_variables
     api_reference/index
     release/index
     glossary
