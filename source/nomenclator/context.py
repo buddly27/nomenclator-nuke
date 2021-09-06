@@ -68,9 +68,15 @@ def fetch(config, is_project=False):
     :return: :class:`Context` instance.
 
     """
-    paddings = nomenclator.utilities.fetch_paddings(
-        max_value=config.max_padding
-    )
+    paddings = nomenclator.utilities.fetch_paddings(max_value=config.max_padding)
+
+    padding = config.default_padding
+    if padding is None and len(paddings):
+        padding = paddings[0]
+
+    description = config.default_description
+    if description is None and len(config.descriptions):
+        description = config.descriptions[0]
 
     if not is_project:
         path = nomenclator.utilities.fetch_current_comp_path()
@@ -105,10 +111,10 @@ def fetch(config, is_project=False):
         path=path,
         suffix=suffix,
         version=None,
-        description=config.default_description,
+        description=description,
         descriptions=config.descriptions,
         append_username_to_name=False,
-        padding=config.default_padding,
+        padding=padding,
         paddings=paddings,
         create_subfolders=config.create_subfolders,
         tokens=config.tokens,
