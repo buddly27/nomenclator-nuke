@@ -4,6 +4,23 @@ Glossary
 
 .. glossary::
 
+    Hiero
+        A Digital Content Creation tool focused on multi-shot management, conform,
+        editorial and review.
+
+        .. seealso:: https://www.foundry.com/products/hiero
+
+    Nuke
+        A Digital Content Creation tool focused on compositing.
+
+        .. seealso:: https://www.foundry.com/products/nuke
+
+    Nuke Studio
+        A Digital Content Creation tool regrouping features from :term:`Nuke`
+        and :term:`Hiero`
+
+        .. seealso:: https://youtu.be/KwcIlBQ_laY
+
     PySide
         PySide is the Python :term:`Qt` bindings project providing access to the
         complete Qt 4.8 framework.

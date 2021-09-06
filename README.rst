@@ -14,7 +14,9 @@ Nomenclator Nuke
     :target: https://www.foundry.com/products/nuke
     :alt: Nuke Versions
 
-Nuke plugin to name script and render outputs
+Nomenclator is a plugin for Nuke, Nuke Studio and Hiero to save a composition (.nk) or
+project (.hrox) scene and manage render outputs following a specific naming convention
+based on the folder structure.
 
 .. image:: ./doc/image/demo.gif
     :alt: Demonstration
