@@ -1,0 +1,17 @@
+[[comp-templates]]
+id = "Comp1"
+pattern-path = "/projects/{project}/{episode:ep\\d+}/{shot:sh\\d+}/2D/scripts"
+pattern-base = "{project}_{episode}_{shot}_{description}_v{version}"
+match-end = false
+
+[[comp-templates.outputs]]
+id = "comps"
+pattern-path = "/projects/{project}/{episode:ep\\d+}/{shot:sh\\d+}/2D/comps"
+pattern-base = "{project}_{episode}_{shot}_comp_v{version}/{project}_{episode}_{shot}_comp_v{version}"
+append-passname-to-name = true
+append-passname-to-subfolder = true
+
+[[comp-templates.outputs]]
+id = "precomps"
+pattern-path = "/projects/{project}/{episode:ep\\d+}/{shot:sh\\d+}/2D/precomps"
+pattern-base = "{project}_{episode}_{shot}_precomp_v{version}/{project}_{episode}_{shot}_precomp_v{version}"

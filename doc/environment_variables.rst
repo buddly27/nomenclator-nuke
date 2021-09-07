@@ -6,6 +6,11 @@ Environment variables
 
 Environment variables directly defined or referenced by this package.
 
+.. envvar:: NOMENCLATOR_CONFIG_PATH
+
+    Environment variable used to set where the :file:`nomenclator.toml` configuration
+    file will be saved and fetched. The default path is the personal :file:`~/.nuke` folder.
+
 .. envvar:: NUKE_PATH
 
     Environment variable used to locate starter scripts for :term:`Nuke`.
