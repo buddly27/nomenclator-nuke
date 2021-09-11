@@ -41,7 +41,7 @@ The resulting scene files should be named::
     drWho_ep001_sh001_{description}_v{version}.nk
 
 The value for the ``description`` token can be given via the comp manager
-dialog which is initiated with the :ref:`configuration/default-description`
+dialog which is initiated with the :ref:`configuration/global/default-description`
 option.
 
 The value for ``version`` will be automatically set to the next version, based on the
@@ -61,7 +61,7 @@ is automatically named "Comp1".
     then be able to type a new name and click enter to apply it. We will
     keep the automatic "Comp1" name in this tutorial.
 
-The :ref:`template_configuration/pattern-path` value should be::
+The :ref:`configuration/template/pattern-path` value should be::
 
     /projects/{project}/{episode}/{shot}/2D/scripts
 
@@ -73,13 +73,13 @@ custom regular expression for the ``episode`` and ``shot`` tokens::
 
 .. note::
 
-    We can uncheck the :ref:`template_configuration/match-end` box so that the
+    We can uncheck the :ref:`configuration/template/match-end` box so that the
     naming convention can be applied to scripts saved in sub-folders, for
     instance::
 
         /projects/drWho/ep001/sh001/2D/scripts/sub-1/sub-2
 
-Then we can define the :ref:`template_configuration/pattern-base` value::
+Then we can define the :ref:`configuration/template/pattern-base` value::
 
     {project}_{episode}_{shot}_{description}_v{version}
 
@@ -110,22 +110,22 @@ output templates which will be automatically named "Output1" and "Output2".
 
 Double click on the tab labels to rename them "comps" and "precomps".
 
-The :ref:`output_template_configuration/pattern-path` value for
+The :ref:`configuration/output_template/pattern-path` value for
 "comps" should be::
 
     /projects/{project}/{episode:ep\d+}/{shot:sh\d+}/2D/comps
 
-The :ref:`output_template_configuration/pattern-path` value for
+The :ref:`configuration/output_template/pattern-path` value for
 "precomps" should be::
 
     /projects/{project}/{episode:ep\d+}/{shot:sh\d+}/2D/precomps
 
-The :ref:`output_template_configuration/pattern-base` value for "comps"
+The :ref:`configuration/output_template/pattern-base` value for "comps"
 should be::
 
     {project}_{episode}_{shot}_comp_v{version}/{project}_{episode}_{shot}_comp_v{version}
 
-And finally, the :ref:`output_template_configuration/pattern-base` value for
+And finally, the :ref:`configuration/output_template/pattern-base` value for
 "precomps" should be::
 
     {project}_{episode}_{shot}_precomp_v{version}/{project}_{episode}_{shot}_precomp_v{version}
