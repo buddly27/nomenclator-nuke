@@ -26,7 +26,7 @@ Global configuration options include the following:
 default-padding
 ---------------
 
-Define default value for the ``{padding}`` token.
+Define default value for the :ref:`token/default/padding` token.
 
 .. code-block:: toml
 
@@ -42,7 +42,7 @@ Define default value for the ``{padding}`` token.
 default-description
 -------------------
 
-Define default value for the ``{description}`` token.
+Define default value for the :ref:`token/default/description` token.
 
 .. code-block:: toml
 
@@ -58,7 +58,7 @@ Define default value for the ``{description}`` token.
 descriptions
 ------------
 
-Define all available values for the ``{description}`` token.
+Define all available values for the :ref:`token/default/description` token.
 
 .. code-block:: toml
 
@@ -98,17 +98,17 @@ render outputs.
 
     [[comp-templates]]
     id = "Episodic"
-    pattern-path = "/path/{project}/{episode:ep\\d+}/{shot:sh\\d+}/scripts"
+    pattern-path = "/path/{project}/{episode:ep\d+}/{shot:sh\d+}/scripts"
     pattern-base = "{project}_{episode}_{shot}_{description}_v{version}"
 
     [[comp-templates.outputs]]
     id = "comps"
-    pattern-path = "/path/{project}/{episode:ep\\d+}/{shot:sh\\d+}/comps"
+    pattern-path = "/path/{project}/{episode:ep\d+}/{shot:sh\d+}/comps"
     pattern-base = "{project}_{episode}_{shot}_comp_v{version}"
 
     [[comp-templates.outputs]]
     id = "precomps"
-    pattern-path = "/path/{project}/{episode:ep\\d+}/{shot:sh\\d+}/precomps"
+    pattern-path = "/path/{project}/{episode:ep\d+}/{shot:sh\d+}/precomps"
     pattern-base = "{project}_{episode}_{shot}_precomp_v{version}"
 
 .. note::
@@ -140,7 +140,7 @@ colorspace-aliases
 ------------------
 
 Define all aliased to use for colorspace values returned by Nuke to
-resolve the ``{colorspace}`` token.
+resolve the :ref:`token/default/colorspace` token.
 
 .. code-block:: toml
 
@@ -171,6 +171,8 @@ Define any additional token values that could be found in templates.
     If the token ``{foo}`` is found in any templates, it will be replaced
     by "bar" following this example. An error will be raised if no value is
     defined.
+
+.. seealso:: :ref:`token/custom`
 
 .. _configuration/global/max-locations:
 
@@ -219,7 +221,7 @@ dialogs.
 username
 --------
 
-Define the value for the ``{username}`` token.
+Define the value for the :ref:`token/default/username` token.
 
 .. code-block:: toml
 
@@ -264,18 +266,9 @@ in the :ref:`configuration/template/pattern-base` option:
 
 .. code-block:: toml
 
-    pattern-path = "/path/{project}/{episode}/{shot}/scripts"
+    pattern-path = "/path/{project}/{episode:ep\d+}/{shot:sh\d+}/scripts"
 
-.. note::
-
-    By default the regular expression used to search the token is ``[\w_.-]+``.
-    You can :ref:`modify the default expression
-    <configuration/template/default-expression>` or define custom
-    expressions per token:
-
-    .. code-block:: toml
-
-        pattern-path = "/path/{project}/{episode:ep\\d+}/{shot:sh\\d+}/scripts"
+.. seealso:: :ref:`token/extracted`
 
 .. _configuration/template/pattern-base:
 
@@ -297,11 +290,7 @@ It can also be defined with tokens which will be dynamically resolved:
 
     pattern-base = "{project}_{episode}_{shot}_{description}_v{version}"
 
-Tokens which can be used are
-
-* Default tokens (``{description}``, ``{username}``, ``{version}``)
-* Tokens extracted from the corresponding :ref:`configuration/template/pattern-path`
-* Tokens defined in the :ref:`configuration/global/tokens` option.
+.. seealso:: :ref:`token`
 
 .. warning::
 
@@ -312,16 +301,18 @@ Tokens which can be used are
 default-expression
 ------------------
 
-Define a custom expression to fetch token values.
+Define a custom expression to extract token values.
 
 .. code-block:: toml
 
-    default-expression = "\\w+"
+    default-expression = "\w+"
 
 .. note::
 
     By default the regular expression used to search the token
     is ``[\w_.-]+``.
+
+.. seealso:: :ref:`token/extracted`
 
 .. _configuration/template/match-start:
 
@@ -392,12 +383,12 @@ available to define the naming convention of render outputs.
 
     [[comp-templates.outputs]]
     id = "comps"
-    pattern-path = "/path/{project}/{episode:ep\\d+}/{shot:sh\\d+}/comps"
+    pattern-path = "/path/{project}/{episode:ep\d+}/{shot:sh\d+}/comps"
     pattern-base = "{project}_{episode}_{shot}_comp_v{version}"
 
     [[comp-templates.outputs]]
     id = "precomps"
-    pattern-path = "/path/{project}/{episode:ep\\d+}/{shot:sh\\d+}/precomps"
+    pattern-path = "/path/{project}/{episode:ep\d+}/{shot:sh\d+}/precomps"
     pattern-base = "{project}_{episode}_{shot}_precomp_v{version}"
 
 .. note::
@@ -439,7 +430,7 @@ compatible with the naming convention.
 
 .. code-block:: toml
 
-    pattern-path = "/path/{project}/{episode:ep\\d+}/{shot:sh\\d+}/comps"
+    pattern-path = "/path/{project}/{episode:ep\d+}/{shot:sh\d+}/comps"
 
 .. _configuration/output_template/pattern-base:
 

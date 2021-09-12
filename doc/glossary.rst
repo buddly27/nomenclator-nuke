@@ -4,6 +4,25 @@ Glossary
 
 .. glossary::
 
+    Compositing
+        Compositing is the process or technique of combining visual elements from
+        separate sources into single images.
+
+        .. seealso::
+
+            `Compositing with Nuke
+            <https://learn.foundry.com/nuke/content/comp_environment/nuke/nuke_intro.html>`_
+
+    Conforming
+        Conforming describes the process of matching up the footage from a shoot with
+        the required edit decisions to create a meaningful timeline.
+
+        .. seealso::
+
+            `Conforming Using Hiero
+            <https://learn.foundry.com/hiero/13.0/content/
+            timeline_environment/conforming/hiero_conforming.html>`_
+
     Hiero
         A Digital Content Creation tool focused on multi-shot management, conform,
         editorial and review.
