@@ -13,39 +13,37 @@ and you are working within the following folder structure::
     /projects/
      |- drWho
          |- build
-         |- edit
+         |- conform
          |   |- hiero
          |- ep001
              |- sh001
-                 |- 2D
-                     |- scripts
+                 |- comp
+                     |- nuke
                      |- comps
                      |- precomps
 
+The :term:`Compositing` tasks are broken down in episodes and shots. For each shot,
+the :term:`Nuke` scene files must be saved into the :file:`comp/nuke` folders.
+For instance::
 
-Defining the composition template
----------------------------------
+    /projects/drWho/ep001/sh001/comp/nuke
 
-The :term:`Nuke` composition scene files should be saved into the :file:`2D/scripts` folders and
-be named as follows::
+There is one :term:`Conforming` task for the entire project. Therefore, the :term:`Hiero`
+project files must be saved at the project level, within the :file:`conform/hiero`
+folder::
 
-    {project}_{episode}_{shot}_{description}_v{version}.nk
+    /projects/drWho/conform/hiero
 
-The ``project``, ``episode`` and ``shot`` tokens should be guessed from the folder
-structure. For instance, let's consider the following location::
+Instead of hard-coding the project name, we would like to define a naming convention which could
+easily be adapted to a new project which would adopt a similar structure.
 
-    /projects/drWho/ep001/sh001/2D/scripts
+.. _tutorial/comp_template:
 
-The resulting scene files should be named::
+Defining a comp template
+------------------------
 
-    drWho_ep001_sh001_{description}_v{version}.nk
-
-The value for the ``description`` token can be given via the comp manager
-dialog which is initiated with the :ref:`configuration/global/default-description`
-option.
-
-The value for ``version`` will be automatically set to the next version, based on the
-other file saved in the same folder.
+Let's create a :ref:`template <configuration/template>` to define the naming
+convention for the :term:`Compositing` tasks.
 
 Open the Setting Dialog and click on the "Comp Resolvers" tab to create the template.
 
@@ -61,45 +59,66 @@ is automatically named "Comp1".
     then be able to type a new name and click enter to apply it. We will
     keep the automatic "Comp1" name in this tutorial.
 
-The :ref:`configuration/template/pattern-path` value should be::
+We want the :term:`Nuke` composition scene files to be named in the form of::
 
-    /projects/{project}/{episode}/{shot}/2D/scripts
+    drWho_ep001_sh001_comp_v001.nk
+
+Therefore, the :ref:`configuration/template/pattern-base` value should be::
+
+    {project}_{episode}_{shot}_{description}_v{version}
+
+The ``project``, ``episode`` and ``shot`` tokens should be :ref:`extracted <token/extracted>` from
+the folder structure. For instance, let's consider the following location::
+
+    /projects/drWho/ep001/sh001/comp/nuke
+
+The resolved tokens should be:
+
+==========  ==============
+Token Name  Resolved Value
+==========  ==============
+project     drWho
+episode     ep001
+shot        sh001
+==========  ==============
+
+Therefore, the :ref:`configuration/template/pattern-path` value should be::
+
+    /projects/{project}/{episode}/{shot}/comp/nuke
 
 To prevent any matching error, we can be even more specific and define
 custom regular expression for the ``episode`` and ``shot`` tokens::
 
-    /projects/{project}/{episode:ep\d+}/{shot:sh\d+}/2D/scripts
-
+    /projects/{project}/{episode:ep\d+}/{shot:sh\d+}/comp/nuke
 
 .. note::
 
     We can uncheck the :ref:`configuration/template/match-end` box so that the
-    naming convention can be applied to scripts saved in sub-folders, for
+    naming convention can be applied to scenes saved in sub-folders, for
     instance::
 
-        /projects/drWho/ep001/sh001/2D/scripts/sub-1/sub-2
+        /projects/drWho/ep001/sh001/2D/nuke/sub-1/sub-2
 
-Then we can define the :ref:`configuration/template/pattern-base` value::
-
-    {project}_{episode}_{shot}_{description}_v{version}
+This is how the settings dialog should look like:
 
 .. image:: ./image/comp-resolver-2.png
     :alt: Comp Resolver with one template
 
-Defining the output templates
------------------------------
+Defining output templates
+-------------------------
 
-We need to define two destinations for render outputs:
+Let's now create two :ref:`output templates <configuration/output_template>` to define the naming
+convention for the render outputs for the comp template previously created:
 
-* Default compositions should be rendered in the :file:`2D/comps` folder and be
-  named as follows::
+* Default renders should be saved in the :file:`comp/comps` folder and be
+  named in the form of::
 
-    {project}_{episode}_{shot}_comp_v{version}/{project}_{episode}_{shot}_comp_v{version}.%03d.exr
+    drWho_ep001_sh001_comp_v001/drWho_ep001_sh001_comp_v001.%03d.exr
 
-* Precomps should be rendered in the :file:`2D/precomps` folder and be
-  named as follows::
+* Precomps renders should be saved in the :file:`comp/precomps` folder and be
+  named in the form of::
 
-    {project}_{episode}_{shot}_precomp_v{version}/{project}_{episode}_{shot}_precomp_v{version}.%03d.exr
+    drWho_ep001_sh001_precomp_v001/drWho_ep001_sh001_precomp_v001.%03d.exr
 
 Note that we also want to create subfolders for each outputs to better organize the image
 sequences.
@@ -110,29 +129,35 @@ output templates which will be automatically named "Output1" and "Output2".
 
 Double click on the tab labels to rename them "comps" and "precomps".
 
-The :ref:`configuration/output_template/pattern-path` value for
-"comps" should be::
-
-    /projects/{project}/{episode:ep\d+}/{shot:sh\d+}/2D/comps
-
-The :ref:`configuration/output_template/pattern-path` value for
-"precomps" should be::
-
-    /projects/{project}/{episode:ep\d+}/{shot:sh\d+}/2D/precomps
-
-The :ref:`configuration/output_template/pattern-base` value for "comps"
-should be::
+The :ref:`configuration/output_template/pattern-base` values for "comps" and "precomps"
+should be respectively::
 
     {project}_{episode}_{shot}_comp_v{version}/{project}_{episode}_{shot}_comp_v{version}
-
-And finally, the :ref:`configuration/output_template/pattern-base` value for
-"precomps" should be::
-
     {project}_{episode}_{shot}_precomp_v{version}/{project}_{episode}_{shot}_precomp_v{version}
 
-We will also check the "append passname to name" and "append passname to subfolder"
-boxes for "comps" so that we can automatically add passname to the subfolder
-and the base name.
+.. note::
+
+    We could also have used a single convention for both outputs by using the
+    :ref:`token/default/description` token::
+
+        {project}_{episode}_{shot}_{description}_v{version}/{project}_{episode}_{shot}_{description}_v{version}
+
+The :ref:`configuration/output_template/pattern-path` values for "comps" and "precomps"
+should be respectively::
+
+    /projects/{project}/{episode:ep\d+}/{shot:sh\d+}/comp/comps
+    /projects/{project}/{episode:ep\d+}/{shot:sh\d+}/comp/precomps
+
+.. warning::
+
+    New tokens are currently not :ref:`extracted <token/extracted>` from the
+    :ref:`configuration/output_template/pattern-path` of output templates.
+
+We will also check the :ref:`configuration/output_template/append-passname-to-name` and
+:ref:`configuration/output_template/append-passname-to-subfolder` boxes for "comps" so that we
+can automatically add the :ref:`token/default/passname` token to the subfolder and the base name.
+
+This is how the settings dialog should look like:
 
 .. image:: ./image/comp-resolver-3.png
     :alt: Comp Resolver with two output templates
