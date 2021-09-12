@@ -15,3 +15,9 @@ append-passname-to-subfolder = true
 id = "precomps"
 pattern-path = "/projects/{project}/{episode:ep\\d+}/{shot:sh\\d+}/2D/precomps"
 pattern-base = "{project}_{episode}_{shot}_precomp_v{version}/{project}_{episode}_{shot}_precomp_v{version}"
+
+[[project-templates]]
+id = "Project1"
+pattern-path = "/projects/{project}/{episode:ep\\d+}/conform/hiero"
+pattern-base = "{project}_{episode}_v{version}"
+append-username-to-name = true
