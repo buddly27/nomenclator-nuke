@@ -179,7 +179,11 @@ def test_fetch_output_template_config_unmatched(mocker, mocked_fetch_resolved_to
 
     mocked_fetch_resolved_tokens.return_value = None
 
-    template_configs = [mocker.Mock(), mocker.Mock(), mocker.Mock()]
+    template_configs = [
+        mocker.Mock(pattern_base="__BASE__"),
+        mocker.Mock(pattern_base="__BASE__"),
+        mocker.Mock(pattern_base="__BASE__"),
+    ]
     config = nomenclator.utilities.fetch_output_template_config(
         "/path", template_configs
     )
@@ -201,7 +205,11 @@ def test_fetch_output_template_config(mocker, mocked_fetch_resolved_tokens):
 
     mocked_fetch_resolved_tokens.side_effect = [None, None, {"key": "value"}]
 
-    template_configs = [mocker.Mock(), mocker.Mock(), mocker.Mock()]
+    template_configs = [
+        mocker.Mock(pattern_base="__BASE__"),
+        mocker.Mock(pattern_base="__BASE__"),
+        mocker.Mock(pattern_base="__BASE__"),
+    ]
     config = nomenclator.utilities.fetch_output_template_config(
         "/path", template_configs
     )

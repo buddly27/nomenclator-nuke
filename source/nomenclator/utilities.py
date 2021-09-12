@@ -120,8 +120,11 @@ def fetch_output_template_config(path, template_configs):
 
     """
     for config in template_configs:
+        levels = config.pattern_base.count(os.sep)
+        _path = path.rsplit(os.sep, levels)[0]
+
         data = nomenclator.template.fetch_resolved_tokens(
-            path, config.pattern_path,
+            _path, config.pattern_path,
             default_expression=DEFAULT_EXPRESSION,
             match_start=True,
             match_end=True,
