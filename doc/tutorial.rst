@@ -277,7 +277,8 @@ Rename the "Write1" and "Write2" outputs respectively to "foreground" and "backg
 and rename the passname similarly. Then change the destination of the "background" node
 to "precomps".
 
-This is how the comp manager should look like:
+No previous version of the script has been discovered with this naming convention,
+therefore the :ref:`token/default/version` token will be initialized to 1:
 
 .. image:: ./image/comp-manager-1.png
     :alt: Comp Manager
@@ -288,3 +289,27 @@ been updated:
 .. image:: ./image/comp-2.png
     :alt: Saved Comp
 
+Now when you re-open the Comp Manager Dialog, default values should be prefilled. As a previous
+version of the script exist with this naming convention, the :ref:`token/default/version`
+is now initialized to 2:
+
+.. image:: ./image/comp-manager-2.png
+    :alt: Comp Manager
+
+Save the script once again by clicking on "Apply".
+
+.. _tutorial/managing-outputs:
+
+Managing the outputs
+--------------------
+
+You might need to change the output without saving a new version of the
+:term:`Nuke` script. This can be achieved by opening the
+Output Manager Dialog:
+
+.. image:: ./image/output-manager-1.png
+    :alt: Output Manager
+
+The corresponding nodes will be updated once clicking on "Apply", but the
+:ref:`token/default/version` remains the same and the :term:`Nuke` script
+will not be saved.
