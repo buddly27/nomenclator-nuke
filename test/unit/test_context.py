@@ -635,6 +635,7 @@ def test_update(
     context = mocker.Mock(
         location_path="__PATH__",
         tokens=(("key1", "value1"), ("key2", "value2"), ("key3", "value3")),
+        suffix="nk"
     )
 
     result = nomenclator.context.update(context)

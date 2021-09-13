@@ -243,6 +243,8 @@ def update(context, discover_next_version=True):
             error=_update_error(context)
         )
 
+    outputs = tuple()
+
     # Update token values before fetching version.
     token_mapping.update({
         "padding": context.padding,
@@ -263,22 +265,28 @@ def update(context, discover_next_version=True):
             token_mapping=token_mapping
         )
     except Exception as exception:
+        if context.suffix == "nk":
+            outputs = update_outputs(context.outputs, [], {})
+
         # noinspection PyProtectedMember
         return context._replace(
             path="",
             version=None,
-            outputs=update_outputs(context.outputs, [], {}),
+            outputs=outputs,
             error=_update_error(context, error=(config, exception))
         )
 
     else:
+        if context.suffix == "nk":
+            outputs = update_outputs(
+                context.outputs, config.outputs, token_mapping
+            )
+
         # noinspection PyProtectedMember
         return context._replace(
             path=os.path.join(context.location_path, name),
             version=version,
-            outputs=update_outputs(
-                context.outputs, config.outputs, token_mapping
-            ),
+            outputs=outputs,
             error=None
         )
 
