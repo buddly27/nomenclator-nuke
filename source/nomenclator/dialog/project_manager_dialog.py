@@ -57,7 +57,7 @@ class ProjectManagerDialog(QtWidgets.QDialog):
     def _setup_ui(self):
         """Initialize user interface."""
         self.setWindowTitle("Nomenclator - Project Manager")
-        self.resize(QtCore.QSize(1100, 400))
+        self.resize(QtCore.QSize(600, 200))
 
         self.setStyleSheet(classic_style())
 
