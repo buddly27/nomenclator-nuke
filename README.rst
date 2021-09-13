@@ -2,8 +2,8 @@
 Nomenclator Nuke
 ################
 
-.. image:: https://readthedocs.org/projects/nomenclator-nuke/badge/?version=latest
-    :target: https://nomenclator-nuke.readthedocs.io/en/latest/
+.. image:: https://readthedocs.org/projects/nomenclator-nuke/badge/?version=stable
+    :target: https://nomenclator-nuke.readthedocs.io/en/stable/
     :alt: Documentation
 
 .. image:: https://github.com/buddly27/nomenclator-nuke/actions/workflows/main.yml/badge.svg
@@ -46,4 +46,4 @@ Documentation
 *************
 
 Full documentation, including installation and setup guides, can be found at
-http://nomenclator-nuke.readthedocs.io/en/latest/
+http://nomenclator-nuke.readthedocs.io/en/stable/
