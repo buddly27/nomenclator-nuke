@@ -41,32 +41,6 @@ automation can be hard to adjust and maintain.
 The goal of this plugin is to provide a configurable way to define naming conventions
 based on the folder structure.
 
-Let's consider the following configuration:
-
-.. code-block:: toml
-
-    [[comp-templates]]
-    id = "Episodic"
-    pattern-path = "/path/{project}/{episode:ep\\d+}/{shot:sh\\d+}/scripts"
-    pattern-base = "{project}_{episode}_{shot}_{description}_v{version}"
-
-    [[comp-templates.outputs]]
-    id = "comps"
-    pattern-path = "/path/{project}/{episode:ep\\d+}/{shot:sh\\d+}/comps"
-    pattern-base = "{project}_{episode}_{shot}_comp_v{version}"
-
-    [[comp-templates.outputs]]
-    id = "precomps"
-    pattern-path = "/path/{project}/{episode:ep\\d+}/{shot:sh\\d+}/precomps"
-    pattern-base = "{project}_{episode}_{shot}_precomp_v{version}"
-
-If the scene path directory is matching the pattern path for the "Episodic" template,
-the corresponding tokens will be extracted in order to compute the scene name based on
-the pattern base given.
-
-The "Episodic" template also define two naming conventions for render outputs:
-"comps" and "precomps".
-
 *************
 Documentation
 *************

@@ -298,6 +298,14 @@ is now initialized to 2:
 
 Save the script once again by clicking on "Apply".
 
+.. note::
+
+    As we unchecked the :ref:`configuration/template/match-end` box, you can save
+    a new stream of the :term:`Nuke` script using the same naming convention
+    within a "test" subfolder::
+
+        /projects/drWho/ep002/sh003/comp/nuke/test/
+
 .. _tutorial/managing-outputs:
 
 Managing the outputs
@@ -313,3 +321,30 @@ Output Manager Dialog:
 The corresponding nodes will be updated once clicking on "Apply", but the
 :ref:`token/default/version` remains the same and the :term:`Nuke` script
 will not be saved.
+
+.. _tutorial/managing-project:
+
+Managing the project
+--------------------
+
+Now you can open a new :term:`Hiero` script.
+
+Open the Project Manager Dialog and browse to::
+
+    /projects/drWho/ep002/conform/hiero/
+
+You can see that the names are automatically generated following the naming conventions
+defined in the previous sections.
+
+No previous version of the project has been discovered with this naming convention,
+therefore the :ref:`token/default/version` token will be initialized to 1:
+
+.. image:: ./image/project-manager-1.png
+    :alt: Project Manager
+
+.. note::
+
+    The :ref:`token/default/description` token could also have been used,
+    but it is currently using the same list as the Comp Manager, which might
+    not make too much sense for projects. In the future, we might want to
+    add a separate project description list.
